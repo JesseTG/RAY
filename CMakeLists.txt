@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
-project(RAY)
+project(RAY CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
+
 set(SRC_FILES
     src/entities.cpp
     src/util.cpp
@@ -15,6 +16,7 @@ set(SRC_FILES
     src/systems/PlayerGunSystem.cpp
     src/systems/RenderSystem.cpp
 )
+
 set(INCLUDE_FILES
     include/config.hpp
     include/components.hpp
@@ -36,9 +38,16 @@ set(INCLUDE_FILES
     include/systems/PlayerGunSystem.hpp
     include/systems/RenderSystem.hpp
 )
-add_definitions(
-    -std=c++11
-)
+
+if (NOT MSVC)
+    add_definitions(
+        -std=c++11
+    )
+endif()
+
+if (WIN)
+    set_property(GLOBAL PROPERTY WIN32_EXECUTABLE)
+endif()
 
 include_directories(
     include
@@ -58,6 +67,7 @@ add_executable(Debug
 )
 
 add_executable(Release
+    EXCLUDE_FROM_ALL
     main.cpp
     ${SRC_FILES}
     ${INCLUDE_FILES}
