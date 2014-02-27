@@ -25,14 +25,16 @@ struct VelocityComponent : public Component<VelocityComponent>
      *
      * @param x The initial x (horizontal) velocity
      * @param y The initial y (vertical) velocity
+     * @tparam NumberType The numerical type (typically a @c float or an @c int)
+     * that @c pos uses. It must be implicitly convertible to a @c float.
      */
-    VelocityComponent(const float x, const float y) : velocity(x, y) {}
+    template<class NumberType>
+    VelocityComponent(const NumberType x, const NumberType y) : velocity(x, y) {}
 
     /**
-     * Constructs a PositionComponent with given position vector.
+     * Constructs a VelocityComponent with the given velocity vector.
      *
-     * @param pos The initial position vector. Remember, you don't need to
-     * explicitly specify the template specialization.
+     * @param pos The initial velocity vector.
      * @tparam NumberType The numerical type (typically a @c float or an @c int)
      * that @c pos uses. It must be implicitly convertible to a @c float.
      */
@@ -42,7 +44,7 @@ struct VelocityComponent : public Component<VelocityComponent>
     /**
      * The actual @c Vector2 representing the velocity
      */
-    Vector2<float> velocity;
+    Vector2f velocity;
 };
 }
 

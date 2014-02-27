@@ -27,8 +27,11 @@ struct PositionComponent : Component<PositionComponent>
      *
      * @param x The initial x (horizontal) coordinate.
      * @param y The initial y (vertical) coordinate.
+     * @tparam NumberType The numerical type (typically a @c float or an @c int)
+     * that @c pos uses. It must be implicitly convertible to a @c float.
      */
-    PositionComponent(const float x, const float y) : position(x, y) {}
+    template<class NumberType>
+    PositionComponent(const NumberType x, const NumberType y) : position(x, y) {}
 
     /**
      * Constructs a PositionComponent with given position vector.
@@ -44,7 +47,7 @@ struct PositionComponent : Component<PositionComponent>
     /**
      * The position stored by @c *this.
      */
-    Vector2<float> position;
+    Vector2f position;
 };
 }
 

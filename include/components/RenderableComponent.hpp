@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <typeinfo>
+#include <utility>
 
 #include <anax/anax.hpp>
 #include <SFML/Graphics.hpp>
@@ -45,7 +46,23 @@ struct RenderableComponent : Component<RenderableComponent>
      * will belong to. If @c d extends @c sf::Transformable, @c this->transformable
      * will be initialized to point to @c d.
      */
-    RenderableComponent(Drawable* d) : drawable(d), transformable(dynamic_pointer_cast<Transformable>(drawable)) {}
+    RenderableComponent(Drawable* d) : RenderableComponent(d, 0) {}
+
+    /**
+     * Constructs a Renderable that is initialized with the given @c sf::Drawable
+     * and onto the given layer.
+     *
+     * @param d The @c sf::Drawable to represent the @c Entity this RenderableComponent
+     * will belong to. If @c d extends @c sf::Transformable, @c this->transformable
+     * will be initialized to point to @c d.
+     * @param layer The number that determines when the underlying @c sf::Drawable
+     * will be drawn (smaller numbers go first; negative numbers are fine).
+     */
+    RenderableComponent(Drawable* d, const int layer) :
+        drawable(d),
+        transformable(dynamic_pointer_cast<Transformable>(drawable)),
+        layer(layer)
+    {}
 
     /**
      * A @c std::shared_ptr to the drawable object.
@@ -59,6 +76,9 @@ struct RenderableComponent : Component<RenderableComponent>
      * of @c dynamic_cast, which has some runtime overhead; do not want!
      */
     shared_ptr<Transformable> transformable;
+
+    int layer;
 };
 }
+
 #endif // RENDERABLECOMPONENT_HPP
