@@ -31,20 +31,27 @@ int main()
     entities::setWorld(world);
     entities::setRenderWindow(window);
 
-    Entity kbc = entities::createKeyboardCircle(32, 256, 256);
-    Entity mc  = entities::createMouseCircle(16);
+    Entity player = entities::createKeyboardCircle(32, 256, 256);
+    Entity crosshair = entities::createMouseCircle(16);
+    Entity tractorbeam = entities::createTractorBeam(crosshair, player, 16, 0, 128, 1);
 
-    FourWayControlSystem fwcs;
-    RenderSystem rs(window);
-    MovementSystem ms;
-    MouseFollowControlSystem mfcs(window);
-    PlayerGunSystem pgs(mc, window);
+    FourWayControlSystem four_way_movement;
+    RenderSystem rendering(window);
+    MovementSystem movement;
+    MouseFollowControlSystem mouse_following(window);
+    PlayerGunSystem player_gun(player, window);
+    FaceEntitySystem face_entity;
+    EntityFollowSystem follow_entity;
+    TractorBeamSystem tractor_system(tractorbeam, window);
 
-    world.addSystem(fwcs);
-    world.addSystem(pgs);
-    world.addSystem(mfcs);
-    world.addSystem(ms);
-    world.addSystem(rs);
+    world.addSystem(four_way_movement);
+    world.addSystem(player_gun);
+    world.addSystem(mouse_following);
+    world.addSystem(movement);
+    world.addSystem(face_entity);
+    world.addSystem(follow_entity);
+    world.addSystem(tractor_system);
+    world.addSystem(rendering);
 
     vector<Event> events;
     bool focused = true;
@@ -69,15 +76,21 @@ int main()
                     break;
             }
         }
-
+        // TODO: Improve timing
+        // Provide a scaling factor and pass it into updates
+        // Some things might move incorrectly if they depend on the framerate
         if (focused) {
-            pgs.update(events);
-            mfcs.update();
-            fwcs.update();
-            ms.update();
+            // If the player has the game window open...
+            player_gun.update(events);
+            mouse_following.update();
+            four_way_movement.update();
+            movement.update();
+            face_entity.update();
+            follow_entity.update();
+            tractor_system.update();
         }
 
-        rs.update();
+        rendering.update();
         world.refresh();
 
         events.clear();

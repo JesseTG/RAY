@@ -46,7 +46,7 @@ class MouseFollowControlSystem : public System<MouseFollowControlSystem>
         /**
          * Destructor.
          */
-        virtual ~MouseFollowControlSystem();
+        ~MouseFollowControlSystem();
 
         /**
          * When called, moves all managed @c Entities to wherever the mouse
