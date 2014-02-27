@@ -23,6 +23,8 @@ class RenderSystem : public System<RenderSystem>
         void update();
     private:
 		RenderWindow* _window;
+
+		static bool _sort_entities(const Entity&, const Entity&) noexcept;
 		const static ComponentFilter FILTER;
 };
 }
