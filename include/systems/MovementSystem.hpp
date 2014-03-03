@@ -10,7 +10,9 @@ using anax::Entity;
 using anax::System;
 
 /**
- * Moves all controlled @c Entities just a little bit each frame.
+ * Moves all controlled @c Entities just a little bit each frame. Don't use
+ * this for in-game @c Entities, we have the PhysicsSystem for that. Only use
+ * this for GUI elements and anything else that doesn't get involved with Box2D.
  *
  * All @c Entities in this MovementSystem must have a PositionComponent and a
  * VelocityComponent.
