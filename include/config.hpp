@@ -38,6 +38,11 @@ const int VELOCITY_ITERATIONS = 8;
  * The number of iterations the Box2D physics solver will run over position
  */
 const int POSITION_ITERATIONS = 3;
+
+/**
+ * It's pi.  What did you expect?
+ */
+const double PI = 3.141592653589793;
 }
 
 
