@@ -66,8 +66,10 @@ include_directories(
     include/listeners
     /usr/include
     /usr/local/include
+    /usr/include/luajit-2.0
 )
 
+find_package(LuaJIT)
 find_package(anax)
 find_package(Box2D)
 find_package(SFML 2 REQUIRED COMPONENTS graphics window system)
@@ -105,12 +107,14 @@ target_compile_options(Release
 
 target_link_libraries(Debug
     anax_d
+    luajit-5.1
     Box2D
     ${SFML_LIBRARIES}
 )
 
 target_link_libraries(Release
     anax
+    luajit-5.1
     Box2D
     ${SFML_LIBRARIES}
 )
