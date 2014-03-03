@@ -2,6 +2,10 @@
 #define SYSTEMS_HPP
 
 namespace ray {
+    #ifdef DEBUG
+    class DebugSystem;
+    #endif //DEBUG
+
     class EntityFollowSystem;
     class FaceEntitySystem;
     class FourWayControlSystem;
@@ -12,6 +16,9 @@ namespace ray {
     class RenderSystem;
     class TractorBeamSystem;
 }
+#ifdef DEBUG
+#include "DebugSystem.hpp"
+#endif //DEBUG
 
 #include "EntityFollowSystem.hpp"
 #include "FaceEntitySystem.hpp"
