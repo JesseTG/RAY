@@ -12,6 +12,7 @@
 #include "components.hpp"
 #include "systems.hpp"
 #include "entities.hpp"
+#include "listeners.hpp"
 
 int main()
 {
@@ -23,17 +24,24 @@ int main()
     using sf::VideoMode;
     using namespace ray;
 
+    TractorBeamRepellingListener tb_listener;
+
     // Create the main window
     RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
     window.setFramerateLimit(60);
     anax::World world;
+    b2World physics_world(b2Vec2(0, 0));
 
     entities::setWorld(world);
     entities::setRenderWindow(window);
+    entities::setPhysicsWorld(physics_world);
+    entities::initBodyDefs();
 
-    Entity player = entities::createKeyboardCircle(32, 256, 256);
+    physics_world.SetContactListener(&tb_listener);
+
     Entity crosshair = entities::createMouseCircle(16);
-    Entity tractorbeam = entities::createTractorBeam(crosshair, player, 16, 0, 128, 1);
+    Entity player = entities::createKeyboardCircle(crosshair, 32, 256, 256);
+    Entity tractorbeam = entities::createTractorBeam(crosshair, player, 16, 0, 512, 1);
 
     FourWayControlSystem four_way_movement;
     RenderSystem rendering(window);
@@ -42,15 +50,24 @@ int main()
     PlayerGunSystem player_gun(player, window);
     FaceEntitySystem face_entity;
     EntityFollowSystem follow_entity;
-    TractorBeamSystem tractor_system(tractorbeam, window);
+    TractorBeamSystem tractor_system(tb_listener, tractorbeam);
+    PhysicsSystem physics(physics_world);
+    #ifdef DEBUG
+    DebugSystem debug(window, physics_world);
+    #endif // DEBUG
+
 
     world.addSystem(four_way_movement);
     world.addSystem(player_gun);
     world.addSystem(mouse_following);
-    world.addSystem(movement);
+    //world.addSystem(movement);
     world.addSystem(face_entity);
     world.addSystem(follow_entity);
     world.addSystem(tractor_system);
+    world.addSystem(physics);
+    #ifdef DEBUG
+    world.addSystem(debug);
+    #endif // DEBUG
     world.addSystem(rendering);
 
     vector<Event> events;
@@ -84,10 +101,14 @@ int main()
             player_gun.update(events);
             mouse_following.update();
             four_way_movement.update();
-            movement.update();
+            //movement.update();
             face_entity.update();
             follow_entity.update();
             tractor_system.update();
+            physics.update();
+            #ifdef DEBUG
+            debug.update(events);
+            #endif // DEBUG
         }
 
         rendering.update();
