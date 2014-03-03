@@ -1,9 +1,10 @@
 #include "DebugSystem.hpp"
 
 namespace ray {
-DebugSystem::DebugSystem(RenderWindow& window, b2World& world) :
+DebugSystem::DebugSystem(RenderWindow& window, b2World& world, LuaContext& lua) :
     _window(&window),
-    _physics_world(&world)
+    _physics_world(&world),
+    _lua(&lua)
 {
     //ctor
 }

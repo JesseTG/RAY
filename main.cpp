@@ -1,18 +1,23 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <chrono>
 #include <thread>
 
 #include <SFML/Graphics.hpp>
-
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 #include "config.hpp"
 #include "components.hpp"
 #include "systems.hpp"
 #include "entities.hpp"
 #include "listeners.hpp"
+
+void printMe() {
+    std::cout << "Cocks\n";
+}
 
 int main()
 {
@@ -31,6 +36,7 @@ int main()
     window.setFramerateLimit(60);
     anax::World world;
     b2World physics_world(b2Vec2(0, 0));
+    LuaContext lua;
 
     entities::setWorld(world);
     entities::setRenderWindow(window);
@@ -53,7 +59,7 @@ int main()
     TractorBeamSystem tractor_system(tb_listener, tractorbeam);
     PhysicsSystem physics(physics_world);
     #ifdef DEBUG
-    DebugSystem debug(window, physics_world);
+    DebugSystem debug(window, physics_world, lua);
     #endif // DEBUG
 
 
