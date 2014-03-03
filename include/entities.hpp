@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
+#include <Box2D/Box2D.h>
 
 namespace ray {
 namespace entities {
@@ -10,6 +11,7 @@ using anax::Entity;
 using anax::World;
 
 using sf::CircleShape;
+using sf::ConvexShape;
 using sf::Color;
 using sf::RectangleShape;
 using sf::RenderWindow;
@@ -20,6 +22,16 @@ using sf::Vector2u;
 
 extern World*        _world ;
 extern RenderWindow* _window;
+extern b2World*      _physics_world;
+
+extern b2BodyDef ENEMY_BODY;
+extern b2FixtureDef ENEMY_FIXTURE;
+extern b2BodyDef PLAYER_BODY;
+extern b2FixtureDef PLAYER_FIXTURE;
+extern b2FixtureDef TRACTOR_BEAM_FIXTURE;
+
+extern b2CircleShape PLAYER_SHAPE;
+extern b2PolygonShape TRACTOR_BEAM_SHAPE;
 
 /**
  * Sets the @c World that will create the @c Entities (so you don't have to
@@ -39,6 +51,13 @@ void setWorld(World&) noexcept;
  */
 void setRenderWindow(RenderWindow&) noexcept;
 
+void setPhysicsWorld(b2World&) noexcept;
+
+/**
+ * Initializes Box2D body definitions
+ */
+void initBodyDefs() noexcept;
+
 /**
  * Creates and activates circle that can be controlled by the arrow keys. More
  * specifically, creates an @c Entity with the following components:
@@ -54,7 +73,7 @@ void setRenderWindow(RenderWindow&) noexcept;
  *
  * @return The new @c Entity
  */
-Entity createKeyboardCircle(const float r, const float x, const float y) noexcept;
+Entity createKeyboardCircle(const Entity& face_entity, const float r, const float x, const float y) noexcept;
 
 /**
  * Creates and activates a crosshair (in the form of a circle) that follows the
