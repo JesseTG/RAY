@@ -12,6 +12,8 @@ using std::hypot;
 using std::cos;
 using std::sin;
 using std::atan2;
+using sf::Keyboard;
+using sf::Mouse;
 
 const ComponentFilter PlayerGunSystem::FILTER = ComponentFilter()
         .requires<PositionComponent, MouseFollowControlComponent>();
@@ -31,10 +33,10 @@ PlayerGunSystem::~PlayerGunSystem()
 
 void PlayerGunSystem::update(const vector<Event>& events) {
     for (const Event& e : events) {
-        if (e.type == Event::MouseButtonPressed) {
-            if (e.mouseButton.button == Mouse::Button::Left) {
+        if (e.type == Event::EventType::KeyPressed) {
+            if (e.key.code == Keyboard::Key::E) {
                 Vector2f worldpos =
-                    this->_window->mapPixelToCoords(Vector2i(e.mouseButton.x, e.mouseButton.y));
+                    this->_window->mapPixelToCoords(Mouse::getPosition(*this->_window));
                 // Where in the world will the bullet fly to?
 
                 Vector2f playerpos = this->_player.getComponent<PositionComponent>().position;
@@ -43,7 +45,7 @@ void PlayerGunSystem::update(const vector<Event>& events) {
                 double vx = 5 * cos(theta);
                 double vy = 5 * sin(theta);
 
-                entities::createBullet(playerpos.x, playerpos.y, vx, vy);
+                //entities::createBullet(playerpos.x, playerpos.y, vx, vy);
                 entities::createEnemy(worldpos.x, worldpos.y, 8);
             }
         }
