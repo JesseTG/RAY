@@ -58,18 +58,6 @@ set(INCLUDE_FILES
     include/systems/TractorBeamSystem.hpp
 )
 
-if (NOT MSVC)
-    add_definitions(
-        -std=c++11
-        -DDEBUG # Temporary
-        -g
-    )
-endif()
-
-if (WIN)
-    set_property(GLOBAL PROPERTY WIN32_EXECUTABLE)
-endif()
-
 include_directories(
     include
     include/components
@@ -80,7 +68,7 @@ include_directories(
     /usr/local/include
 )
 
-find_package(anax_d)
+find_package(anax)
 find_package(Box2D)
 find_package(SFML 2 REQUIRED COMPONENTS graphics window system)
 
@@ -97,6 +85,24 @@ add_executable(Release
     ${INCLUDE_FILES}
 )
 
+target_compile_definitions(Debug
+    PUBLIC DEBUG
+)
+
+target_compile_definitions(Release
+    PUBLIC NDEBUG
+)
+
+target_compile_options(Debug
+    PUBLIC -O0
+    PUBLIC -g
+)
+
+target_compile_options(Release
+    PUBLIC -O3
+    PUBLIC -s
+)
+
 target_link_libraries(Debug
     anax_d
     Box2D
@@ -104,7 +110,18 @@ target_link_libraries(Debug
 )
 
 target_link_libraries(Release
-    anax_d
+    anax
     Box2D
     ${SFML_LIBRARIES}
 )
+
+if (WIN)
+    set_property(TARGET Release PROPERTY WIN32_EXECUTABLE)
+endif()
+
+if (NOT MSVC)
+    add_definitions(
+        -std=c++11
+    )
+endif()
+
