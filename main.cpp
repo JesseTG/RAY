@@ -16,7 +16,6 @@
 int main()
 {
     using std::vector;
-    using std::this_thread::sleep_for;
     using std::chrono::milliseconds;
     using sf::Event;
     using sf::RenderWindow;

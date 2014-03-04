@@ -2,6 +2,7 @@
 #define UTIL_HPP
 
 #include <vector>
+#include "config.hpp"
 
 #include <SFML/Graphics.hpp>
 

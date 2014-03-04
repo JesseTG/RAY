@@ -13,7 +13,7 @@ PhysicsSystem::~PhysicsSystem()
     //dtor
 }
 
-PhysicsSystem::update() {
+void PhysicsSystem::update() {
     this->_world.Step(SPF, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 }
 

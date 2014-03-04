@@ -38,6 +38,8 @@ const int VELOCITY_ITERATIONS = 8;
  * The number of iterations the Box2D physics solver will run over position
  */
 const int POSITION_ITERATIONS = 3;
+
+const float M_PI = 3.141592654;
 }
 
 
