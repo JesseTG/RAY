@@ -41,7 +41,12 @@ int main()
     entities::setWorld(world);
     entities::setRenderWindow(window);
     entities::setPhysicsWorld(physics_world);
+    entities::setLuaState(lua);
+
+    entities::initComponentLuaBindings();
     entities::initBodyDefs();
+
+    entities::createEntity("baddie");
 
     physics_world.SetContactListener(&tb_listener);
 

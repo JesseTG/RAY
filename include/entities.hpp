@@ -122,9 +122,13 @@ Entity createEntity(const string& type);
  * Should only be called by Lua
  */
 template<class TComponent>
-void addNewComponent(Entity& e) {
-    e.addComponent(new TComponent);
+TComponent& addNewComponent(Entity& e) {
+    TComponent* t = new TComponent;
+    e.addComponent(t);
+    return *t;
 }
+
+void initBaseTypes();
 
 void initComponentLuaBindings();
 }

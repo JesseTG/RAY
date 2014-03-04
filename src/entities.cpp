@@ -4,8 +4,21 @@
 #include "util.hpp"
 #include <LuaContext.hpp>
 
+#include <unordered_map>
+#include <type_traits>
+#include <fstream>
+
+#define REGISTER_COMPONENT(type) \
+    do { \
+        _lua->writeVariable(#type, LuaEmptyArray); \
+        _lua->writeFunction(#type, "new", []() { return type(); }); \
+        type::luaInit(*_lua); \
+    } while (0)
+
 namespace ray {
 namespace entities {
+
+using std::unordered_map;
 
 World*        _world ;
 RenderWindow* _window;
@@ -39,8 +52,29 @@ void setLuaState(LuaContext& lua) noexcept {
     _lua = &lua;
 }
 
+void initBaseTypes() {
+    _lua->writeVariable("Vector", LuaEmptyArray);
+    _lua->writeFunction("Vector", "new", []() {
+        return sf::Vector2f();
+    });
+
+    _lua->registerMember("x", &sf::Vector2f::x);
+    _lua->registerMember("y", &sf::Vector2f::y);
+}
+
 void initComponentLuaBindings() {
-   //_lua->writeVariable("newPositionComponent", &addNewComponent<PositionComponent>);
+    REGISTER_COMPONENT(AccelerationComponent);
+    REGISTER_COMPONENT(EntityFollowComponent);
+    REGISTER_COMPONENT(FaceEntityComponent);
+    REGISTER_COMPONENT(FourWayControlComponent);
+    REGISTER_COMPONENT(MouseFollowControlComponent);
+    //REGISTER_COMPONENT(PhysicsBodyComponent);
+    //REGISTER_COMPONENT(PhysicsFixtureComponent);
+    REGISTER_COMPONENT(PositionComponent);
+    REGISTER_COMPONENT(RenderableComponent);
+    REGISTER_COMPONENT(TractorBeamComponent);
+    REGISTER_COMPONENT(TractorBeamRepellableComponent);
+    REGISTER_COMPONENT(VelocityComponent);
 }
 
 void initBodyDefs() noexcept {
@@ -79,6 +113,7 @@ Entity createKeyboardCircle(const Entity& face_entity, const float r, const floa
     e.addComponent(new PhysicsBodyComponent(body, e));
     e.addComponent(new PhysicsFixtureComponent(fixture, e));
     e.addComponent(new FaceEntityComponent(face_entity));
+
     _world->activateEntity(e);
     return e;
 }
@@ -174,8 +209,10 @@ Entity createBullet(
 
 Entity createEntity(const string& type) {
     Entity e = _world->createEntity();
-
-
+    std::ifstream in("data/script/entities.lua");
+    _lua->writeVariable("entity", e);
+    _lua->executeCode(in);
+    _lua->writeVariable("entity", nullptr);
     return e;
 }
 
