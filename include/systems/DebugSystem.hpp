@@ -6,7 +6,8 @@
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
-#include <LuaContext.hpp>
+
+#include "luaconfig.hpp"
 
 namespace ray {
 
@@ -33,18 +34,17 @@ class DebugSystem : public anax::System<DebugSystem>
 {
     public:
         /**
-         * Constructor. Initializes this DebugSystem with a @c sf::RenderWindow
-         * and a @c b2World.
+         * Constructor. Initializes this DebugSystem with a @c sf::RenderWindow,
+         * a @c b2World, and a LuaContext.
          */
-        DebugSystem(RenderWindow&, b2World&, LuaContext&);
+        DebugSystem(RenderWindow&, b2World&, lua_State&);
         ~DebugSystem();
 
         void update(const vector<Event>& events);
     private:
         RenderWindow* _window;
         b2World* _physics_world;
-        LuaContext* _lua;
-
+        lua_State* _lua;
 };
 }
 

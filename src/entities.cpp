@@ -2,6 +2,9 @@
 #include "components.hpp"
 #include "config.hpp"
 #include "util.hpp"
+#include "luaconfig.hpp"
+
+#include <fstream>
 
 namespace ray {
 namespace entities {
@@ -9,6 +12,7 @@ namespace entities {
 World*        _world ;
 RenderWindow* _window;
 b2World* _physics_world;
+lua_State* _lua;
 
 b2BodyDef ENEMY_BODY;
 b2CircleShape ENEMY_SHAPE;
@@ -31,6 +35,14 @@ void setRenderWindow(RenderWindow& window) noexcept {
 
 void setPhysicsWorld(b2World& world) noexcept {
     _physics_world = &world;
+}
+
+void setLuaState(lua_State& lua) noexcept {
+    _lua = &lua;
+}
+
+void initComponentLuaBindings() {
+   //_lua->writeVariable("newPositionComponent", &addNewComponent<PositionComponent>);
 }
 
 void initBodyDefs() noexcept {
@@ -159,6 +171,13 @@ Entity createBullet(
     e.addComponent(new BulletComponent(2));
 
     _world->activateEntity(e);
+    return e;
+}
+
+Entity createEntity(const string& type) {
+    Entity e = _world->createEntity();
+
+
     return e;
 }
 

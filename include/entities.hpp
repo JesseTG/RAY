@@ -1,12 +1,19 @@
 #ifndef ENTITIES_HPP
 #define ENTITIES_HPP
 
+#include <string>
+
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
 
+#include "luaconfig.hpp"
+
 namespace ray {
 namespace entities {
+
+using std::string;
+
 using anax::Entity;
 using anax::World;
 
@@ -23,6 +30,7 @@ using sf::Vector2u;
 extern World*        _world ;
 extern RenderWindow* _window;
 extern b2World*      _physics_world;
+extern lua_State*    _lua;
 
 extern b2BodyDef ENEMY_BODY;
 extern b2FixtureDef ENEMY_FIXTURE;
@@ -52,6 +60,8 @@ void setWorld(World&) noexcept;
 void setRenderWindow(RenderWindow&) noexcept;
 
 void setPhysicsWorld(b2World&) noexcept;
+
+void setLuaState(lua_State& lua) noexcept;
 
 /**
  * Initializes Box2D body definitions
@@ -104,7 +114,22 @@ Entity createTractorBeam(
 Entity createEnemy(const float, const float, const float) noexcept;
 
 Entity createBullet(const float, const float, const float, const float) noexcept;
+
+Entity createEntity(const string& type);
+
+/**
+ * Constructs a component of given type, it should be default-constructible
+ *
+ * Should only be called by Lua
+ */
+template<class TComponent>
+void addNewComponent(Entity& e) {
+    e.addComponent(new TComponent);
 }
+
+void initComponentLuaBindings();
+}
+
 }
 
 
