@@ -7,15 +7,17 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 #include "config.hpp"
 #include "components.hpp"
 #include "systems.hpp"
 #include "entities.hpp"
 #include "listeners.hpp"
-#include "luaconfig.hpp"
 
-int foo() {return 5;}
+void printMe() {
+    std::cout << "Cocks\n";
+}
 
 int main()
 {
@@ -34,20 +36,12 @@ int main()
     window.setFramerateLimit(60);
     anax::World world;
     b2World physics_world(b2Vec2(0, 0));
-    lua_State* lua = luaL_newstate();
-    luaL_openlibs(lua);
-
-    luabridge::getGlobalNamespace(lua)
-    .beginNamespace ("test")
-    .addFunction("france", foo)
-    .endNamespace ();
+    LuaContext lua;
 
     entities::setWorld(world);
     entities::setRenderWindow(window);
     entities::setPhysicsWorld(physics_world);
-    entities::setLuaState(*lua);
     entities::initBodyDefs();
-    entities::initComponentLuaBindings();
 
     physics_world.SetContactListener(&tb_listener);
 
@@ -64,9 +58,9 @@ int main()
     EntityFollowSystem follow_entity;
     TractorBeamSystem tractor_system(tb_listener, tractorbeam);
     PhysicsSystem physics(physics_world);
-#ifdef DEBUG
-    DebugSystem debug(window, physics_world, *lua);
-#endif // DEBUG
+    #ifdef DEBUG
+    DebugSystem debug(window, physics_world, lua);
+    #endif // DEBUG
 
 
     world.addSystem(four_way_movement);
@@ -77,9 +71,9 @@ int main()
     world.addSystem(follow_entity);
     world.addSystem(tractor_system);
     world.addSystem(physics);
-#ifdef DEBUG
+    #ifdef DEBUG
     world.addSystem(debug);
-#endif // DEBUG
+    #endif // DEBUG
     world.addSystem(rendering);
 
     vector<Event> events;
@@ -118,9 +112,9 @@ int main()
             follow_entity.update();
             tractor_system.update();
             physics.update();
-#ifdef DEBUG
+            #ifdef DEBUG
             debug.update(events);
-#endif // DEBUG
+            #endif // DEBUG
         }
 
         rendering.update();
@@ -128,6 +122,4 @@ int main()
 
         events.clear();
     }
-
-    lua_close(lua);
 }

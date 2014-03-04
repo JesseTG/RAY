@@ -6,8 +6,7 @@
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
-
-#include "luaconfig.hpp"
+#include <LuaContext.hpp>
 
 namespace ray {
 namespace entities {
@@ -30,7 +29,7 @@ using sf::Vector2u;
 extern World*        _world ;
 extern RenderWindow* _window;
 extern b2World*      _physics_world;
-extern lua_State*    _lua;
+extern LuaContext*    _lua;
 
 extern b2BodyDef ENEMY_BODY;
 extern b2FixtureDef ENEMY_FIXTURE;
@@ -61,7 +60,7 @@ void setRenderWindow(RenderWindow&) noexcept;
 
 void setPhysicsWorld(b2World&) noexcept;
 
-void setLuaState(lua_State& lua) noexcept;
+void setLuaState(LuaContext& lua) noexcept;
 
 /**
  * Initializes Box2D body definitions

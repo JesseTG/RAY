@@ -1,7 +1,7 @@
 #include "DebugSystem.hpp"
 
 namespace ray {
-DebugSystem::DebugSystem(RenderWindow& window, b2World& world, lua_State& lua) :
+DebugSystem::DebugSystem(RenderWindow& window, b2World& world, LuaContext& lua) :
     _window(&window),
     _physics_world(&world),
     _lua(&lua),
