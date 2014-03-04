@@ -3,6 +3,7 @@
 
 #include <anax/anax.hpp>
 #include <SFML/System.hpp>
+#include <LuaContext.hpp>
 
 namespace ray
 {
@@ -48,6 +49,26 @@ struct PositionComponent : Component<PositionComponent>
      * The position stored by @c *this.
      */
     Vector2f position;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("position", &PositionComponent::position);
+        lua.registerMember<PositionComponent, float>("x",
+        [](const PositionComponent& p) -> float {
+            return p.position.x;
+        },
+        [](PositionComponent& p, float val) {
+            p.position.x = val;
+        }
+                                                      );
+        lua.registerMember<PositionComponent, float>("y",
+        [](const PositionComponent& p) -> float {
+            return p.position.y;
+        },
+        [](PositionComponent& p, float val) {
+            p.position.y = val;
+        }
+                                                      );
+    }
 };
 }
 
