@@ -30,12 +30,14 @@ const int FPS = 60;
 const float SPF = 1.0 / FPS;
 
 /**
- * The number of iterations the Box2D physics solver will run over velocity
+ * The number of iterations the Box2D physics solver will run over velocity for
+ * each step
  */
 const int VELOCITY_ITERATIONS = 8;
 
 /**
- * The number of iterations the Box2D physics solver will run over position
+ * The number of iterations the Box2D physics solver will run over position for
+ * each step
  */
 const int POSITION_ITERATIONS = 3;
 
