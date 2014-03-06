@@ -17,9 +17,9 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
 {
     /**
      * Constructs a FourWayControlComponent with the default values of
-     * @c Key::Up, @c Key::Down, @c Key::Left, and @c Key::Right, respectively.
+     * @c Key::W, @c Key::S, @c Key::A, and @c Key::D, respectively.
      */
-    FourWayControlComponent() : FourWayControlComponent(Key::Up, Key::Down, Key::Left, Key::Right) {}
+    FourWayControlComponent() : FourWayControlComponent(Key::W, Key::S, Key::A, Key::D) {}
 
     /**
      * Constructs a FourWayControlComponent that can be used with arbitrary
@@ -52,6 +52,13 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
      * The @c Key that will move this @c Entity right (east) when pressed
      */
     Key right;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("up", &FourWayControlComponent::up);
+        lua.registerMember("down", &FourWayControlComponent::down);
+        lua.registerMember("left", &FourWayControlComponent::left);
+        lua.registerMember("right", &FourWayControlComponent::right);
+    }
 };
 }
 #endif // FOURWAYMOVEMENTCOMPONENT_HPP

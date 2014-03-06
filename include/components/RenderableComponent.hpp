@@ -7,6 +7,7 @@
 
 #include <anax/anax.hpp>
 #include <SFML/Graphics.hpp>
+#include <LuaContext.hpp>
 
 namespace ray
 {
@@ -78,6 +79,12 @@ struct RenderableComponent : Component<RenderableComponent>
     shared_ptr<Transformable> transformable;
 
     int layer;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("transformable", &RenderableComponent::transformable);
+        lua.registerMember("drawable", &RenderableComponent::drawable);
+        lua.registerMember("layer", &RenderableComponent::layer);
+    }
 };
 }
 

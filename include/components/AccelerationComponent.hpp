@@ -3,6 +3,7 @@
 
 #include <anax/anax.hpp>
 #include <SFML/System.hpp>
+#include <LuaContext.hpp>
 
 namespace ray
 {
@@ -48,6 +49,25 @@ struct AccelerationComponent : public Component<AccelerationComponent>
      * The actual @c Vector2 representing the acceleration
      */
     Vector2f acceleration;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("acceleration", &AccelerationComponent::acceleration);
+        lua.registerMember<AccelerationComponent, float>("x",
+        [](const AccelerationComponent& p) -> float {
+            return p.acceleration.x;
+        },
+        [](AccelerationComponent& p, float val) {
+            p.acceleration.x = val;
+        });
+
+        lua.registerMember<AccelerationComponent, float>("y",
+        [](const AccelerationComponent& p) -> float {
+            return p.acceleration.y;
+        },
+        [](AccelerationComponent& p, float val) {
+            p.acceleration.y = val;
+        });
+    }
 };
 }
 

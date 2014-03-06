@@ -28,7 +28,7 @@ struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
     /**
      * The angle the tractor beam will extend, in radians. For example, if set
      * to zero, the tractor beam will extend perfectly horizontally. If set to
-     * 90 degrees (aka @c pi/2 radians), the the beam will extend perpendicularly
+     * 90 degrees (aka @c PI/2 radians), the the beam will extend perpendicularly
      * to the direction the player is flying.
      */
     float starting_angle;
@@ -45,6 +45,13 @@ struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
      * is attracting. Negative is repelling.
      */
     float force;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("starting_width", &TractorBeamComponent::starting_width);
+        lua.registerMember("starting_angle", &TractorBeamComponent::starting_angle);
+        lua.registerMember("length", &TractorBeamComponent::length);
+        lua.registerMember("force", &TractorBeamComponent::force);
+    }
 };
 }
 

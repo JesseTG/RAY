@@ -2,6 +2,7 @@
 #define TRACTORBEAMREPELLABLECOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 namespace ray {
 /**

@@ -2,6 +2,7 @@
 #define ENTITYFOLLOWCOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 namespace ray {
 
@@ -33,6 +34,10 @@ struct EntityFollowComponent : public anax::Component<EntityFollowComponent>
      * @c target.isValid() is @c false, @c *this has no effect on its @c Entity.
      */
     Entity target;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("target", &EntityFollowComponent::target);
+    }
 };
 }
 

@@ -45,6 +45,25 @@ struct VelocityComponent : public Component<VelocityComponent>
      * The actual @c Vector2 representing the velocity
      */
     Vector2f velocity;
+
+    static void luaInit(LuaContext& lua) {
+        lua.registerMember("velocity", &VelocityComponent::velocity);
+        lua.registerMember<VelocityComponent, float>("x",
+        [](const VelocityComponent& v) -> float {
+            return v.velocity.x;
+        },
+        [](VelocityComponent& v, float val) {
+            v.velocity.x = val;
+        });
+
+        lua.registerMember<VelocityComponent, float>("y",
+        [](const VelocityComponent& v) -> float {
+            return v.velocity.y;
+        },
+        [](VelocityComponent& v, float val) {
+            v.velocity.y = val;
+        });
+    }
 };
 }
 

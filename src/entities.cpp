@@ -1,24 +1,56 @@
 #include "entities.hpp"
+
+#include <iostream>
+#include <functional>
+#include <fstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+
+#include <boost/tti/has_static_member_function.hpp>
+
 #include "components.hpp"
 #include "config.hpp"
 #include "util.hpp"
 #include <LuaContext.hpp>
 
-#include <unordered_map>
-#include <type_traits>
-#include <fstream>
+BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(luaInit);
 
-#define REGISTER_COMPONENT(type) \
+/**
+ * Permits a component to be seen and interacted with in Lua-space. If you want
+ * to be able to manipulate its fields in Lua-space, you must add a public @c
+ * static function to the relevant @c Component subclass that looks like this:
+ * @code
+ * void luaInit(LuaContext& lua);
+ * @endcode
+ * Templates are used to handle the case where this is not defined.
+ */
+#define REGISTER_COMPONENT(ctype) \
     do { \
-        _lua->writeVariable(#type, LuaEmptyArray); \
-        _lua->writeFunction(#type, "new", []() { return type(); }); \
-        type::luaInit(*_lua); \
+        _lua->writeVariable(#ctype, LuaEmptyArray); \
+        _lua->writeFunction(#ctype, "new", []() { return ctype(); }); \
+        auto addc = [](Entity& e, ctype& c) { e.addComponent<ctype>(&c); }; \
+        _lua->registerFunction<Entity, void(ctype&)>(string("add") + #ctype, addc); \
+        typedef conditional< \
+        has_static_member_function_luaInit<ctype, void(LuaContext&)>::value, \
+        ctype, \
+        LuaInitDummy \
+        > t; \
+        t::type::luaInit(*_lua); \
     } while (0)
 
 namespace ray {
 namespace entities {
-
+using std::conditional;
 using std::unordered_map;
+using std::string;
+using sf::Color;
+using sf::Rect;
+using sf::IntRect;
+using sf::FloatRect;
+using sf::Vector2;
+using sf::Vector2i;
+using sf::Vector2f;
 
 World*        _world ;
 RenderWindow* _window;
@@ -36,6 +68,10 @@ b2FixtureDef PLAYER_FIXTURE;
 b2PolygonShape TRACTOR_BEAM_SHAPE;
 b2FixtureDef TRACTOR_BEAM_FIXTURE;
 
+struct LuaInitDummy {
+    static void luaInit(LuaContext&) {}
+};
+
 void setWorld(World& world) noexcept {
     _world = &world;
 }
@@ -52,14 +88,174 @@ void setLuaState(LuaContext& lua) noexcept {
     _lua = &lua;
 }
 
+// TODO: Section this off into another compilation unit; or another project?
 void initBaseTypes() {
-    _lua->writeVariable("Vector", LuaEmptyArray);
-    _lua->writeFunction("Vector", "new", []() {
-        return sf::Vector2f();
-    });
+    _lua->writeVariable("Anax", LuaEmptyArray);
+    {
+        _lua->writeVariable("Anax", "world", _world);
+        {
+            _lua->registerFunction("killEntity", &World::killEntity);
+            _lua->registerFunction("killEntities", &World::killEntities);
+            _lua->registerFunction("activateEntity", &World::activateEntity);
+            _lua->registerFunction("deactivateEntity", &World::deactivateEntity);
+            _lua->registerFunction("isActivated", &World::isActivated);
+            _lua->registerFunction("isValid", &World::isValid);
+            _lua->registerFunction("refresh", &World::refresh);
+            _lua->registerFunction("clear", &World::clear);
+            _lua->registerFunction("getEntityCount", &World::getEntityCount);
+        }
 
-    _lua->registerMember("x", &sf::Vector2f::x);
-    _lua->registerMember("y", &sf::Vector2f::y);
+        _lua->writeVariable("Anax", "Entity", LuaEmptyArray);
+        {
+            _lua->writeFunction("Anax", "Entity", "new", []() {
+                Entity e = _world->createEntity();
+                _world->activateEntity(e);
+                return e;
+            });
+            _lua->registerFunction("isActivated", &Entity::isActivated);
+            _lua->registerFunction("activate", &Entity::activate);
+            _lua->registerFunction("deactivate", &Entity::deactivate);
+            _lua->registerFunction("isValid", &Entity::isValid);
+        }
+    }
+
+    _lua->writeVariable("SFML", LuaEmptyArray);
+    {
+        _lua->writeVariable("SFML", "Vector", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "Vector", "new", getDefaultConstructorLambda<Vector2f>());
+            _lua->registerMember("x", &Vector2f::x);
+            _lua->registerMember("y", &Vector2f::y);
+        }
+
+        _lua->writeVariable("SFML", "Color", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "Color", "new", getDefaultConstructorLambda<Color>());
+            _lua->registerMember("r", &Color::r);
+            _lua->registerMember("g", &Color::g);
+            _lua->registerMember("b", &Color::b);
+            _lua->registerMember("a", &Color::a);
+
+            _lua->writeVariable("SFML", "Color", "Red", Color::Red);
+            _lua->writeVariable("SFML", "Color", "Blue", Color::Blue);
+        }
+
+        _lua->writeVariable("SFML", "Rect", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "Rect", "new", getDefaultConstructorLambda<FloatRect>());
+            _lua->registerMember("left", &FloatRect::left);
+            _lua->registerMember("x", &FloatRect::left);
+            _lua->registerMember("top", &FloatRect::top);
+            _lua->registerMember("y", &FloatRect::top);
+            _lua->registerMember("width", &FloatRect::width);
+            _lua->registerMember("height", &FloatRect::height);
+        }
+    }
+
+    _lua->writeVariable("Box2D", LuaEmptyArray);
+    {
+        _lua->writeVariable("Box2D", "Vector", LuaEmptyArray);
+        {
+            _lua->writeFunction("Box2D", "Vector", "new", []() {
+                return b2Vec2(0, 0);
+            });
+            _lua->registerMember("x", &b2Vec2::x);
+            _lua->registerMember("y", &b2Vec2::y);
+        }
+
+        _lua->writeVariable("Box2D", "BodyType", LuaEmptyArray);
+        {
+            _lua->writeVariable("Box2D", "BodyType", "Static", b2_staticBody);
+            _lua->writeVariable("Box2D", "BodyType", "Dynamic", b2_dynamicBody);
+            _lua->writeVariable("Box2D", "BodyType", "Kinematic", b2_kinematicBody);
+        }
+
+        _lua->writeVariable("Box2D", "BodyDef", LuaEmptyArray);
+        {
+            _lua->writeFunction("Box2D", "BodyDef", "new", getDefaultConstructorLambda<b2BodyDef>());
+
+            _lua->registerMember("active", &b2BodyDef::active);
+            _lua->registerMember("allowSleep", &b2BodyDef::allowSleep);
+            _lua->registerMember("angle", &b2BodyDef::angle);
+            _lua->registerMember("angularDamping", &b2BodyDef::angularDamping);
+            _lua->registerMember("angularVelocity", &b2BodyDef::angularVelocity);
+            _lua->registerMember("awake", &b2BodyDef::awake);
+            _lua->registerMember("bullet", &b2BodyDef::bullet);
+            _lua->registerMember("fixedRotation", &b2BodyDef::fixedRotation);
+            _lua->registerMember("gravityScale", &b2BodyDef::gravityScale);
+            _lua->registerMember("linearDamping", &b2BodyDef::linearDamping);
+            _lua->registerMember("linearVelocity", &b2BodyDef::linearVelocity);
+            _lua->registerMember("position", &b2BodyDef::position);
+        }
+
+        _lua->writeVariable("Box2D", "Body", LuaEmptyArray);
+        {
+            _lua->registerMember<b2Body, bool>("awake",
+            [](const b2Body& object) {
+                return object.IsAwake();
+            },
+            [](b2Body& object, const bool val) {
+                object.SetAwake(val);
+            });
+            _lua->registerMember<b2Body, bool>("fixedRotation",
+            [](const b2Body& object) {
+                return object.IsFixedRotation();
+            },
+            [](b2Body& object, const bool val) {
+                object.SetFixedRotation(val);
+            });
+        }
+
+        _lua->writeVariable("Box2D", "Filter", LuaEmptyArray);
+        {
+            _lua->writeFunction("Box2D", "Filter", "new", getDefaultConstructorLambda<b2Filter>());
+            _lua->registerMember("categoryBits", &b2Filter::categoryBits);
+            _lua->registerMember("maskBits", &b2Filter::maskBits);
+            _lua->registerMember("groupIndex", &b2Filter::groupIndex);
+        }
+
+        _lua->writeVariable("Box2D", "FixtureDef", LuaEmptyArray);
+        {
+            _lua->writeFunction("Box2D", "FixtureDef", "new", getDefaultConstructorLambda<b2FixtureDef>());
+            _lua->registerMember("friction", &b2FixtureDef::friction);
+            _lua->registerMember("restitution", &b2FixtureDef::restitution);
+            _lua->registerMember("density", &b2FixtureDef::density);
+            _lua->registerMember("isSensor", &b2FixtureDef::isSensor);
+            _lua->registerMember("filter", &b2FixtureDef::filter);
+        }
+
+        _lua->writeVariable("Box2D", "Fixture", LuaEmptyArray);
+        {
+            _lua->registerMember<b2Fixture, float>("friction",
+            [](const b2Fixture& object) {
+                return object.GetFriction();
+            },
+            [](b2Fixture& object, const float val) {
+                object.SetFriction(val);
+            });
+            _lua->registerMember<b2Fixture, float>("restitution",
+            [](const b2Fixture& object) {
+                return object.GetRestitution();
+            },
+            [](b2Fixture& object, const float val) {
+                object.SetRestitution(val);
+            });
+            _lua->registerMember<b2Fixture, float>("density",
+            [](const b2Fixture& object) {
+                return object.GetDensity();
+            },
+            [](b2Fixture& object, const float val) {
+                object.SetDensity(val);
+            });
+            _lua->registerMember<b2Fixture, bool>("isSensor",
+            [](const b2Fixture& object) {
+                return object.IsSensor();
+            },
+            [](b2Fixture& object, const bool val) {
+                object.SetSensor(val);
+            });
+        }
+    }
 }
 
 void initComponentLuaBindings() {
@@ -75,6 +271,7 @@ void initComponentLuaBindings() {
     REGISTER_COMPONENT(TractorBeamComponent);
     REGISTER_COMPONENT(TractorBeamRepellableComponent);
     REGISTER_COMPONENT(VelocityComponent);
+
 }
 
 void initBodyDefs() noexcept {
@@ -210,11 +407,13 @@ Entity createBullet(
 Entity createEntity(const string& type) {
     Entity e = _world->createEntity();
     std::ifstream in("data/script/entities.lua");
-    _lua->writeVariable("entity", e);
+    _lua->writeVariable("entity", &e);
     _lua->executeCode(in);
     _lua->writeVariable("entity", nullptr);
+    _world->activateEntity(e);
     return e;
 }
 
 }
 }
+
