@@ -15,14 +15,9 @@
 #include "entities.hpp"
 #include "listeners.hpp"
 
-void printMe() {
-    std::cout << "Cocks\n";
-}
-
 int main()
 {
     using std::vector;
-    using std::this_thread::sleep_for;
     using std::chrono::milliseconds;
     using sf::Event;
     using sf::RenderWindow;
@@ -43,8 +38,9 @@ int main()
     entities::setPhysicsWorld(physics_world);
     entities::setLuaState(lua);
 
-    entities::initComponentLuaBindings();
     entities::initBodyDefs();
+    entities::initBaseTypes();
+    entities::initComponentLuaBindings();
 
     entities::createEntity("baddie");
 
