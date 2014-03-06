@@ -1,13 +1,16 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <memory>
 #include <vector>
+#include <functional>
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
 namespace ray {
 using std::vector;
+using std::function;
 using sf::Event;
 using sf::Vector2;
 
@@ -106,6 +109,20 @@ template<class NumberType = float>
 inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) {
     return Vector2<NumberType>(vec.x, vec.y);
 }
+
+/**
+ * Returns a lambda function that calls the default constructor with new on a
+ * given class.
+ *
+ * @tparam T The type that the returned lambda will default-construct
+ */
+template<class T>
+inline function<T(void)> getDefaultConstructorLambda() {
+    return []() {
+        return T();
+    };
+}
+
 
 }
 
