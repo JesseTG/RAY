@@ -4,6 +4,7 @@
 #include <functional>
 #include <fstream>
 #include <string>
+#include <memory>
 #include <type_traits>
 #include <unordered_map>
 
@@ -27,8 +28,11 @@ BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(luaInit);
  */
 #define REGISTER_COMPONENT(ctype) \
     do { \
+        \
         _lua->writeVariable(#ctype, LuaEmptyArray); \
-        _lua->writeFunction(#ctype, "new", []() { return ctype(); }); \
+        _lua->writeFunction(#ctype, "new", []() { \
+            return *(new ctype); \
+        }); \
         auto addc = [](Entity& e, ctype& c) { e.addComponent<ctype>(&c); }; \
         _lua->registerFunction<Entity, void(ctype&)>(string("add") + #ctype, addc); \
         typedef conditional< \
@@ -42,8 +46,8 @@ BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(luaInit);
 namespace ray {
 namespace entities {
 using std::conditional;
-using std::unordered_map;
 using std::string;
+using std::unordered_map;
 using sf::Color;
 using sf::Rect;
 using sf::IntRect;

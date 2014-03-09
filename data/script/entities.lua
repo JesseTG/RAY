@@ -1,17 +1,22 @@
 print(Anax.Entity)
 print(Anax.Entity.new)
-local a = Anax.Entity.new()
-print(a)
+
+
 p = PositionComponent.new()
 r = RenderableComponent.new()
-print("position component", p)
-print("position", p.position)
-print("px", p.x)
-print("py", p.y)
-p.x = 30
+print(p)
+print(r)
+
+p.x = 40
 p.y = 40
-print("px", p.x)
-print("py", p.y)
-print("Entity", entity)
---entity:addPositionComponent(p)
---entity:addRenderableComponent(r)
+print("p.position", p.position)
+print("p.x", p.x)
+print("p.y", p.y)
+
+entity:addPositionComponent(p)
+entity:addRenderableComponent(r)
+
+p.x = 80
+p.y = 80
+print("pos.x", p.x)
+print("pos.y", p.y)
