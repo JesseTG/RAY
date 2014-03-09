@@ -80,3 +80,4 @@ struct PositionComponent : Component<PositionComponent>
 }
 
 #endif // POSITIONCOMPONENT_HPP
+
