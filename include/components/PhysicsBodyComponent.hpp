@@ -26,6 +26,7 @@ using anax::Entity;
  * Do @em not try to do it yourself.
  *
  * @see PhysicsFixtureComponent For an @c Entity that represents a @c b2Fixture.
+ * @see PhysicsSystem The primary @c System that operates on @c *this
  */
 struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
 {
@@ -45,8 +46,6 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
             this->_set_body(body, e);
         }
 
-        PhysicsBodyComponent() : body(nullptr) {}
-
         /**
          * Destructor. Tells the b2World to destroy @c this->body.
          */
@@ -62,6 +61,15 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
         b2Body* body;
 
         Entity entity;
+
+        static void luaInit(LuaContext& lua) {
+            lua.writeFunction(
+                "PhysicsBodyComponent",
+                "new",
+            [](b2Body* body, Entity& e) {
+                return new PhysicsBodyComponent(body, e);
+            });
+        }
 
     private:
         void _set_body(b2Body* b, Entity& e) {
