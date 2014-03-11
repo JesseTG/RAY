@@ -1,16 +1,23 @@
 #ifndef ENTITIES_HPP
 #define ENTITIES_HPP
 
+#include <functional>
+#include <fstream>
 #include <string>
+#include <sstream>
+#include <type_traits>
+
 
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
 #include <LuaContext.hpp>
 
+#include "util.hpp"
+
 namespace ray {
 namespace entities {
-
+using std::function;
 using std::string;
 
 using anax::Entity;
@@ -110,27 +117,85 @@ Entity createTractorBeam(
     const float
 ) noexcept;
 
-Entity createEnemy(const float, const float, const float) noexcept;
-
-Entity createBullet(const float, const float, const float, const float) noexcept;
-
-Entity createEntity(const string& type);
-
 /**
- * Constructs a component of given type, it should be default-constructible
- *
- * Should only be called by Lua
+ * Creates an Entity with the given name
  */
-template<class TComponent>
-TComponent& addNewComponent(Entity& e) {
-    TComponent* t = new TComponent;
-    e.addComponent(t);
-    return *t;
+template<typename...Types>
+Entity createEntity(const string& type, Types...args) {
+    std::ifstream in("data/script/entities.lua");
+    _lua->executeCode(in);
+    string name = string("create_Entity_") + type;
+    std::function<Entity(Types...)> f =
+        _lua->readVariable<std::function<Entity(Types...)>>(name);
+    return f(args...);
 }
 
 void initBaseTypes();
 
 void initComponentLuaBindings();
+
+template<class SFDrawableT>
+void initCommonSFMLDrawableBindings(const string& name) {
+
+    _lua->registerMember<SFDrawableT, Vector2f>("position",
+    [](const SFDrawableT& s) {
+        return s.getPosition();
+    },
+    [](SFDrawableT& s, const Vector2f& position) {
+        s.setPosition(position);
+    });
+    _lua->registerMember<SFDrawableT, float>("rotation",
+    [](const SFDrawableT& s) {
+        return s.getRotation();
+    },
+    [](SFDrawableT& s, const float rotation) {
+        s.setRotation(rotation);
+    });
+    _lua->registerMember<SFDrawableT, Vector2f>("origin",
+    [](const SFDrawableT& s) {
+        return s.getOrigin();
+    },
+    [](SFDrawableT& s, const Vector2f& origin) {
+        s.setOrigin(origin);
+    });
+    _lua->registerMember<SFDrawableT, Vector2f>("scale",
+    [](const SFDrawableT& s) {
+        return s.getScale();
+    },
+    [](SFDrawableT& s, const Vector2f& scale) {
+        s.setScale(scale);
+    });
+    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("move", &SFDrawableT::move);
+    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("scale", &SFDrawableT::scale);
+    _lua->registerFunction("rotate", &SFDrawableT::rotate);
+}
+
+template<class SFShapeT>
+void initCommonSFMLShapeBindings(const string& name) {
+
+    _lua->registerMember<SFShapeT, Color>("fillColor",
+    [](const SFShapeT& s) {
+        return s.getFillColor();
+    },
+    [](SFShapeT& s, const Color& color) {
+        s.setFillColor(color);
+    });
+    _lua->registerMember<SFShapeT, Color>("outLineColor",
+    [](const SFShapeT& s) {
+        return s.getOutlineColor();
+    },
+    [](SFShapeT& s, const Color& color) {
+        s.setOutlineColor(color);
+    });
+    _lua->registerMember<SFShapeT, float>("outlineThickness",
+    [](const SFShapeT& s) {
+        return s.getOutlineThickness();
+    },
+    [](SFShapeT& s, const float thickness) {
+        s.setOutlineThickness(thickness);
+    });
+}
+
 }
 
 }
