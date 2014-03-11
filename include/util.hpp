@@ -7,6 +7,7 @@
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
+#include "config.hpp"
 
 namespace ray {
 using std::vector;
@@ -57,7 +58,7 @@ inline NumberType dot(const Vector2<NumberType>& a, const Vector2<NumberType>& b
  */
 template<class NumberType>
 inline NumberType toRadians(const NumberType x) {
-    return x * (M_PI / 180.0);
+    return x * (PI / 180.0);
 }
 
 /**
@@ -70,7 +71,7 @@ inline NumberType toRadians(const NumberType x) {
  */
 template<class NumberType>
 inline NumberType toDegrees(const NumberType x) {
-    return x * (180.0 / M_PI);
+    return x * (180.0 / PI);
 }
 
 /**
@@ -125,7 +126,5 @@ inline function<T(void)> getDefaultConstructorLambda() {
 
 
 }
-
-
 
 #endif // UTIL_HPP
