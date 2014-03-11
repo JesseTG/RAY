@@ -597,7 +597,7 @@ private:
 	//    it is available for everything that needs it and its offset is at &typeid(LuaContext)
 	//  - registered members and functions are stored in tables at offset &typeid(type) of the registry
 	//    each table has its getter functions at offset 0, getter members at offset 1, default getter at offset 2
-	//	  setter functions at offste 3, setter members at offset 4, default setter at offset 5
+	//	  offset 3 is unused, setter members at offset 4, default setter at offset 5
 	lua_State*					mState;
 	
 
@@ -797,6 +797,18 @@ private:
 		checkTypeRegistration(&typeid(std::shared_ptr<TObject>));
 		setTable<LUA_REGISTRYINDEX,TRetValue(std::shared_ptr<TObject>, TOtherParams...)>(&typeid(std::shared_ptr<TObject>), 0, functionName, [=](const std::shared_ptr<TObject>& obj, TOtherParams... rest) { assert(obj); return function(*obj, std::forward<TOtherParams>(rest)...); });
 	}
+	
+	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
+	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<const TObject>, tag<TRetValue (TOtherParams...)> fTypeTag)
+	{
+		registerFunctionImpl(functionName, function, tag<TObject>{}, fTypeTag);
+
+		checkTypeRegistration(&typeid(TObject const*));
+		setTable<LUA_REGISTRYINDEX,TRetValue(TObject const*, TOtherParams...)>(&typeid(TObject const*), 0, functionName, [=](TObject const* obj, TOtherParams... rest) { assert(obj); return function(*obj, std::forward<TOtherParams>(rest)...); });
+		
+		checkTypeRegistration(&typeid(std::shared_ptr<TObject const>));
+		setTable<LUA_REGISTRYINDEX,TRetValue(std::shared_ptr<TObject const>, TOtherParams...)>(&typeid(std::shared_ptr<TObject const>), 0, functionName, [=](const std::shared_ptr<TObject const>& obj, TOtherParams... rest) { assert(obj); return function(*obj, std::forward<TOtherParams>(rest)...); });
+	}
 
 	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
 	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue (TObject::*)(TOtherParams...)>)
@@ -805,18 +817,21 @@ private:
 	}
 
 	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
-	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue(TObject::*)(TOtherParams...) const>) {
+	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue (TObject::*)(TOtherParams...) const>)
+	{
+		registerFunctionImpl(functionName, std::move(function), tag<const TObject>{}, tag<TRetValue (TOtherParams...)>{});
+	}
+
+	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
+	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue (TObject::*)(TOtherParams...) volatile>)
+	{
 		registerFunctionImpl(functionName, std::move(function), tag<TObject>{}, tag<TRetValue (TOtherParams...)>{});
 	}
 
 	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
-	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue(TObject::*)(TOtherParams...) volatile>) {
-		registerFunctionImpl(functionName, std::move(function), tag<TObject>{}, tag<TRetValue (TOtherParams...)>{});
-	}
-
-	template<typename TFunctionType, typename TRetValue, typename TObject, typename... TOtherParams>
-	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue(TObject::*)(TOtherParams...) const volatile>) {
-		registerFunctionImpl(functionName, std::move(function), tag<TObject>{}, tag<TRetValue (TOtherParams...)>{});
+	void registerFunctionImpl(const std::string& functionName, TFunctionType function, tag<TRetValue (TObject::*)(TOtherParams...) const volatile>)
+	{
+		registerFunctionImpl(functionName, std::move(function), tag<const TObject>{}, tag<TRetValue (TOtherParams...)>{});
 	}
 
 	// the "registerMember" public functions call this one
@@ -826,8 +841,32 @@ private:
 		static_assert(std::is_class<TObject>::value || std::is_pointer<TObject>::value, "registerMember can only be called on a class or a pointer");
 		
 		checkTypeRegistration(&typeid(TObject));
-		setTable<LUA_REGISTRYINDEX,TVarType (TObject const&)>(&typeid(TObject), 1, name, [readFunction](TObject const& object) {
+		setTable<LUA_REGISTRYINDEX, TVarType (TObject&)>(&typeid(TObject), 1, name, [readFunction](TObject const& object) {
 			return readFunction(object);
+		});
+		
+		checkTypeRegistration(&typeid(TObject*));
+		setTable<LUA_REGISTRYINDEX, TVarType (TObject*)>(&typeid(TObject*), 1, name, [readFunction](TObject const* object) {
+			assert(object);
+			return readFunction(*object);
+		});
+		
+		checkTypeRegistration(&typeid(TObject const*));
+		setTable<LUA_REGISTRYINDEX, TVarType (TObject const*)>(&typeid(TObject const*), 1, name, [readFunction](TObject const* object) {
+			assert(object);
+			return readFunction(*object);
+		});
+		
+		checkTypeRegistration(&typeid(std::shared_ptr<TObject>));
+		setTable<LUA_REGISTRYINDEX, TVarType (std::shared_ptr<TObject>)>(&typeid(std::shared_ptr<TObject>), 1, name, [readFunction](const std::shared_ptr<TObject>& object) {
+			assert(object);
+			return readFunction(*object);
+		});
+		
+		checkTypeRegistration(&typeid(std::shared_ptr<TObject const>));
+		setTable<LUA_REGISTRYINDEX, TVarType (std::shared_ptr<TObject const>)>(&typeid(std::shared_ptr<TObject const>), 1, name, [readFunction](const std::shared_ptr<TObject const>& object) {
+			assert(object);
+			return readFunction(*object);
 		});
 	}
 
@@ -835,8 +874,19 @@ private:
 	void registerMemberImpl(const std::string& name, TReadFunction readFunction, TWriteFunction writeFunction)
 	{
 		registerMemberImpl<TObject,TVarType>(name, readFunction);
-		setTable<LUA_REGISTRYINDEX,void (TObject&,TVarType)>(&typeid(TObject), 4, name, [writeFunction](TObject& object, const TVarType& value) {
+
+		setTable<LUA_REGISTRYINDEX, void (TObject&, TVarType)>(&typeid(TObject), 4, name, [writeFunction](TObject& object, const TVarType& value) {
 			writeFunction(object, value);
+		});
+		
+		setTable<LUA_REGISTRYINDEX, void (TObject*, TVarType)>(&typeid(TObject*), 4, name, [writeFunction](TObject* object, const TVarType& value) {
+			assert(object);
+			writeFunction(*object, value);
+		});
+		
+		setTable<LUA_REGISTRYINDEX, void (std::shared_ptr<TObject>, TVarType)>(&typeid(std::shared_ptr<TObject>), 4, name, [writeFunction](std::shared_ptr<TObject> object, const TVarType& value) {
+			assert(object);
+			writeFunction(*object, value);
 		});
 	}
 
@@ -860,14 +910,49 @@ private:
 		setTable<LUA_REGISTRYINDEX,TVarType (TObject const&, std::string)>(&typeid(TObject), 2, [readFunction](TObject const& object, const std::string& name) {
 			return readFunction(object, name);
 		});
+		
+		checkTypeRegistration(&typeid(TObject*));
+		setTable<LUA_REGISTRYINDEX,TVarType (TObject*, std::string)>(&typeid(TObject*), 2, [readFunction](TObject const* object, const std::string& name) {
+			assert(object);
+			return readFunction(*object, name);
+		});
+		
+		checkTypeRegistration(&typeid(TObject const*));
+		setTable<LUA_REGISTRYINDEX,TVarType (TObject const*, std::string)>(&typeid(TObject const*), 2, [readFunction](TObject const* object, const std::string& name) {
+			assert(object);
+			return readFunction(*object, name);
+		});
+		
+		checkTypeRegistration(&typeid(std::shared_ptr<TObject>));
+		setTable<LUA_REGISTRYINDEX,TVarType (std::shared_ptr<TObject>, std::string)>(&typeid(std::shared_ptr<TObject>), 2, [readFunction](const std::shared_ptr<TObject>& object, const std::string& name) {
+			assert(object);
+			return readFunction(*object, name);
+		});
+		
+		checkTypeRegistration(&typeid(std::shared_ptr<TObject const>));
+		setTable<LUA_REGISTRYINDEX,TVarType (std::shared_ptr<TObject const>, std::string)>(&typeid(std::shared_ptr<TObject const>), 2, [readFunction](const std::shared_ptr<TObject const>& object, const std::string& name) {
+			assert(object);
+			return readFunction(*object, name);
+		});
 	}
 
 	template<typename TObject, typename TVarType, typename TReadFunction, typename TWriteFunction>
 	void registerMemberImpl(TReadFunction readFunction, TWriteFunction writeFunction)
 	{
 		registerMemberImpl<TObject,TVarType>(readFunction);
-		setTable<LUA_REGISTRYINDEX,void (TObject&, std::string, TVarType)>(&typeid(TObject), 5, [writeFunction](TObject& object, const std::string& name, const TVarType& value) {
+
+		setTable<LUA_REGISTRYINDEX, void (TObject&, std::string, TVarType)>(&typeid(TObject), 5, [writeFunction](TObject& object, const std::string& name, const TVarType& value) {
 			writeFunction(object, name, value);
+		});
+		
+		setTable<LUA_REGISTRYINDEX, void (TObject*, std::string, TVarType)>(&typeid(TObject*), 2, [writeFunction](TObject* object, const std::string& name, const TVarType& value) {
+			assert(object);
+			writeFunction(*object, name, value);
+		});
+		
+		setTable<LUA_REGISTRYINDEX, void (std::shared_ptr<TObject>, std::string, TVarType)>(&typeid(std::shared_ptr<TObject>), 2, [writeFunction](const std::shared_ptr<TObject>& object, const std::string& name, const TVarType& value) {
+			assert(object);
+			writeFunction(*object, name, value);
 		});
 	}
 
@@ -1096,7 +1181,7 @@ private:
 			// this function will be stored in __newindex in the metatable
 			const auto newIndexFunction = [](lua_State* lua) -> int {
 				lua_pushlightuserdata(lua, const_cast<std::type_info*>(&typeid(LuaContext)));
-				lua_gettable(lua, LUA_REGISTRYINDEX);
+				lua_rawget(lua, LUA_REGISTRYINDEX);
 				const auto me = static_cast<LuaContext*>(lua_touserdata(lua, -1));
 				lua_pop(lua, 1);
 
@@ -1106,41 +1191,38 @@ private:
 
 					// searching for a handler
 					lua_pushlightuserdata(lua, const_cast<std::type_info*>(&typeid(TType)));
-					lua_gettable(lua, LUA_REGISTRYINDEX);
+					lua_rawget(lua, LUA_REGISTRYINDEX);
 					assert(!lua_isnil(lua, -1));
-					
-					// looking into setter functions
-					lua_pushinteger(lua, 3);
-					lua_gettable(lua, -2);
-					lua_pushvalue(lua, 2);
-					lua_gettable(lua, -2);
-					if (!lua_isnil(lua, -1))
-						return 1;
-					lua_pop(lua, 2);
 					
 					// looking into setter members
 					lua_pushinteger(lua, 4);
-					lua_gettable(lua, -2);
+					lua_rawget(lua, -2);
 					lua_pushvalue(lua, 2);
-					lua_gettable(lua, -2);
+					lua_rawget(lua, -2);
 					if (!lua_isnil(lua, -1)) {
 						lua_pushvalue(lua, 1);
 						lua_pushvalue(lua, 3);
-						me->callRaw(2, 1);
-						return 1;
+						me->callRaw(2, 0);
+						lua_pop(lua, 2);
+						return 0;
 					}
 					lua_pop(lua, 2);
 
 					// looking into default setter
 					lua_pushinteger(lua, 5);
-					lua_gettable(lua, -2);
+					lua_rawget(lua, -2);
 					if (lua_isnil(lua, -1))
-						return 1;
+					{
+						lua_pop(lua, 2);
+						lua_pushstring(lua, "No setter found");
+						return lua_error(lua);
+					}
 					lua_pushvalue(lua, 1);
 					lua_pushvalue(lua, 2);
 					lua_pushvalue(lua, 3);
-					me->callRaw(3, 1);
-					return 1;
+					me->callRaw(3, 0);
+					lua_pop(lua, 1);
+					return 0;
 
 				} catch (...) {
 					Pusher<std::exception_ptr>::push(*me, std::current_exception());
