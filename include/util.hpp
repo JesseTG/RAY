@@ -113,7 +113,7 @@ inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) {
 }
 
 /**
- * Returns a lambda function that calls the default constructor with new on a
+ * Returns a lambda function that calls the default constructor with on a
  * given class.
  *
  * @tparam T The type that the returned lambda will default-construct
@@ -122,6 +122,13 @@ template<class T>
 inline function<T(void)> getDefaultConstructorLambda() {
     return []() {
         return T();
+    };
+}
+
+template<class T>
+inline function<T*(void)> getNewDefaultConstructorLambda() {
+    return []() {
+        return new T;
     };
 }
 }
