@@ -12,7 +12,6 @@ namespace ray {
     class MouseFollowControlSystem;
     class MovementSystem;
     class PhysicsSystem;
-    class PlayerGunSystem;
     class RenderSystem;
     class TractorBeamSystem;
 }
@@ -26,7 +25,6 @@ namespace ray {
 #include "MovementSystem.hpp"
 #include "MouseFollowControlSystem.hpp"
 #include "PhysicsSystem.hpp"
-#include "PlayerGunSystem.hpp"
 #include "RenderSystem.hpp"
 #include "TractorBeamSystem.hpp"
 

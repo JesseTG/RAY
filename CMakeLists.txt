@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
 set(SRC_FILES
+    src/entity_base_types.cpp
     src/entities.cpp
     src/util.cpp
     src/components/PositionComponent.cpp
@@ -20,7 +21,6 @@ set(SRC_FILES
     src/systems/MouseFollowControlSystem.cpp
     src/systems/MovementSystem.cpp
     src/systems/PhysicsSystem.cpp
-    src/systems/PlayerGunSystem.cpp
     src/systems/RenderSystem.cpp
     src/systems/TractorBeamSystem.cpp
 )
@@ -33,8 +33,6 @@ set(INCLUDE_FILES
     include/listeners.hpp
     include/systems.hpp
     include/util.hpp
-    include/components/AccelerationComponent.hpp
-    include/components/BulletComponent.hpp
     include/components/EntityFollowComponent.hpp
     include/components/FaceEntityComponent.hpp
     include/components/FourWayControlComponent.hpp
@@ -48,6 +46,7 @@ set(INCLUDE_FILES
     include/components/VelocityComponent.hpp
     include/fsm/EntityState.hpp
     include/fsm/EntityStateMachine.hpp
+    include/managers/ResourceManager.hpp
     include/listeners/TractorBeamRepellingListener.hpp
     include/systems/DebugSystem.hpp
     include/systems/EntityFollowSystem.hpp
@@ -56,7 +55,6 @@ set(INCLUDE_FILES
     include/systems/MouseFollowControlSystem.hpp
     include/systems/MovementSystem.hpp
     include/systems/PhysicsSystem.hpp
-    include/systems/PlayerGunSystem.hpp
     include/systems/RenderSystem.hpp
     include/systems/TractorBeamSystem.hpp
     include/LuaContext.hpp
@@ -68,6 +66,7 @@ include_directories(
     include/fsm
     include/systems
     include/listeners
+    include/managers
     /usr/include
     /usr/local/include
     /usr/include/luajit-2.0
@@ -109,7 +108,7 @@ target_compile_options(Debug
 )
 
 target_compile_options(Release
-    PUBLIC -O3
+    PUBLIC -Ofast
     PUBLIC -s
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
@@ -140,6 +139,7 @@ target_link_libraries(Release
 
 if (WIN)
     set_property(TARGET Release PROPERTY WIN32_EXECUTABLE)
+    # So that Release builds on Windows don't pop up a console window
 endif()
 
 if (NOT MSVC)
