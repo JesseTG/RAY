@@ -12,9 +12,13 @@ namespace ray {
 
 using std::vector;
 
-using sf::RenderWindow;
 using sf::Event;
-
+using sf::Keyboard;
+using sf::Mouse;
+using sf::RenderWindow;
+using sf::Vector2;
+using sf::Vector2i;
+using sf::Vector2f;
 
 /**
  * A @c System to aid in debugging. Use it to add @c Entities on command, to
