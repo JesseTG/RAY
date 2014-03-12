@@ -7,6 +7,10 @@
 #include <sstream>
 #include <type_traits>
 
+#include <boost/optional.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
+#include <boost/tti/has_static_member_function.hpp>
 
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
@@ -131,70 +135,12 @@ Entity createEntity(const string& type, Types...args) {
 }
 
 void initBaseTypes();
-
+void initSFMLTypeBindings();
+void initAnaxTypeBindings();
+void initBox2DTypeBindings();
 void initComponentLuaBindings();
 
-template<class SFDrawableT>
-void initCommonSFMLDrawableBindings(const string& name) {
 
-    _lua->registerMember<SFDrawableT, Vector2f>("position",
-    [](const SFDrawableT& s) {
-        return s.getPosition();
-    },
-    [](SFDrawableT& s, const Vector2f& position) {
-        s.setPosition(position);
-    });
-    _lua->registerMember<SFDrawableT, float>("rotation",
-    [](const SFDrawableT& s) {
-        return s.getRotation();
-    },
-    [](SFDrawableT& s, const float rotation) {
-        s.setRotation(rotation);
-    });
-    _lua->registerMember<SFDrawableT, Vector2f>("origin",
-    [](const SFDrawableT& s) {
-        return s.getOrigin();
-    },
-    [](SFDrawableT& s, const Vector2f& origin) {
-        s.setOrigin(origin);
-    });
-    _lua->registerMember<SFDrawableT, Vector2f>("scale",
-    [](const SFDrawableT& s) {
-        return s.getScale();
-    },
-    [](SFDrawableT& s, const Vector2f& scale) {
-        s.setScale(scale);
-    });
-    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("move", &SFDrawableT::move);
-    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("scale", &SFDrawableT::scale);
-    _lua->registerFunction("rotate", &SFDrawableT::rotate);
-}
-
-template<class SFShapeT>
-void initCommonSFMLShapeBindings(const string& name) {
-
-    _lua->registerMember<SFShapeT, Color>("fillColor",
-    [](const SFShapeT& s) {
-        return s.getFillColor();
-    },
-    [](SFShapeT& s, const Color& color) {
-        s.setFillColor(color);
-    });
-    _lua->registerMember<SFShapeT, Color>("outLineColor",
-    [](const SFShapeT& s) {
-        return s.getOutlineColor();
-    },
-    [](SFShapeT& s, const Color& color) {
-        s.setOutlineColor(color);
-    });
-    _lua->registerMember<SFShapeT, float>("outlineThickness",
-    [](const SFShapeT& s) {
-        return s.getOutlineThickness();
-    },
-    [](SFShapeT& s, const float thickness) {
-        s.setOutlineThickness(thickness);
-    });
-}
 
 }
 

@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 namespace ray {
 using anax::Component;
@@ -19,7 +20,7 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
      * Constructs a FourWayControlComponent with the default values of
      * @c Key::W, @c Key::S, @c Key::A, and @c Key::D, respectively.
      */
-    FourWayControlComponent() : FourWayControlComponent(Key::W, Key::S, Key::A, Key::D) {}
+    FourWayControlComponent();
 
     /**
      * Constructs a FourWayControlComponent that can be used with arbitrary
@@ -30,8 +31,7 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
      * @param left The @c Key that will move this @c Entity left (west) when pressed
      * @param right The @c Key that will move this @c Entity right (east) when pressed
      */
-    FourWayControlComponent(const Key up, const Key down, const Key left, const Key right) :
-        up(up), down(down), left(left), right(right) {}
+    FourWayControlComponent(const Key up, const Key down, const Key left, const Key right);
 
     /**
      * The @c Key that will move this @c Entity up (north) when pressed
@@ -53,12 +53,7 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
      */
     Key right;
 
-    static void luaInit(LuaContext& lua) {
-        lua.registerMember("up", &FourWayControlComponent::up);
-        lua.registerMember("down", &FourWayControlComponent::down);
-        lua.registerMember("left", &FourWayControlComponent::left);
-        lua.registerMember("right", &FourWayControlComponent::right);
-    }
+    static void luaInit(LuaContext& lua);
 };
 }
 #endif // FOURWAYMOVEMENTCOMPONENT_HPP

@@ -2,6 +2,7 @@
 #define TRACTORBEAMCOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 
 namespace ray {
@@ -47,12 +48,7 @@ struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
      */
     float force;
 
-    static void luaInit(LuaContext& lua) {
-        lua.registerMember("starting_width", &TractorBeamComponent::starting_width);
-        lua.registerMember("starting_angle", &TractorBeamComponent::starting_angle);
-        lua.registerMember("length", &TractorBeamComponent::length);
-        lua.registerMember("force", &TractorBeamComponent::force);
-    }
+    static void luaInit(LuaContext& lua);
 };
 }
 

@@ -27,7 +27,7 @@ struct FaceEntityComponent : public anax::Component<FaceEntityComponent>
      * @param e The @c Entity that @c *this's @c Entity will face.
      * @c e.isValid() must be true, and @c e must have a PositionComponent.
      */
-    FaceEntityComponent(const Entity& e) : target(e) {}
+    FaceEntityComponent(const Entity& e);
 
     /**
      * The @c Entity that the @c Entity containing @c *this will face. If
@@ -35,9 +35,7 @@ struct FaceEntityComponent : public anax::Component<FaceEntityComponent>
      */
     Entity target;
 
-    static void luaInit(LuaContext& lua) {
-        lua.registerMember("target", &EntityFollowComponent::target);
-    }
+    static void luaInit(LuaContext& lua);
 };
 
 }

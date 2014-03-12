@@ -6,11 +6,20 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
 set(SRC_FILES
-    src/entity_base_types.cpp
+    src/entities/sfml_type_bindings.cpp
+    src/entities/anax_type_bindings.cpp
+    src/entities/box2d_type_bindings.cpp
     src/entities.cpp
     src/util.cpp
+    src/components/EntityFollowComponent.cpp
+    src/components/FaceEntityComponent.cpp
+    src/components/FourWayControlComponent.cpp
+    src/components/PhysicsBodyComponent.cpp
+    src/components/PhysicsFixtureComponent.cpp
     src/components/PositionComponent.cpp
     src/components/RenderableComponent.cpp
+    src/components/TractorBeamComponent.cpp
+    src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
     src/listeners/TractorBeamRepellingListener.cpp
@@ -104,7 +113,6 @@ target_compile_options(Debug
     PUBLIC -g
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
-    PUBLIC -pedantic-errors
 )
 
 target_compile_options(Release
@@ -112,7 +120,6 @@ target_compile_options(Release
     PUBLIC -s
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
-    PUBLIC -pedantic-errors
 )
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

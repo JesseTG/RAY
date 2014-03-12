@@ -2,8 +2,11 @@
 #define PHYSICSFIXTURECOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <Box2D/Box2D.h>
+#include <LuaContext.hpp>
 
 namespace ray {
+using anax::Entity;
 
 /**
  * Entities with a PhysicsFixtureComponent are manipulated as @c b2Fixtures.
@@ -53,14 +56,7 @@ struct PhysicsFixtureComponent : public anax::Component<PhysicsFixtureComponent>
 
         Entity entity;
 
-        static void luaInit(LuaContext& lua) {
-            lua.writeFunction(
-                "PhysicsFixtureComponent",
-                "new",
-            [](b2Fixture* fixture, Entity& e) {
-                return new PhysicsFixtureComponent(fixture, e);
-            });
-        }
+        static void luaInit(LuaContext& lua);
 
     private:
         void _set_fixture(b2Fixture* fixture, Entity& e) {

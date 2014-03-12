@@ -35,9 +35,7 @@ struct EntityFollowComponent : public anax::Component<EntityFollowComponent>
      */
     Entity target;
 
-    static void luaInit(LuaContext& lua) {
-        lua.registerMember("target", &EntityFollowComponent::target);
-    }
+    static void luaInit(LuaContext& lua);
 };
 }
 
