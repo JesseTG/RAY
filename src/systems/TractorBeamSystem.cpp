@@ -8,9 +8,9 @@ const ComponentFilter TractorBeamSystem::FILTER = ComponentFilter()
         .requires<PositionComponent, TractorBeamComponent>();
 
 TractorBeamSystem::TractorBeamSystem(TractorBeamRepellingListener& listener, Entity& playerbeam) :
+    Base(FILTER),
     _listener(&listener),
-    _player_beam(&playerbeam),
-    Base(FILTER)
+    _player_beam(&playerbeam)
 {
     //ctor
 }

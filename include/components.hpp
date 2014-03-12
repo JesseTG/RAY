@@ -2,23 +2,19 @@
 #define COMPONENTS_HPP
 
 namespace ray {
-    class AccelerationComponent;
-    class BulletComponent;
-    class EntityFollowComponent;
-    class FaceEntityComponent;
-    class FourWayControlComponent;
-    class MouseFollowControlComponent;
-    class PhysicsBodyComponent;
-    class PhysicsFixtureComponent;
-    class PositionComponent;
-    class RenderableComponent;
-    class VelocityComponent;
-    class TractorBeamComponent;
-    class TractorBeamRepellableComponent;
+    struct EntityFollowComponent;
+    struct FaceEntityComponent;
+    struct FourWayControlComponent;
+    struct MouseFollowControlComponent;
+    struct PhysicsBodyComponent;
+    struct PhysicsFixtureComponent;
+    struct PositionComponent;
+    struct RenderableComponent;
+    struct VelocityComponent;
+    struct TractorBeamComponent;
+    struct TractorBeamRepellableComponent;
 }
 
-#include "AccelerationComponent.hpp"
-#include "BulletComponent.hpp"
 #include "EntityFollowComponent.hpp"
 #include "FaceEntityComponent.hpp"
 #include "FourWayControlComponent.hpp"

@@ -42,11 +42,9 @@ int main()
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
-    entities::createEntity("baddie");
-
     physics_world.SetContactListener(&tb_listener);
 
-    Entity crosshair = entities::createMouseCircle(16);
+    Entity crosshair = entities::createMouseCircle(16); //entities::createEntity("MouseCircle", 16.0);
     Entity player = entities::createKeyboardCircle(crosshair, 32, 256, 256);
     Entity tractorbeam = entities::createTractorBeam(crosshair, player, 16, 0, 512, 1);
 
@@ -54,7 +52,6 @@ int main()
     RenderSystem rendering(window);
     MovementSystem movement;
     MouseFollowControlSystem mouse_following(window);
-    PlayerGunSystem player_gun(player, window);
     FaceEntitySystem face_entity;
     EntityFollowSystem follow_entity;
     TractorBeamSystem tractor_system(tb_listener, tractorbeam);
@@ -65,7 +62,6 @@ int main()
 
 
     world.addSystem(four_way_movement);
-    world.addSystem(player_gun);
     world.addSystem(mouse_following);
     //world.addSystem(movement);
     world.addSystem(face_entity);
@@ -98,6 +94,8 @@ int main()
                 case Event::GainedFocus:
                     focused = true;
                     break;
+                default:
+                    ; // nop
             }
         }
         // TODO: Improve timing
@@ -105,7 +103,6 @@ int main()
         // Some things might move incorrectly if they depend on the framerate
         if (focused) {
             // If the player has the game window open...
-            player_gun.update(events);
             mouse_following.update();
             four_way_movement.update();
             //movement.update();

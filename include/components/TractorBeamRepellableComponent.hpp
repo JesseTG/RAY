@@ -8,6 +8,8 @@ namespace ray {
 /**
  * Tag component indicating that an @c Entity can be repelled with a tractor
  * beam.
+ *
+ * @see TractorBeamComponent
  */
 struct TractorBeamRepellableComponent : public anax::Component<TractorBeamRepellableComponent>
 {

@@ -8,6 +8,7 @@ namespace ray {
 
 /**
  * Lets an @c Entity be used as a tractor beam.
+ * @see TractorBeamRepellableComponent For @c Entities that will get pushed around
  */
 struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
 {

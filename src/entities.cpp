@@ -4,9 +4,13 @@
 #include <functional>
 #include <fstream>
 #include <string>
+#include <memory>
 #include <type_traits>
 #include <unordered_map>
 
+#include <boost/optional.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
 #include <boost/tti/has_static_member_function.hpp>
 
 #include "components.hpp"
@@ -24,30 +28,45 @@ BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(luaInit);
  * void luaInit(LuaContext& lua);
  * @endcode
  * Templates are used to handle the case where this is not defined.
+ * Also registers a default constructor if one normally exists, if not, you
+ * have to define a Lua constructor yourself
  */
 #define REGISTER_COMPONENT(ctype) \
     do { \
+        \
         _lua->writeVariable(#ctype, LuaEmptyArray); \
-        _lua->writeFunction(#ctype, "new", []() { return ctype(); }); \
-        auto addc = [](Entity& e, ctype& c) { e.addComponent<ctype>(&c); }; \
-        _lua->registerFunction<Entity, void(ctype&)>(string("add") + #ctype, addc); \
-        typedef conditional< \
-        has_static_member_function_luaInit<ctype, void(LuaContext&)>::value, \
-        ctype, \
-        LuaInitDummy \
-        > t; \
+        constexpr bool constructible = is_default_constructible<ctype>::value; \
+        typedef conditional<constructible, ctype, LuaInitDummy> construct; \
+        if (typeid(construct::type) == typeid(ctype)) { \
+            _lua->writeFunction(#ctype, "new", []() { \
+                return new construct::type; \
+            }); \
+        } \
+        auto addc = [](Entity& e, ctype* c) { e.addComponent<ctype>(c); }; \
+        _lua->registerFunction<Entity, void(ctype*)>(string("add") + #ctype, addc); \
+        constexpr bool init = has_static_member_function_luaInit<ctype, void(LuaContext&)>::value; \
+        typedef conditional<init, ctype, LuaInitDummy> t; \
         t::type::luaInit(*_lua); \
     } while (0)
 
 namespace ray {
 namespace entities {
 using std::conditional;
-using std::unordered_map;
+using std::function;
+using std::is_default_constructible;
 using std::string;
+using std::unordered_map;
+using boost::get;
+using boost::optional;
+using boost::variant;
+using sf::CircleShape;
 using sf::Color;
+using sf::ConvexShape;
 using sf::Rect;
 using sf::IntRect;
 using sf::FloatRect;
+using sf::RectangleShape;
+using sf::Sprite;
 using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2f;
@@ -136,8 +155,15 @@ void initBaseTypes() {
             _lua->registerMember("b", &Color::b);
             _lua->registerMember("a", &Color::a);
 
+            _lua->writeVariable("SFML", "Color", "Black", Color::Black);
+            _lua->writeVariable("SFML", "Color", "White", Color::White);
             _lua->writeVariable("SFML", "Color", "Red", Color::Red);
+            _lua->writeVariable("SFML", "Color", "Green", Color::Green);
             _lua->writeVariable("SFML", "Color", "Blue", Color::Blue);
+            _lua->writeVariable("SFML", "Color", "Yellow", Color::Yellow);
+            _lua->writeVariable("SFML", "Color", "Magenta", Color::Magenta);
+            _lua->writeVariable("SFML", "Color", "Cyan", Color::Cyan);
+            _lua->writeVariable("SFML", "Color", "Transparent", Color::Transparent);
         }
 
         _lua->writeVariable("SFML", "Rect", LuaEmptyArray);
@@ -149,6 +175,28 @@ void initBaseTypes() {
             _lua->registerMember("y", &FloatRect::top);
             _lua->registerMember("width", &FloatRect::width);
             _lua->registerMember("height", &FloatRect::height);
+        }
+
+        _lua->writeVariable("SFML", "Sprite", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "Sprite", "new", getDefaultConstructorLambda<Sprite>());
+            initCommonSFMLDrawableBindings<Sprite>("Sprite");
+        }
+
+        _lua->writeVariable("SFML", "CircleShape", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "CircleShape", "new", [](const optional<float> radius) {
+                return new CircleShape((radius) ? *radius : 0.0);
+            });
+            initCommonSFMLDrawableBindings<CircleShape>("CircleShape");
+            initCommonSFMLShapeBindings<CircleShape>("CircleShape");
+            _lua->registerMember<CircleShape, float>("radius",
+            [](const CircleShape& circle) {
+                return circle.getRadius();
+            },
+            [](CircleShape& circle, const float radius) {
+                circle.setRadius(radius);
+            });
         }
     }
 
@@ -186,10 +234,14 @@ void initBaseTypes() {
             _lua->registerMember("linearDamping", &b2BodyDef::linearDamping);
             _lua->registerMember("linearVelocity", &b2BodyDef::linearVelocity);
             _lua->registerMember("position", &b2BodyDef::position);
+            _lua->registerMember("type", &b2BodyDef::type);
         }
 
         _lua->writeVariable("Box2D", "Body", LuaEmptyArray);
         {
+            _lua->writeFunction("Box2D", "Body", "new", [](const b2BodyDef& def) {
+                return _physics_world->CreateBody(&def);
+            });
             _lua->registerMember<b2Body, bool>("awake",
             [](const b2Body& object) {
                 return object.IsAwake();
@@ -203,6 +255,10 @@ void initBaseTypes() {
             },
             [](b2Body& object, const bool val) {
                 object.SetFixedRotation(val);
+            });
+            _lua->registerFunction<b2Body*, b2Fixture*(b2FixtureDef&)>("CreateFixture",
+            [](b2Body* body, b2FixtureDef& def) {
+                return body->CreateFixture(&def);
             });
         }
 
@@ -222,6 +278,25 @@ void initBaseTypes() {
             _lua->registerMember("density", &b2FixtureDef::density);
             _lua->registerMember("isSensor", &b2FixtureDef::isSensor);
             _lua->registerMember("filter", &b2FixtureDef::filter);
+            typedef variant<b2CircleShape, b2EdgeShape, b2PolygonShape, b2ChainShape> shapevariant;
+            _lua->registerFunction<b2FixtureDef, void(const shapevariant&)>("setShape",
+            [](b2FixtureDef& def, const shapevariant& shape) {
+                switch (shape.which()) {
+                    case b2Shape::Type::e_circle:
+                        def.shape = get<b2CircleShape>(&shape);
+                        break;
+                    case b2Shape::Type::e_edge:
+                        def.shape = get<b2EdgeShape>(&shape);
+                        break;
+                    case b2Shape::Type::e_polygon:
+                        def.shape = get<b2PolygonShape>(&shape);
+                        break;
+                    case b2Shape::Type::e_chain:
+                        def.shape = get<b2ChainShape>(&shape);
+                        break;
+
+                }
+            });
         }
 
         _lua->writeVariable("Box2D", "Fixture", LuaEmptyArray);
@@ -255,23 +330,55 @@ void initBaseTypes() {
                 object.SetSensor(val);
             });
         }
+
+        _lua->writeVariable("Box2D", "Shape", LuaEmptyArray);
+        {
+            _lua->writeVariable("Box2D", "Shape", "Type", LuaEmptyArray);
+            {
+                _lua->writeVariable("Box2D", "Shape", "Type", "Circle", b2Shape::e_circle);
+                _lua->writeVariable("Box2D", "Shape", "Type", "Edge", b2Shape::e_edge);
+                _lua->writeVariable("Box2D", "Shape", "Type", "Polygon", b2Shape::e_polygon);
+                _lua->writeVariable("Box2D", "Shape", "Type", "Chain", b2Shape::e_chain);
+                _lua->writeVariable("Box2D", "Shape", "Type", "Count", b2Shape::e_typeCount);
+            }
+
+            _lua->writeVariable("Box2D", "Shape", "Circle", LuaEmptyArray);
+            {
+                _lua->writeFunction("Box2D", "Shape", "Circle", "new", getDefaultConstructorLambda<b2CircleShape>());
+                _lua->registerMember("position", &b2CircleShape::m_p);
+                _lua->registerMember<b2CircleShape, float>("radius",
+                [](const b2CircleShape& shape) {
+                    return shape.m_radius;
+                },
+                [](b2CircleShape& shape, const float rad) {
+                    shape.m_radius = rad;
+                });
+                _lua->registerMember<b2CircleShape, b2CircleShape::Type, b2CircleShape::Type(const b2CircleShape&)>("type",
+                [](const b2CircleShape& shape) {
+                    return shape.m_type;
+                });
+            }
+
+            _lua->writeVariable("Box2D", "Shape", "Edge", LuaEmptyArray);
+            {
+                _lua->writeFunction("Box2D", "Shape", "Edge", getDefaultConstructorLambda<b2EdgeShape>());
+            }
+        }
     }
 }
 
 void initComponentLuaBindings() {
-    REGISTER_COMPONENT(AccelerationComponent);
     REGISTER_COMPONENT(EntityFollowComponent);
     REGISTER_COMPONENT(FaceEntityComponent);
     REGISTER_COMPONENT(FourWayControlComponent);
     REGISTER_COMPONENT(MouseFollowControlComponent);
-    //REGISTER_COMPONENT(PhysicsBodyComponent);
-    //REGISTER_COMPONENT(PhysicsFixtureComponent);
+    REGISTER_COMPONENT(PhysicsBodyComponent);
+    REGISTER_COMPONENT(PhysicsFixtureComponent);
     REGISTER_COMPONENT(PositionComponent);
     REGISTER_COMPONENT(RenderableComponent);
     REGISTER_COMPONENT(TractorBeamComponent);
     REGISTER_COMPONENT(TractorBeamRepellableComponent);
     REGISTER_COMPONENT(VelocityComponent);
-
 }
 
 void initBodyDefs() noexcept {
@@ -362,57 +469,6 @@ Entity createTractorBeam(
     return e;
 }
 
-Entity createEnemy(const float x, const float y, const float r) noexcept {
-    Entity e = _world->createEntity();
-    CircleShape* circle = new CircleShape(r, 8);
-    circle->setFillColor(Color::Green);
-    circle->setPosition(x, y);
-    circle->setOrigin(r, r);
-
-    ENEMY_BODY.position = b2Vec2(x, y);
-    ENEMY_SHAPE.m_radius = r;
-    b2Body* body = _physics_world->CreateBody(&ENEMY_BODY);
-    b2Fixture* fixture = body->CreateFixture(&ENEMY_FIXTURE);
-
-    e.addComponent(new RenderableComponent(circle, 500));
-    e.addComponent(new PositionComponent(x, y));
-    e.addComponent(new VelocityComponent);
-    e.addComponent(new AccelerationComponent);
-    e.addComponent(new TractorBeamRepellableComponent);
-    e.addComponent(new PhysicsBodyComponent(body, e));
-    e.addComponent(new PhysicsFixtureComponent(fixture, e));
-
-    _world->activateEntity(e);
-    return e;
-}
-
-Entity createBullet(
-    const float px,
-    const float py,
-    const float vx,
-    const float vy) noexcept {
-    Entity e = _world->createEntity();
-    CircleShape* circle = new CircleShape(8);
-    circle->setOrigin(8, 8);
-
-    e.addComponent(new PositionComponent(px, py));
-    e.addComponent(new RenderableComponent(circle));
-    e.addComponent(new VelocityComponent(vx, vy));
-    e.addComponent(new BulletComponent(2));
-
-    _world->activateEntity(e);
-    return e;
-}
-
-Entity createEntity(const string& type) {
-    Entity e = _world->createEntity();
-    std::ifstream in("data/script/entities.lua");
-    _lua->writeVariable("entity", &e);
-    _lua->executeCode(in);
-    _lua->writeVariable("entity", nullptr);
-    _world->activateEntity(e);
-    return e;
-}
 
 }
 }
