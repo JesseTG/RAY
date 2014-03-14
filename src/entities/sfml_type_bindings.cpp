@@ -1,10 +1,12 @@
 #include "entities.hpp"
 #include "util.hpp"
 
+#include <exception>
 #include <LuaContext.hpp>
 
 namespace ray {
 namespace entities {
+using std::invalid_argument;
 using boost::get;
 using boost::optional;
 using boost::variant;
@@ -66,7 +68,7 @@ void initCommonSFMLShapeBindings(const string& name) {
     [](SFShapeT& s, const Color& color) {
         s.setFillColor(color);
     });
-    _lua->registerMember<SFShapeT, Color>("outLineColor",
+    _lua->registerMember<SFShapeT, Color>("outlineColor",
     [](const SFShapeT& s) {
         return s.getOutlineColor();
     },
@@ -87,7 +89,22 @@ void initSFMLTypeBindings() {
     {
         _lua->writeVariable("SFML", "Vector", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Vector", "new", getDefaultConstructorLambda<Vector2f>());
+            _lua->writeFunction("SFML", "Vector", "new",
+            [](const optional<float>& arg1, const optional<float>& arg2) {
+                if (arg1 && arg2) {
+                    // If the scripter passed in two arguments...
+                    return Vector2f(*arg1, *arg2);
+                }
+                else if (!(arg1 || arg2)) {
+                    // Else if the scripter passed in *no* arguments...
+                    return Vector2f(0, 0);
+                }
+                else {
+                    throw invalid_argument(
+                        "Must pass in two numbers or nothing at all"
+                    );
+                }
+            });
             _lua->registerMember("x", &Vector2f::x);
             _lua->registerMember("y", &Vector2f::y);
         }
@@ -130,8 +147,20 @@ void initSFMLTypeBindings() {
 
         _lua->writeVariable("SFML", "CircleShape", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "CircleShape", "new", [](const optional<float> radius) {
-                return new CircleShape((radius) ? *radius : 0.0);
+            _lua->writeFunction("SFML", "CircleShape", "new",
+            [](const optional<float> radius, const optional<int> points) {
+                if (radius && points) {
+                    // If the user specified both the radius of the circle
+                    // and the smoothness of it...
+                    return new CircleShape(*radius, *points);
+                }
+                else if (radius && !points) {
+                    // Else if the user just gave the radius...
+                    return new CircleShape(*radius);
+                }
+                else {
+                    return new CircleShape;
+                }
             });
             initCommonSFMLDrawableBindings<CircleShape>("CircleShape");
             initCommonSFMLShapeBindings<CircleShape>("CircleShape");
@@ -142,6 +171,35 @@ void initSFMLTypeBindings() {
             [](CircleShape& circle, const float radius) {
                 circle.setRadius(radius);
             });
+        }
+
+        _lua->writeVariable("SFML", "RectangleShape", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "RectangleShape", "new",
+            [](const optional<float>& arg1, const optional<float>& arg2) {
+                if (arg1 && arg2) {
+                    // If the scripter passed in two arguments...
+                    return new RectangleShape(Vector2f(*arg1, *arg2));
+                }
+                else if (!(arg1 || arg2)) {
+                    // Else if the scripter passed in *no* arguments...
+                    return new RectangleShape;
+                }
+                else {
+                    throw invalid_argument(
+                        "Must pass in two numbers or nothing at all"
+                    );
+                }
+            });
+            _lua->registerMember<RectangleShape, Vector2f>("size",
+            [](const RectangleShape& rect) {
+                return rect.getSize();
+            },
+            [](RectangleShape& rect, const Vector2f& vec) {
+                rect.setSize(vec);
+            });
+            initCommonSFMLDrawableBindings<RectangleShape>("RectangleShape");
+            initCommonSFMLShapeBindings<RectangleShape>("RectangleShape");
         }
     }
 }
