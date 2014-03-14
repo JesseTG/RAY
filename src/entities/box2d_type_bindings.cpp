@@ -13,7 +13,6 @@ using boost::get;
 using boost::optional;
 using boost::variant;
 
-
 void initBox2DTypeBindings() {
     _lua->writeVariable("Box2D", LuaEmptyArray);
     {

@@ -66,11 +66,6 @@ void setPhysicsWorld(b2World&) noexcept;
 void setLuaState(LuaContext& lua) noexcept;
 
 /**
- * Initializes Box2D body definitions
- */
-void initBodyDefs() noexcept;
-
-/**
  * Creates an @c Entity with the given name.
  *
  * Inside Lua-space, there must be a function with the name @c create_Entity_XXX,
