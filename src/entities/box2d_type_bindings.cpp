@@ -1,21 +1,40 @@
 #include "entities.hpp"
 #include "util.hpp"
 
+#include <iostream>
+#include <exception>
 #include <LuaContext.hpp>
 
 namespace ray {
 namespace entities {
+using std::invalid_argument;
+using std::logic_error;
 using boost::get;
 using boost::optional;
 using boost::variant;
+
 
 void initBox2DTypeBindings() {
     _lua->writeVariable("Box2D", LuaEmptyArray);
     {
         _lua->writeVariable("Box2D", "Vector", LuaEmptyArray);
         {
-            _lua->writeFunction("Box2D", "Vector", "new", []() {
-                return b2Vec2(0, 0);
+            _lua->writeFunction("Box2D", "Vector", "new",
+            [](const optional<float>& arg1, const optional<float>& arg2) {
+                if (arg1 && arg2) {
+                    // If the scripter passed in two arguments...
+                    return b2Vec2(*arg1, *arg2);
+                }
+                else if (!(arg1 || arg2)) {
+                    // Else if the scripter passed in *no* arguments...
+                    return b2Vec2(0, 0);
+                }
+                else {
+                    throw invalid_argument(
+                        "Must pass in two numbers or nothing at all"
+                    );
+                }
+
             });
             _lua->registerMember("x", &b2Vec2::x);
             _lua->registerMember("y", &b2Vec2::y);
@@ -88,24 +107,34 @@ void initBox2DTypeBindings() {
             _lua->registerMember("density", &b2FixtureDef::density);
             _lua->registerMember("isSensor", &b2FixtureDef::isSensor);
             _lua->registerMember("filter", &b2FixtureDef::filter);
-            typedef variant<b2CircleShape, b2EdgeShape, b2PolygonShape, b2ChainShape> shapevariant;
-            _lua->registerFunction<b2FixtureDef, void(const shapevariant&)>("setShape",
-            [](b2FixtureDef& def, const shapevariant& shape) {
+            typedef variant<b2CircleShape*, b2EdgeShape*, b2PolygonShape*, b2ChainShape*> shapevariant;
+            _lua->registerFunction<b2FixtureDef, void(shapevariant)>("setShape",
+                    // TODO: Turn this into a member
+            [](b2FixtureDef& def, shapevariant shape) {
+                // NOTE: This depends on the order in which the members of the
+                // b2Shape::Type enum are defined!
                 switch (shape.which()) {
                     case b2Shape::Type::e_circle:
-                        def.shape = get<b2CircleShape>(&shape);
+                        def.shape = *get<b2CircleShape*>(&shape);
                         break;
                     case b2Shape::Type::e_edge:
-                        def.shape = get<b2EdgeShape>(&shape);
+                        def.shape = *get<b2EdgeShape*>(&shape);
                         break;
                     case b2Shape::Type::e_polygon:
-                        def.shape = get<b2PolygonShape>(&shape);
+                        def.shape = *get<b2PolygonShape*>(&shape);
                         break;
                     case b2Shape::Type::e_chain:
-                        def.shape = get<b2ChainShape>(&shape);
+                        def.shape = *get<b2ChainShape*>(&shape);
                         break;
-
+                    default:
+                        throw logic_error(
+                            "Unknown b2Shape type passed in to Box2D.FixtureDef"
+                        );
                 }
+            });
+            _lua->registerFunction<b2FixtureDef, const b2Shape*(void)>("getShape",
+            [](b2FixtureDef& def) {
+                return def.shape;
             });
         }
 
@@ -154,8 +183,15 @@ void initBox2DTypeBindings() {
 
             _lua->writeVariable("Box2D", "Shape", "Circle", LuaEmptyArray);
             {
-                _lua->writeFunction("Box2D", "Shape", "Circle", "new", getDefaultConstructorLambda<b2CircleShape>());
+                _lua->writeFunction("Box2D", "Shape", "Circle", "new",
+                [](optional<float> r) {
+                    b2CircleShape* shape = new b2CircleShape;
+                    if (r) shape->m_radius = *r;
+
+                    return shape;
+                });
                 _lua->registerMember("position", &b2CircleShape::m_p);
+
                 _lua->registerMember<b2CircleShape, float>("radius",
                 [](const b2CircleShape& shape) {
                     return shape.m_radius;
@@ -171,7 +207,43 @@ void initBox2DTypeBindings() {
 
             _lua->writeVariable("Box2D", "Shape", "Edge", LuaEmptyArray);
             {
-                _lua->writeFunction("Box2D", "Shape", "Edge", getDefaultConstructorLambda<b2EdgeShape>());
+                _lua->writeFunction("Box2D", "Shape", "Edge", "new", getNewDefaultConstructorLambda<b2EdgeShape>());
+                _lua->registerMember("v1", &b2EdgeShape::m_vertex1);
+                _lua->registerMember("v2", &b2EdgeShape::m_vertex2);
+                // ^ The two vertices actually in the edge
+
+                _lua->registerMember("v0", &b2EdgeShape::m_vertex0);
+                _lua->registerMember("v3", &b2EdgeShape::m_vertex3);
+                _lua->registerMember("hasv0", &b2EdgeShape::m_hasVertex0);
+                _lua->registerMember("hasv3", &b2EdgeShape::m_hasVertex3);
+                // ^ Two "ghost vertices"; not sure what that means, gotta look
+                // more into it
+
+                _lua->registerMember<b2EdgeShape, b2EdgeShape::Type, b2EdgeShape::Type(const b2EdgeShape&)>("type",
+                [](const b2EdgeShape& shape) {
+                    return shape.m_type;
+                });
+            }
+
+            _lua->writeVariable("Box2D", "Shape", "Polygon", LuaEmptyArray);
+            {
+                _lua->writeFunction("Box2D", "Shape", "Polygon", "new", getNewDefaultConstructorLambda<b2PolygonShape>());
+            }
+
+            _lua->writeVariable("Box2D", "Shape", "Rectangle", LuaEmptyArray);
+            {
+                _lua->writeFunction("Box2D", "Shape", "Rectangle", "new",
+                [](const float hx, const float hy, const optional<b2Vec2&> center, const optional<float> angle) {
+                    b2PolygonShape* box = new b2PolygonShape;
+                    if (center && angle) {
+                        box->SetAsBox(hx, hy, *center, *angle);
+                    }
+                    else {
+                        box->SetAsBox(hx, hy);
+                    }
+
+                    return box;
+                });
             }
         }
     }
