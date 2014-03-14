@@ -109,15 +109,11 @@ target_compile_definitions(Release
 )
 
 target_compile_options(Debug
-    PUBLIC -O0
-    PUBLIC -g
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
 )
 
 target_compile_options(Release
-    PUBLIC -Ofast
-    PUBLIC -s
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
 )
