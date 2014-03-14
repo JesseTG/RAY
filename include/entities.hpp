@@ -21,6 +21,7 @@
 
 namespace ray {
 namespace entities {
+    using std::ifstream;
 using std::function;
 using std::string;
 
@@ -41,15 +42,6 @@ extern World*        _world ;
 extern RenderWindow* _window;
 extern b2World*      _physics_world;
 extern LuaContext*    _lua;
-
-extern b2BodyDef ENEMY_BODY;
-extern b2FixtureDef ENEMY_FIXTURE;
-extern b2BodyDef PLAYER_BODY;
-extern b2FixtureDef PLAYER_FIXTURE;
-extern b2FixtureDef TRACTOR_BEAM_FIXTURE;
-
-extern b2CircleShape PLAYER_SHAPE;
-extern b2PolygonShape TRACTOR_BEAM_SHAPE;
 
 /**
  * Sets the @c World that will create the @c Entities (so you don't have to
@@ -79,58 +71,26 @@ void setLuaState(LuaContext& lua) noexcept;
 void initBodyDefs() noexcept;
 
 /**
- * Creates and activates circle that can be controlled by the arrow keys. More
- * specifically, creates an @c Entity with the following components:
+ * Creates an @c Entity with the given name.
  *
- * @li RenderableComponent
- * @li PositionComponent
- * @li VelocityComponent
- * @li FourWayControlComponent
+ * Inside Lua-space, there must be a function with the name @c create_Entity_XXX,
+ * where @c XXX is the actual @c Entity type (e.g. @c Cursor, @c Enemy, etc.).
  *
- * @param r The radius of the @c Entity in pixels
- * @param x The horizontal position of the @c Entity in the @c World in pixels
- * @param y The vertical position of the @c Entity in the @c World in pixels
+ * You can pass in any object type in as an argument; just make sure any code
+ * within the given Lua function knows what to do with it!
  *
- * @return The new @c Entity
- */
-Entity createKeyboardCircle(const Entity& face_entity, const float r, const float x, const float y) noexcept;
-
-/**
- * Creates and activates a crosshair (in the form of a circle) that follows the
- * mouse. More specifically, creates an @c Entity with the following components:
- *
- * @li RenderableComponent
- * @li PositionComponent
- * @li MouseFollowComponent
- *
- * @param r The radius, in pixels, of the crosshair
- *
- * @return The new @c Entity
- */
-Entity createMouseCircle(const float r) noexcept;
-
-/**
- * Creates and activates a tractor beam
- */
-Entity createTractorBeam(
-    const Entity&,
-    const Entity&,
-    const float,
-    const float,
-    const float,
-    const float
-) noexcept;
-
-/**
- * Creates an Entity with the given name
+ * @tparam Types The types of any arguments passed in
+ * @param type The name of the @c Entity type to create
+ * @param args The arguments to be passed into the relevant Lua functio
+ * @return The generated @c Entity
  */
 template<typename...Types>
 Entity createEntity(const string& type, Types...args) {
-    std::ifstream in("data/script/entities.lua");
+    ifstream in("data/script/entities.lua");
     _lua->executeCode(in);
     string name = string("create_Entity_") + type;
-    std::function<Entity(Types...)> f =
-        _lua->readVariable<std::function<Entity(Types...)>>(name);
+    function<Entity(Types...)> f =
+        _lua->readVariable<function<Entity(Types...)>>(name);
     return f(args...);
 }
 
@@ -139,8 +99,6 @@ void initSFMLTypeBindings();
 void initAnaxTypeBindings();
 void initBox2DTypeBindings();
 void initComponentLuaBindings();
-
-
 
 }
 

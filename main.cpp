@@ -38,15 +38,14 @@ int main()
     entities::setPhysicsWorld(physics_world);
     entities::setLuaState(lua);
 
-    entities::initBodyDefs();
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
     physics_world.SetContactListener(&tb_listener);
 
-    Entity crosshair = entities::createMouseCircle(16); //entities::createEntity("MouseCircle", 16.0);
-    Entity player = entities::createKeyboardCircle(crosshair, 32, 256, 256);
-    Entity tractorbeam = entities::createTractorBeam(crosshair, player, 16, 0, 512, 1);
+    Entity crosshair = entities::createEntity("MouseCircle", 16.0);
+    Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
+    Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
 
     FourWayControlSystem four_way_movement;
     RenderSystem rendering(window);
@@ -63,7 +62,6 @@ int main()
 
     world.addSystem(four_way_movement);
     world.addSystem(mouse_following);
-    //world.addSystem(movement);
     world.addSystem(face_entity);
     world.addSystem(follow_entity);
     world.addSystem(tractor_system);
