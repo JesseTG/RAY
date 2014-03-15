@@ -8,6 +8,8 @@ void PhysicsBodyComponent::luaInit(LuaContext& lua) {
     [](b2Body* body, Entity& e) {
         return new PhysicsBodyComponent(body, e);
     });
+    lua.registerMember("body", &PhysicsBodyComponent::body);
+    lua.registerMember("entity", &PhysicsBodyComponent::entity);
 }
 
 void PhysicsBodyComponent::_set_body(b2Body* b, Entity& e) {

@@ -1,14 +1,16 @@
 #include <utility>
 
+#include <boost/optional.hpp>
 #include "RenderableComponent.hpp"
 
 namespace ray {
+using boost::optional;
 void RenderableComponent::luaInit(LuaContext& lua) {
     typedef variant<CircleShape*, RectangleShape*, ConvexShape*, Sprite*, Text*, VertexArray*> drawtypes;
     lua.writeFunction(
         "RenderableComponent",
         "new",
-    [](drawtypes types) {
+    [](drawtypes types, optional<int> l) {
 
         Drawable* drawptr;
         switch (types.which()) {
@@ -32,7 +34,13 @@ void RenderableComponent::luaInit(LuaContext& lua) {
                 break;
         }
 
-        return new RenderableComponent(drawptr);
+        if (l) {
+            // If the scripter specified a layer...
+            return new RenderableComponent(drawptr, *l);
+        }
+        else {
+            return new RenderableComponent(drawptr);
+        }
     });
 
     lua.registerMember("transformable", &RenderableComponent::transformable);
