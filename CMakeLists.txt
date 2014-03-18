@@ -5,6 +5,8 @@ project(RAY CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
+include(cotire)
+
 set(SRC_FILES
     src/entities/sfml_type_bindings.cpp
     src/entities/anax_type_bindings.cpp
@@ -22,6 +24,8 @@ set(SRC_FILES
     src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
+    src/fsm/WorldStateMachine.cpp
+    src/fsm/WorldState.cpp
     src/listeners/TractorBeamRepellingListener.cpp
     src/systems/DebugSystem.cpp
     src/systems/EntityFollowSystem.cpp
@@ -55,6 +59,8 @@ set(INCLUDE_FILES
     include/components/VelocityComponent.hpp
     include/fsm/EntityState.hpp
     include/fsm/EntityStateMachine.hpp
+    include/fsm/WorldStateMachine.hpp
+    include/fsm/WorldState.hpp
     include/managers/ResourceManager.hpp
     include/listeners/TractorBeamRepellingListener.hpp
     include/systems/DebugSystem.hpp
