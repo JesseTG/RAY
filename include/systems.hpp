@@ -15,6 +15,7 @@ namespace ray {
     class RenderSystem;
     class TractorBeamSystem;
 }
+
 #ifdef DEBUG
 #include "DebugSystem.hpp"
 #endif //DEBUG

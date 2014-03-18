@@ -2,7 +2,9 @@
 #include <fstream>
 #include <vector>
 #include <chrono>
-#include <thread>
+#include <sstream>
+#include <string>
+#include <utility>
 
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
@@ -11,6 +13,7 @@
 
 #include "config.hpp"
 #include "components.hpp"
+#include "fsm.hpp"
 #include "systems.hpp"
 #include "entities.hpp"
 #include "listeners.hpp"
@@ -18,10 +21,13 @@
 int main()
 {
     using std::vector;
+    using std::string;
+    using std::make_pair;
     using std::chrono::milliseconds;
     using sf::Event;
     using sf::RenderWindow;
     using sf::VideoMode;
+    using namespace util;
     using namespace ray;
 
     TractorBeamRepellingListener tb_listener;
@@ -30,6 +36,7 @@ int main()
     RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
     window.setFramerateLimit(60);
     anax::World world;
+
     b2World physics_world(b2Vec2(0, 0));
     LuaContext lua;
 
@@ -55,10 +62,41 @@ int main()
     EntityFollowSystem follow_entity;
     TractorBeamSystem tractor_system(tb_listener, tractorbeam);
     PhysicsSystem physics(physics_world);
-    #ifdef DEBUG
+#ifdef DEBUG
     DebugSystem debug(window, physics_world, lua);
-    #endif // DEBUG
+#endif // DEBUG
 
+    WorldState start;
+    WorldState test_no_move;
+    WorldStateMachine<string, string> wsm(world, "start", {
+        {"start", start},
+        {"nomove", test_no_move}
+    },
+    {
+        {make_pair("reload", "start"), "start"},
+        {make_pair("reload", "nomove"), "nomove"},
+        {make_pair("stop_moving", "start"), "nomove"}
+    });
+    start.addSystem(four_way_movement, 0);
+    start.addSystem(mouse_following, 10);
+    start.addSystem(face_entity, 20);
+    start.addSystem(follow_entity, 30);
+    start.addSystem(tractor_system, 40);
+    start.addSystem(physics, 50);
+#ifdef DEBUG
+    start.addSystem(debug, 55);
+#endif // DEBUG
+    start.addSystem(rendering, 60);
+
+    test_no_move.addSystem(mouse_following, 10);
+    test_no_move.addSystem(face_entity, 20);
+    test_no_move.addSystem(follow_entity, 30);
+    test_no_move.addSystem(tractor_system, 40);
+    test_no_move.addSystem(physics, 50);
+#ifdef DEBUG
+    test_no_move.addSystem(debug, 55);
+#endif // DEBUG
+    test_no_move.addSystem(rendering, 60);
 
     world.addSystem(four_way_movement);
     world.addSystem(mouse_following);
@@ -66,10 +104,13 @@ int main()
     world.addSystem(follow_entity);
     world.addSystem(tractor_system);
     world.addSystem(physics);
-    #ifdef DEBUG
+#ifdef DEBUG
     world.addSystem(debug);
-    #endif // DEBUG
+#endif // DEBUG
     world.addSystem(rendering);
+
+    wsm.transition("stop_moving");
+
 
     vector<Event> events;
     bool focused = true;
@@ -108,9 +149,9 @@ int main()
             follow_entity.update();
             tractor_system.update();
             physics.update();
-            #ifdef DEBUG
+#ifdef DEBUG
             debug.update(events);
-            #endif // DEBUG
+#endif // DEBUG
         }
 
         rendering.update();
@@ -119,3 +160,4 @@ int main()
         events.clear();
     }
 }
+
