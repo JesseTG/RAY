@@ -3,10 +3,8 @@ function create_Entity_Enemy(x, y, r)
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
     local position = Box2D.Vector.new(x, y)
-    local shape = Box2D.Shape.Circle.new()
+    local shape = Box2D.Shape.Circle.new(r)
     local circle = SFML.CircleShape.new(r, 16)
-
-    shape.radius = r
 
     circle.origin = SFML.Vector.new(r, r)
     circle.position =  SFML.Vector.new(position.x, position.y)
@@ -41,14 +39,13 @@ function create_Entity_MouseCircle(r)
     local e = Anax.Entity.new()
     local circle = SFML.CircleShape.new(r)
 
-    local origin = SFML.Vector.new(r, r)
     circle.outlineThickness = 1
     circle.outlineColor = SFML.Color.White
     circle.fillColor = SFML.Color.Transparent
-    circle.origin = origin
+    circle.origin = SFML.Vector.new(r, r)
 
     local rc = RenderableComponent.new(circle, 1000)
-    local pc = PositionComponent.new(origin)
+    local pc = PositionComponent.new(0, 0)
     local mfcc = MouseFollowControlComponent.new()
 
     e:addRenderableComponent(rc)
