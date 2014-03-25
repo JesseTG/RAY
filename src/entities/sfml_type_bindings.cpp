@@ -13,11 +13,13 @@ using boost::variant;
 using sf::CircleShape;
 using sf::Color;
 using sf::ConvexShape;
+using sf::Font;
 using sf::Rect;
 using sf::IntRect;
 using sf::FloatRect;
 using sf::RectangleShape;
 using sf::Sprite;
+using sf::Text;
 using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2f;
@@ -55,6 +57,7 @@ void initCommonSFMLDrawableBindings(const string& name) {
     });
     _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("move", &SFDrawableT::move);
     _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("scale", &SFDrawableT::scale);
+    // TODO: Allow SFML vectors *and* floats
     _lua->registerFunction("rotate", &SFDrawableT::rotate);
 }
 
@@ -201,6 +204,89 @@ void initSFMLTypeBindings() {
             initCommonSFMLDrawableBindings<RectangleShape>("RectangleShape");
             initCommonSFMLShapeBindings<RectangleShape>("RectangleShape");
         }
+
+        _lua->writeVariable("SFML", "Text", LuaEmptyArray);
+        {
+            _lua->writeFunction("SFML", "Text", "new", []
+                                (
+                                    const optional<string>& arg1,
+                                    const optional<Font&>& arg2,
+                                    const optional<int>& arg3
+            ) {
+                if (arg1 && arg2 && arg3) {
+                    // If the user specified text, a font, and a size...
+                    return new Text(*arg1, *arg2, *arg3);
+                }
+                else if (arg1 && arg2) {
+                    // Else if the user just specified a text and a font...
+                    return new Text(*arg1, *arg2);
+                }
+                else if (arg1) {
+                    // Else if the user just specified text...
+                    Text* t = new Text;
+                    t->setString(*arg1);
+                    return t;
+                }
+                else {
+                    return new Text;
+                }
+            });
+            initCommonSFMLDrawableBindings<Text>("Text");
+
+            _lua->registerMember<Text, string>("text",
+            [](const Text& text) {
+                return text.getString();
+            },
+            [](Text& text, const string& s) {
+                text.setString(s);
+            });
+            _lua->registerMember<Text, int>("characterSize",
+            [](const Text& text) {
+                return text.getCharacterSize();
+            },
+            [](Text& text, const int s) {
+                text.setCharacterSize(s);
+            });
+            _lua->registerMember<Text, Color>("color",
+            [](const Text& text) {
+                return text.getColor();
+            },
+            [](Text& text, const Color& c) {
+                text.setColor(c);
+            });
+            _lua->registerMember<Text, bool>("bold",
+            [](const Text& text) {
+                return text.getStyle() & Text::Style::Bold;
+            },
+            [](Text& text, const bool bold) {
+                int style = (bold) ?
+                            text.getStyle() | Text::Style::Bold :
+                            text.getStyle() & ~Text::Style::Bold;
+                text.setStyle(style);
+            });
+            _lua->registerMember<Text, bool>("italic",
+            [](const Text& text) {
+                return text.getStyle() & Text::Style::Italic;
+            },
+            [](Text& text, const bool italic) {
+                int style = (italic) ?
+                            text.getStyle() | Text::Style::Italic :
+                            text.getStyle() & ~Text::Style::Italic;
+                text.setStyle(style);
+            });
+            _lua->registerMember<Text, bool>("underlined",
+            [](const Text& text) {
+                return text.getStyle() & Text::Style::Underlined;
+            },
+            [](Text& text, const bool underlined) {
+                int style = (underlined) ?
+                            text.getStyle() | Text::Style::Underlined:
+                            text.getStyle() & ~Text::Style::Underlined;
+                text.setStyle(style);
+            });
+
+        }
+
     }
 }
 }
