@@ -1,80 +1,53 @@
 #ifndef WORLDSTATE_HPP
 #define WORLDSTATE_HPP
 
-#include <exception>
-#include <functional>
-#include <map>
-#include <unordered_map>
-#include <vector>
-#include <string>
-
-#ifdef DEBUG
-#include <sstream>
-#endif // DEBUG
-
 #include <anax/anax.hpp>
 
 #include "fsm.hpp"
 
 namespace util {
-using std::logic_error;
-using std::map;
-using std::unordered_map;
-using std::function;
-using std::vector;
-using anax::BaseSystem;
-using anax::detail::TypeId;
 
+using anax::World;
+/**
+ * Represents a state (a screen, basically) the game can be  in (pause menu,
+ * in-game, inventory, etc.).
+ *
+ * @tparam UpdateArguments The arguments that the update function will take.
+ */
+template<typename...UpdateArguments>
 class WorldState
 {
     public:
-        WorldState() :
-            _update([]() {}),
-        _on_enter([]() {}),
-        _on_exit([]() {})
-        {}
-        ~WorldState() {}
+        virtual ~WorldState() {}
 
-        template<class TSystem>
-        void addSystem(TSystem& system, const int priority) {
-#ifdef DEBUG
-            if (this->_systems_by_priority.count(priority)) {
-                // If we already have a System with the given priority...
-                std::ostringstream err;
-                err << "Duplicate priority " << priority << "for WorldState "
-                    << this;
-                throw logic_error(err.str());
-            }
-#endif // DEBUG
-            this->_systems[TSystem::GetTypeId()] = &system;
-            this->_systems_by_priority[priority] = &system;
-        }
+    protected:
+        template<class, class, typename...> friend class WorldStateMachine;
 
-        template<class TSystem>
-        void removeSystem() {
-            this->_systems.erase(TSystem::GetTypeId());
-        }
+        /**
+         * Called when another @c WorldState transitions to this one. By default,
+         * does nothing; feel free to override this.
+         *
+         * @param w The @c anax::World governed by @c *this.
+         */
+        virtual void onEnter(World& w) {}
 
-        void setUpdateCallback(const function<void(void)>& f) {
-            this->_update = f;
-        }
+        /**
+         * Called when @c *this transitions to another WorldState. By default,
+         * does nothing; feel free to override this.
+         *
+         * @note This will be called before the next state's @c onEnter method
+         * will.
+         *
+         * @param w The @c anax::World governed by @c *this.
+         */
+        virtual void onExit(World& w) {}
 
-        void setOnEnterCallback(const function<void(void)>& f) {
-            this->_on_enter = f;
-        }
-
-        void setOnExitCallback(const function<void(void)>& f) {
-            this->_on_exit = f;
-        }
-    private:
-        template<class, class> friend class WorldStateMachine;
-        unordered_map<TypeId, BaseSystem*> _systems;
-        map<int, BaseSystem*> _systems_by_priority;
-        function<void(void)> _update;
-        function<void(void)> _on_enter;
-        function<void(void)> _on_exit;
-
-
+        /**
+         * Updates any pertinent world state (@c Systems, @c Entities, etc.).
+         *
+         * @param args Arguments passed in for the @c Systems to act upon.
+         */
+        virtual void update(const UpdateArguments&...) = 0;
 };
 }
 

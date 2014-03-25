@@ -1,10 +1,12 @@
 #ifndef WORLDSTATEMACHINE_HPP
 #define WORLDSTATEMACHINE_HPP
 
+#include <iostream>
 #include <exception>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <memory>
 #include <map>
 #include <utility>
 
@@ -19,12 +21,14 @@
 namespace util {
 using std::logic_error;
 using std::make_pair;
+using std::make_shared;
 using std::map;
 using std::get;
 using std::ostringstream;
 using std::pair;
 using std::string;
 using std::stringstream;
+using std::shared_ptr;
 using std::unordered_map;
 using anax::World;
 
@@ -44,8 +48,9 @@ using anax::World;
  * @tparam TStateKey The type used to refer to a WorldState. Preferably an @c enum.
  * @tparam TAction The type used to refer to the transition action (in pure
  * FSM terms, a symbol). Ideally an @c enum.
+ * @tparam UpdateArgument Some argument passed into a WorldState
  */
-template<class TStateKey, class TAction>
+template<class TStateKey, class TAction, typename...UpdateArguments>
 class WorldStateMachine
 {
     public:
@@ -67,7 +72,7 @@ class WorldStateMachine
         WorldStateMachine(
             World& world,
             const TStateKey& start,
-            const map<TStateKey, WorldState>& states,
+            const map<TStateKey, shared_ptr<WorldState<UpdateArguments...>>>& states,
             const map<pair<TAction, TStateKey>, TStateKey>& transitions
         ) :
             _world(&world),
@@ -90,7 +95,6 @@ class WorldStateMachine
                         throw logic_error(err.str());
                     }
 
-
                     for (const auto& j : w_keys) {
                         // Now for every state key we got as an argument...
                         if (!states.count(j)) {
@@ -103,23 +107,30 @@ class WorldStateMachine
                     }
                 #endif //DEBUG
                 _current_state = this->_states.find(start);
+                _current_state->second->onEnter(*this->_world);
         }
 
         /**
+         * Given the current @c WorldState and the given input, decides which
+         * @c WorldState to go to next.
          *
-         * @throw @c std::logic_error for an undefined transition
+         * @param symbol The action that will govern what state to go to next
+         * (e.g. @c EXIT, @c PAUSE, etc.).
+         * @throw @c std::logic_error for an undefined transition or a state
+         * key without a corresponding state.
          */
-        const WorldState& transition(const TAction& symbol) {
-            auto inputpair = make_pair(symbol, this->_current_state->first);
+        const WorldState<UpdateArguments...>& transition(const TAction& symbol) {
+            pair<TAction, TStateKey> inputpair = make_pair(symbol, this->_current_state->first);
             if (this->_transitions.count(inputpair)) {
                 // If we have a transition defined given our current state and
                 // and input symbol...
-                if (this->_states.count(this->_transitions.find(inputpair)->second)) {
+                const TStateKey& newkey = this->_transitions.find(inputpair)->second;
+                if (this->_states.count(newkey)) {
                     // If we have a state defined for the given state key...
-                    this->_current_state->second._on_exit();
-                    this->_current_state = this->_states.find(inputpair.second);
-                    this->_current_state->second._on_enter();
-                    return this->_states[this->_current_state->first];
+                    this->_current_state->second->onExit(*this->_world);
+                    this->_current_state = this->_states.find(newkey);
+                    this->_current_state->second->onEnter(*this->_world);
+                    return *this->_states[this->_current_state->first];
                 }
                 else {
                     ostringstream err;
@@ -137,26 +148,28 @@ class WorldStateMachine
             }
         }
 
-        const WorldState& currentState() const {
+        /**
+         * Returns the current @c WorldState.
+         */
+        const WorldState<UpdateArguments...>& currentState() const {
             return this->_states[this->_current_state->second];
         }
 
-        void update() {
-            this->_current_state->second._update();
-        }
-
-
-        void addTransition(
-            const TStateKey& currentkey,
-            const TAction& inpuTAction,
-            const TStateKey& nextstate) {
-            this->_transitions[make_pair(inpuTAction, currentkey)] = nextstate;
+        /**
+         * Updates the underlying @c World and its @c Systems. Ideally called
+         * once per frame.
+         *
+         * @param args The arguments as specified by the @c UpdateArguments
+         * template parameter
+         */
+        void update(const UpdateArguments&...args) {
+            this->_current_state->second->update(args...);
         }
     private:
         World* _world;
-        unordered_map<TStateKey, WorldState> _states;
+        unordered_map<TStateKey, shared_ptr<WorldState<UpdateArguments...>>> _states;
         map<pair<TAction, TStateKey>, TStateKey> _transitions;
-        // TODO: Make this an unordered_map
+        // ^ TODO: Make this an unordered_map
         typename decltype(_states)::iterator _current_state;
 };
 }
