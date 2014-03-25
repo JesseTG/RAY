@@ -4,11 +4,10 @@
 
 namespace ray {
 
-DebugSystem::DebugSystem(RenderWindow& window, b2World& world, LuaContext& lua) :
+DebugSystem::DebugSystem(RenderWindow& window, GameManager& gm) :
     Base(),
     _window(&window),
-    _physics_world(&world),
-    _lua(&lua)
+    _gm(&gm)
 {
     //ctor
 }

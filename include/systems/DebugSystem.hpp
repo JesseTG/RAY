@@ -8,6 +8,8 @@
 #include <SFML/Graphics.hpp>
 #include <LuaContext.hpp>
 
+#include "managers.hpp"
+
 namespace ray {
 
 using std::vector;
@@ -40,14 +42,13 @@ class DebugSystem : public anax::System<DebugSystem>
          * Constructor. Initializes this DebugSystem with a @c sf::RenderWindow,
          * a @c b2World, and a LuaContext.
          */
-        DebugSystem(RenderWindow&, b2World&, LuaContext&);
+        DebugSystem(RenderWindow&, GameManager&);
         ~DebugSystem();
 
         void update(const vector<Event>& events);
     private:
         RenderWindow* _window;
-        b2World* _physics_world;
-        LuaContext* _lua;
+        GameManager* _gm;
 };
 }
 
