@@ -15,9 +15,11 @@ PhysicsSystem::PhysicsSystem(b2World& world) : Base(FILTER), _world(&world)
     //ctor
 }
 
+PhysicsSystem::PhysicsSystem(b2World* world) : Base(FILTER), _world(world) {
+}
+
 PhysicsSystem::~PhysicsSystem()
 {
-    //dtor
 }
 
 void PhysicsSystem::update() {

@@ -12,8 +12,10 @@ class PhysicsSystem : public anax::System<PhysicsSystem>
 {
     public:
         PhysicsSystem(b2World&);
+        PhysicsSystem(b2World*);
         ~PhysicsSystem();
         void update();
+        void setWorld(b2World* world) { this->_world = world;}
     private:
         b2World* _world;
 
