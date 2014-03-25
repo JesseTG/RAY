@@ -10,7 +10,7 @@ void RenderableComponent::luaInit(LuaContext& lua) {
     lua.writeFunction(
         "RenderableComponent",
         "new",
-    [](drawtypes types, optional<int> l) {
+    [](const drawtypes& types, optional<int> l) {
 
         Drawable* drawptr;
         switch (types.which()) {
