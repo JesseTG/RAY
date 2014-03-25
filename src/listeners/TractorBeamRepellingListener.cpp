@@ -14,7 +14,11 @@ TractorBeamRepellingListener::TractorBeamRepellingListener()
 
 TractorBeamRepellingListener::~TractorBeamRepellingListener()
 {
-    //dtor
+    this->_grips.clear();
+}
+
+void TractorBeamRepellingListener::clearGrips() {
+    this->_grips.clear();
 }
 
 unordered_map<b2Fixture*, b2Fixture*>& TractorBeamRepellingListener::getTractorBeamGrips() {

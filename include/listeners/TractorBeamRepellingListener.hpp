@@ -34,6 +34,8 @@ class TractorBeamRepellingListener : public b2ContactListener
          */
         void EndContact(b2Contact* contact) override;
 
+        void clearGrips();
+
         unordered_map<b2Fixture*, b2Fixture*>& getTractorBeamGrips();
     private:
         unordered_map<b2Fixture*, b2Fixture*> _grips;
