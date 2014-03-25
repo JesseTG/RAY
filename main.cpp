@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
@@ -16,6 +17,7 @@
 #include "fsm.hpp"
 #include "systems.hpp"
 #include "entities.hpp"
+#include "managers.hpp"
 #include "listeners.hpp"
 
 int main()
@@ -31,28 +33,24 @@ int main()
     using namespace ray;
 
     TractorBeamRepellingListener tb_listener;
+    GameManager gm;
 
     // Create the main window
     RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
-    window.setFramerateLimit(60);
-    anax::World world;
+    window.setFramerateLimit(FPS);
 
-    b2World physics_world(b2Vec2(0, 0));
-    LuaContext lua;
-
-    entities::setWorld(world);
+    entities::setWorld(gm.getWorld());
     entities::setRenderWindow(window);
-    entities::setPhysicsWorld(physics_world);
-    entities::setLuaState(lua);
+    entities::setPhysicsWorld(gm.getPhysicsWorld());
+    entities::setLuaState(gm.getLuaContext());
 
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
-    physics_world.SetContactListener(&tb_listener);
+    std::ifstream in("data/script/entities.lua");
+    gm.getLuaContext()->executeCode(in);
 
-    Entity crosshair = entities::createEntity("MouseCircle", 16.0);
-    Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
-    Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
+    gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
     RenderSystem rendering(window);
@@ -60,57 +58,72 @@ int main()
     MouseFollowControlSystem mouse_following(window);
     FaceEntitySystem face_entity;
     EntityFollowSystem follow_entity;
-    TractorBeamSystem tractor_system(tb_listener, tractorbeam);
-    PhysicsSystem physics(physics_world);
+    TractorBeamSystem tractor_system(tb_listener);
+    PhysicsSystem physics(gm.getPhysicsWorld().get());
 #ifdef DEBUG
-    DebugSystem debug(window, physics_world, lua);
+    DebugSystem debug(window, gm);
 #endif // DEBUG
 
-    WorldState start;
-    WorldState test_no_move;
-    WorldStateMachine<string, string> wsm(world, "start", {
-        {"start", start},
-        {"nomove", test_no_move}
+    auto gameEnter = [&](World& w) {
+        gm.resetPhysicsWorld();
+        entities::setPhysicsWorld(gm.getPhysicsWorld());
+        gm.getPhysicsWorld()->SetContactListener(&tb_listener);
+        physics.setWorld(gm.getPhysicsWorld().get());
+
+        Entity crosshair = entities::createEntity("MouseCircle", 16.0);
+        Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
+        Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
+
+        w.addSystem(four_way_movement);
+        w.addSystem(mouse_following);
+        w.addSystem(face_entity);
+        w.addSystem(follow_entity);
+        w.addSystem(tractor_system);
+        w.addSystem(physics);
+#ifdef DEBUG
+        w.addSystem(debug);
+#endif // DEBUG
+        w.addSystem(rendering);
+        w.refresh();
+    };
+
+    auto gameUpdate = [&](const vector<Event>& e) {
+        mouse_following.update();
+        four_way_movement.update();
+        face_entity.update();
+        follow_entity.update();
+        tractor_system.update();
+        physics.update();
+#ifdef DEBUG
+        debug.update(e);
+#endif // DEBUG
+        rendering.update();
+        gm.getWorld()->refresh();
+    };
+
+    auto gameExit = [&](World& w) {
+        auto ent = w.getEntities();
+        w.killEntities(ent);
+        w.removeAllSystems();
+        gm.resetPhysicsWorld();
+    };
+
+    auto startEnter = [](World& w) {};
+    auto startUpdate = [&window](const vector<Event>&) {
+        window.clear(sf::Color::Magenta);
+        window.display();
+    };
+    auto startExit = [](World& w) {};
+
+    WorldStateMachine<string, string, vector<Event>> wsm(*gm.getWorld(), "start",
+    {
+        {"start", make_shared<CompositionWorldState<vector<Event>>>(gameUpdate, gameEnter, gameExit)},
+        {"game",  make_shared<CompositionWorldState<vector<Event>>>(startUpdate, startEnter, startExit)}
     },
     {
-        {make_pair("reload", "start"), "start"},
-        {make_pair("reload", "nomove"), "nomove"},
-        {make_pair("stop_moving", "start"), "nomove"}
+        {make_pair("swap", "start"), "game"},
+        {make_pair("swap", "game"), "start"},
     });
-    start.addSystem(four_way_movement, 0);
-    start.addSystem(mouse_following, 10);
-    start.addSystem(face_entity, 20);
-    start.addSystem(follow_entity, 30);
-    start.addSystem(tractor_system, 40);
-    start.addSystem(physics, 50);
-#ifdef DEBUG
-    start.addSystem(debug, 55);
-#endif // DEBUG
-    start.addSystem(rendering, 60);
-
-    test_no_move.addSystem(mouse_following, 10);
-    test_no_move.addSystem(face_entity, 20);
-    test_no_move.addSystem(follow_entity, 30);
-    test_no_move.addSystem(tractor_system, 40);
-    test_no_move.addSystem(physics, 50);
-#ifdef DEBUG
-    test_no_move.addSystem(debug, 55);
-#endif // DEBUG
-    test_no_move.addSystem(rendering, 60);
-
-    world.addSystem(four_way_movement);
-    world.addSystem(mouse_following);
-    world.addSystem(face_entity);
-    world.addSystem(follow_entity);
-    world.addSystem(tractor_system);
-    world.addSystem(physics);
-#ifdef DEBUG
-    world.addSystem(debug);
-#endif // DEBUG
-    world.addSystem(rendering);
-
-    wsm.transition("stop_moving");
-
 
     vector<Event> events;
     bool focused = true;
@@ -133,29 +146,17 @@ int main()
                 case Event::GainedFocus:
                     focused = true;
                     break;
+                case Event::KeyPressed:
+                    if (event.key.code == Keyboard::G) {
+                        wsm.transition("swap");
+                    }
+                    break;
                 default:
                     ; // nop
             }
         }
-        // TODO: Improve timing
-        // Provide a scaling factor and pass it into updates
-        // Some things might move incorrectly if they depend on the framerate
-        if (focused) {
-            // If the player has the game window open...
-            mouse_following.update();
-            four_way_movement.update();
-            //movement.update();
-            face_entity.update();
-            follow_entity.update();
-            tractor_system.update();
-            physics.update();
-#ifdef DEBUG
-            debug.update(events);
-#endif // DEBUG
-        }
 
-        rendering.update();
-        world.refresh();
+        wsm.update(events);
 
         events.clear();
     }
