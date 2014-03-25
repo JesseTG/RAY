@@ -1,6 +1,17 @@
 #include "PhysicsBodyComponent.hpp"
 
+#include <iostream>
+#include <exception>
+
 namespace ray {
+
+PhysicsBodyComponent::PhysicsBodyComponent(b2Body* body, Entity& e) : body(body), entity(e) {
+    this->_set_body(body, e);
+}
+
+PhysicsBodyComponent::~PhysicsBodyComponent() {
+}
+
 void PhysicsBodyComponent::luaInit(LuaContext& lua) {
     lua.writeFunction(
         "PhysicsBodyComponent",

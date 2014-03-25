@@ -38,16 +38,12 @@ struct PhysicsFixtureComponent : public anax::Component<PhysicsFixtureComponent>
          * @param e The @c Entity that will hold @c *this. A pointer to it will be
          * stored in @c fixture's user data.
          */
-        PhysicsFixtureComponent(b2Fixture* fixture, Entity& e) {
-            this->_set_fixture(fixture, e);
-        }
+        PhysicsFixtureComponent(b2Fixture* fixture, Entity& e);
 
         /**
-         * Destructor. Tells the parent @c b2Body to destroy @c this->fixture.
+         * Destructor.
          */
-        ~PhysicsFixtureComponent() {
-            this->fixture->GetBody()->DestroyFixture(this->fixture);
-        }
+        ~PhysicsFixtureComponent();
 
         /**
          * Pointer to a @c b2Fixture that was created by some @c b2Body.
@@ -59,24 +55,7 @@ struct PhysicsFixtureComponent : public anax::Component<PhysicsFixtureComponent>
         static void luaInit(LuaContext& lua);
 
     private:
-        void _set_fixture(b2Fixture* fixture, Entity& e) {
-            this->fixture = fixture;
-            this->entity = e;
-
-#ifdef DEBUG
-            if (!this->fixture) {
-                // If we got a null b2Fixture...
-                throw std::invalid_argument("Expected a valid b2Fixture, got nullptr");
-            }
-
-            if (!e.isValid()) {
-                // If the given Entity isn't properly attached to a World
-                throw std::logic_error("Cannot use a PhysicsFixtureComponent with an invalid Entity");
-            }
-#endif
-
-            this->fixture->SetUserData(&(this->entity));
-        }
+        void _set_fixture(b2Fixture* fixture, Entity& e);
 };
 }
 

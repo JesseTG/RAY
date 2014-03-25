@@ -1,7 +1,5 @@
-#ifndef BOUNDINGVOLUMECOMPONENT_HPP
-#define BOUNDINGVOLUMECOMPONENT_HPP
-
-#include <exception>
+#ifndef PHYSICSBODYCOMPONENT_HPP
+#define PHYSICSBODYCOMPONENT_HPP
 
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
@@ -42,16 +40,12 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
          * @param e The @c Entity that will hold @c *this. A pointer to it will be
          * stored in @c body's user data.
          */
-        PhysicsBodyComponent(b2Body* body, Entity& e) : body(body), entity(e) {
-            this->_set_body(body, e);
-        }
+        PhysicsBodyComponent(b2Body* body, Entity& e);
 
         /**
-         * Destructor. Tells the b2World to destroy @c this->body.
+         * Destructor.
          */
-        ~PhysicsBodyComponent() {
-            this->body->GetWorld()->DestroyBody(this->body);
-        }
+        ~PhysicsBodyComponent();
 
         /**
          * Pointer to a @c b2Body that was created by the game's @c b2World. Not a
@@ -69,5 +63,4 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
 };
 
 }
-#endif // BOUNDINGVOLUMECOMPONENT_HPP
-
+#endif // PHYSICSBODYCOMPONENT_HPP
