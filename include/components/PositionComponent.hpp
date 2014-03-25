@@ -37,6 +37,9 @@ struct PositionComponent : Component<PositionComponent>
      */
     PositionComponent() = default;
 
+    ~PositionComponent() {
+    }
+
     /**
      * Constructs a PositionComponent with given coordinates.
      *
@@ -48,6 +51,11 @@ struct PositionComponent : Component<PositionComponent>
     template<class NumberType>
     PositionComponent(const NumberType x, const NumberType y) : position(x, y) {}
 
+     /**
+     * Constructs a PositionComponent with given position vector.
+     *
+     * @param pos The initial position vector.
+     */
     PositionComponent(const b2Vec2& pos) : position(pos.x, pos.y) {}
 
     /**
