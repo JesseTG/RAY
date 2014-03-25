@@ -18,12 +18,11 @@ using anax::ComponentFilter;
 class TractorBeamSystem : public anax::System<TractorBeamSystem>
 {
     public:
-        TractorBeamSystem(TractorBeamRepellingListener&, Entity&);
+        TractorBeamSystem(TractorBeamRepellingListener&);
         ~TractorBeamSystem();
         void update();
     private:
         TractorBeamRepellingListener* _listener;
-        Entity* _player_beam;
 
         static const ComponentFilter FILTER;
 };
