@@ -136,3 +136,9 @@ function create_Entity_TractorBeam(
 
     return e
 end
+
+function create_Entity_Text(text, x, y)
+    local e = Anax.Entity.new()
+
+    return e
+end
