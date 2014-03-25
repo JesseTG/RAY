@@ -70,17 +70,21 @@ using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2f;
 
-World*        _world ;
 RenderWindow* _window;
-b2World* _physics_world;
-LuaContext* _lua;
+shared_ptr<World> _world;
+shared_ptr<b2World> _physics_world;
+shared_ptr<LuaContext> _lua;
 
 struct LuaInitDummy {
     static void luaInit(LuaContext&) {}
 };
 
 void setWorld(World& world) noexcept {
-    _world = &world;
+    _world = shared_ptr<World>(&world);
+}
+
+void setWorld(shared_ptr<World> world) noexcept {
+    _world = world;
 }
 
 void setRenderWindow(RenderWindow& window) noexcept {
@@ -88,11 +92,23 @@ void setRenderWindow(RenderWindow& window) noexcept {
 }
 
 void setPhysicsWorld(b2World& world) noexcept {
-    _physics_world = &world;
+    _physics_world = shared_ptr<b2World>(&world);
+}
+
+void setPhysicsWorld(shared_ptr<b2World> world) noexcept {
+    _physics_world = world;
+}
+
+void setPhysicsWorld(b2World* world) noexcept {
+    _physics_world = shared_ptr<b2World>(world);
 }
 
 void setLuaState(LuaContext& lua) noexcept {
-    _lua = &lua;
+    _lua = shared_ptr<LuaContext>(&lua);
+}
+
+void setLuaState(shared_ptr<LuaContext> lua) noexcept {
+    _lua = lua;
 }
 
 void initBaseTypes() {
@@ -101,7 +117,6 @@ void initBaseTypes() {
     initBox2DTypeBindings();
 }
 
-// TODO: Section this off into another compilation unit; or another project?
 void initComponentLuaBindings() {
     REGISTER_COMPONENT(EntityFollowComponent);
     REGISTER_COMPONENT(FaceEntityComponent);
