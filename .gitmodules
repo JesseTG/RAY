@@ -1,0 +1,18 @@
+[submodule "extlibs/luawraper"]
+	path = extlibs/luawraper
+	url = https://github.com/Tomaka17/luawrapper
+[submodule "extlibs/luawrapper"]
+	path = extlibs/luawrapper
+	url = https://github.com/Tomaka17/luawrapper
+[submodule "extlibs/anax"]
+	path = extlibs/anax
+	url = https://github.com/miguelmartin75/anax.git
+[submodule "extlibs/sfml"]
+	path = extlibs/sfml
+	url = https://github.com/LaurentGomila/SFML.git
+[submodule "extlibs/thor"]
+	path = extlibs/thor
+	url = https://github.com/Bromeon/Thor.git
+[submodule "extlibs/luajit-2.0"]
+	path = extlibs/luajit-2.0
+	url = http://luajit.org/git/luajit-2.0.git
