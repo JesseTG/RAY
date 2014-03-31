@@ -8,6 +8,7 @@
 namespace util {
 
 using anax::World;
+
 /**
  * Represents a state (a screen, basically) the game can be  in (pause menu,
  * in-game, inventory, etc.).

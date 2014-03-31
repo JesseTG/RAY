@@ -1,33 +1,28 @@
 #ifndef WORLDSTATEMACHINE_HPP
 #define WORLDSTATEMACHINE_HPP
 
-#include <iostream>
-#include <exception>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <memory>
 #include <map>
+#include <memory>
+#include <unordered_map>
 #include <utility>
 
 #ifdef DEBUG
+#include <exception>
+#include <sstream>
 #include <unordered_set>
 #endif // DEBUG
 
 #include <anax/anax.hpp>
 
-#include "WorldState.hpp"
+#include "fsm.hpp"
 
 namespace util {
-using std::logic_error;
 using std::make_pair;
 using std::make_shared;
 using std::map;
 using std::get;
-using std::ostringstream;
 using std::pair;
 using std::string;
-using std::stringstream;
 using std::shared_ptr;
 using std::unordered_map;
 using anax::World;
@@ -92,7 +87,7 @@ class WorldStateMachine
                         // If we don't have one state for every key...
                         std::ostringstream err;
                         err << "Extra states or state keys found";
-                        throw logic_error(err.str());
+                        throw std::logic_error(err.str());
                     }
 
                     for (const auto& j : w_keys) {
@@ -102,7 +97,7 @@ class WorldStateMachine
                             std::ostringstream err;
                             err << "State key " << j << " in WorldStateMachine "
                                 << this << " has no mapped state";
-                            throw logic_error(err.str());
+                            throw std::logic_error(err.str());
                         }
                     }
                 #endif //DEBUG
@@ -133,18 +128,18 @@ class WorldStateMachine
                     return *this->_states[this->_current_state->first];
                 }
                 else {
-                    ostringstream err;
+                    std::ostringstream err;
                     err << "No state with key " << inputpair.second
                         << " found (fsm=" << this << ")";
-                    throw logic_error(err.str());
+                    throw std::logic_error(err.str());
                 }
             }
             else {
-                ostringstream err;
+                std::ostringstream err;
                 err << "No transition found: (fsm=" << this << ", symbol="
                     << inputpair.first << ", state=" << inputpair.second
                     << ")";
-                throw logic_error(err.str());
+                throw std::logic_error(err.str());
             }
         }
 
