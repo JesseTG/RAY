@@ -5,6 +5,9 @@
 #include <vector>
 #include <functional>
 
+#include <boost/optional.hpp>
+#include <boost/variant.hpp>
+
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
@@ -15,6 +18,15 @@ using std::vector;
 using std::function;
 using sf::Event;
 using sf::Vector2;
+
+using boost::optional;
+using boost::variant;
+
+/**
+ * Type alias for @c boost::optional<boost::variant<Your, Types, Here>>, for
+ * passing to a Lua function a varying amount of arguments with differing types.
+ */
+template<typename...Types> using optional_variant = optional<variant<Types...>>;
 
 /**
  * Given a number, constrains it to a range.
