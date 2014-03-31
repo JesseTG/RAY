@@ -10,11 +10,15 @@
 #include "components.hpp"
 #include "entities.hpp"
 #include "config.hpp"
+#include "managers.hpp"
 
 namespace ray {
-    using std::shared_ptr;
-    using std::make_shared;
+
+using std::shared_ptr;
+using std::make_shared;
+
 using anax::World;
+
 class GameManager
 {
     public:
@@ -24,15 +28,21 @@ class GameManager
         shared_ptr<LuaContext> getLuaContext() const;
         shared_ptr<b2World> getPhysicsWorld() const;
         shared_ptr<World> getWorld() const;
+        shared_ptr<ScriptManager> getScriptManager() const;
+        shared_ptr<ImageManager> getImageManager() const;
+        shared_ptr<ShapeManager> getShapeManager() const;
 
-        void resetPhysicsWorld() {
-            this->_physics_world.reset(new b2World(b2Vec2_zero));
-        }
+        void resetPhysicsWorld();
+        void resetLuaContext();
+        void resetWorld();
     protected:
     private:
         shared_ptr<LuaContext> _lua;
         shared_ptr<b2World> _physics_world;
         shared_ptr<World> _world;
+        shared_ptr<ScriptManager> _script_manager;
+        shared_ptr<ImageManager> _image_manager;
+        shared_ptr<ShapeManager> _shape_manager;
 };
 }
 

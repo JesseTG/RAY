@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <SFML/Graphics.hpp>
+#include <Thor/Resources.hpp>
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
 #include <LuaContext.hpp>
@@ -47,8 +48,8 @@ int main()
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
-    std::ifstream in("data/script/entities.lua");
-    gm.getLuaContext()->executeCode(in);
+    ScriptManager sm(gm.getLuaContext());
+    sm.loadConfigFile("data/script/scripts.json");
 
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
@@ -105,6 +106,8 @@ int main()
         auto ent = w.getEntities();
         w.killEntities(ent);
         w.removeAllSystems();
+        // Can't call w.clear(), it causes a segfault if you go back to this
+        // state later; a bug in Anax?
         gm.resetPhysicsWorld();
     };
 
@@ -117,8 +120,8 @@ int main()
 
     WorldStateMachine<string, string, vector<Event>> wsm(*gm.getWorld(), "start",
     {
-        {"start", make_shared<CompositionWorldState<vector<Event>>>(gameUpdate, gameEnter, gameExit)},
-        {"game",  make_shared<CompositionWorldState<vector<Event>>>(startUpdate, startEnter, startExit)}
+        {"start",  make_shared<CompositionWorldState<vector<Event>>>(startUpdate, startEnter, startExit)},
+        {"game", make_shared<CompositionWorldState<vector<Event>>>(gameUpdate, gameEnter, gameExit)},
     },
     {
         {make_pair("swap", "start"), "game"},
