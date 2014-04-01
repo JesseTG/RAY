@@ -2,12 +2,14 @@
 #define TRACTORBEAMCOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 
 namespace ray {
 
 /**
  * Lets an @c Entity be used as a tractor beam.
+ * @see TractorBeamRepellableComponent For @c Entities that will get pushed around
  */
 struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
 {
@@ -28,7 +30,7 @@ struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
     /**
      * The angle the tractor beam will extend, in radians. For example, if set
      * to zero, the tractor beam will extend perfectly horizontally. If set to
-     * 90 degrees (aka @c pi/2 radians), the the beam will extend perpendicularly
+     * 90 degrees (aka @c PI/2 radians), the the beam will extend perpendicularly
      * to the direction the player is flying.
      */
     float starting_angle;
@@ -45,6 +47,8 @@ struct TractorBeamComponent : public anax::Component<TractorBeamComponent>
      * is attracting. Negative is repelling.
      */
     float force;
+
+    static void luaInit(LuaContext& lua);
 };
 }
 

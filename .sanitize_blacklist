@@ -1,0 +1,3 @@
+type:class.sf::RenderTarget
+fun:sf::RenderTarget::clear
+leak:sf::*

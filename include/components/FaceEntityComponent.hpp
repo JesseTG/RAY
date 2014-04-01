@@ -2,6 +2,7 @@
 #define FACEENTITYCOMPONENT_HPP
 
 #include <anax/anax.hpp>
+#include <LuaContext.hpp>
 
 namespace ray {
 
@@ -26,13 +27,15 @@ struct FaceEntityComponent : public anax::Component<FaceEntityComponent>
      * @param e The @c Entity that @c *this's @c Entity will face.
      * @c e.isValid() must be true, and @c e must have a PositionComponent.
      */
-    FaceEntityComponent(const Entity& e) : target(e) {}
+    FaceEntityComponent(const Entity& e);
 
     /**
      * The @c Entity that the @c Entity containing @c *this will face. If
      * @c target.isValid() is @c false, @c *this has no effect on its @c Entity.
      */
     Entity target;
+
+    static void luaInit(LuaContext& lua);
 };
 
 }

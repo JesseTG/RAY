@@ -4,20 +4,25 @@
 #include <anax/anax.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "listeners.hpp"
+
 namespace ray {
 using sf::RenderWindow;
+using sf::Mouse;
+using sf::Shape;
+using sf::Color;
+
 using anax::Entity;
 using anax::ComponentFilter;
 
 class TractorBeamSystem : public anax::System<TractorBeamSystem>
 {
     public:
-        TractorBeamSystem(const Entity&, RenderWindow&);
+        TractorBeamSystem(TractorBeamRepellingListener&);
         ~TractorBeamSystem();
         void update();
     private:
-        RenderWindow* _window;
-        Entity _entity;
+        TractorBeamRepellingListener* _listener;
 
         static const ComponentFilter FILTER;
 };

@@ -1,12 +1,27 @@
 #ifndef POSITIONCOMPONENT_HPP
 #define POSITIONCOMPONENT_HPP
 
+#include <iostream>
+#include <exception>
+#include <string>
+
+#include <boost/optional.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
+
 #include <anax/anax.hpp>
+#include <Box2D/Box2D.h>
 #include <SFML/System.hpp>
+#include <LuaContext.hpp>
+
 
 namespace ray
 {
-
+using std::invalid_argument;
+using std::string;
+using boost::get;
+using boost::optional;
+using boost::variant;
 using anax::Component;
 using sf::Vector2;
 using sf::Vector2f;
@@ -22,6 +37,9 @@ struct PositionComponent : Component<PositionComponent>
      */
     PositionComponent() = default;
 
+    ~PositionComponent() {
+    }
+
     /**
      * Constructs a PositionComponent with given coordinates.
      *
@@ -32,6 +50,13 @@ struct PositionComponent : Component<PositionComponent>
      */
     template<class NumberType>
     PositionComponent(const NumberType x, const NumberType y) : position(x, y) {}
+
+     /**
+     * Constructs a PositionComponent with given position vector.
+     *
+     * @param pos The initial position vector.
+     */
+    PositionComponent(const b2Vec2& pos) : position(pos.x, pos.y) {}
 
     /**
      * Constructs a PositionComponent with given position vector.
@@ -48,7 +73,10 @@ struct PositionComponent : Component<PositionComponent>
      * The position stored by @c *this.
      */
     Vector2f position;
+
+    static void luaInit(LuaContext& lua);
 };
 }
 
 #endif // POSITIONCOMPONENT_HPP
+

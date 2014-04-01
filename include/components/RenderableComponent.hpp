@@ -5,8 +5,12 @@
 #include <typeinfo>
 #include <utility>
 
+#include <boost/variant/get.hpp>
+#include <boost/variant/variant.hpp>
+
 #include <anax/anax.hpp>
 #include <SFML/Graphics.hpp>
+#include <LuaContext.hpp>
 
 namespace ray
 {
@@ -16,8 +20,15 @@ using std::make_shared;
 using std::unique_ptr;
 using std::dynamic_pointer_cast;
 using std::static_pointer_cast;
+using boost::variant;
+using boost::get;
 using anax::Component;
 using sf::Drawable;
+using sf::Sprite;
+using sf::Text;
+using sf::VertexArray;
+using sf::ConvexShape;
+using sf::RectangleShape;
 using sf::Transformable;
 using sf::CircleShape;
 using sf::Color;
@@ -64,6 +75,7 @@ struct RenderableComponent : Component<RenderableComponent>
         layer(layer)
     {}
 
+
     /**
      * A @c std::shared_ptr to the drawable object.
      */
@@ -78,6 +90,8 @@ struct RenderableComponent : Component<RenderableComponent>
     shared_ptr<Transformable> transformable;
 
     int layer;
+
+    static void luaInit(LuaContext& lua);
 };
 }
 

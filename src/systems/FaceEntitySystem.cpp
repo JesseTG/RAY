@@ -13,8 +13,10 @@ using std::cos;
 using std::acos;
 using std::atan2;
 
-const ComponentFilter FaceEntitySystem::FILTER = ComponentFilter().
-        requires<FaceEntityComponent, PositionComponent, RenderableComponent>();
+const ComponentFilter FaceEntitySystem::FILTER = ComponentFilter()
+        .requires<FaceEntityComponent, PositionComponent>()
+        .requiresOneOf<PhysicsBodyComponent, RenderableComponent>();
+
 
 FaceEntitySystem::FaceEntitySystem() : Base(FILTER)
 {
@@ -33,15 +35,23 @@ void FaceEntitySystem::update() {
 
         if (fe.target.isValid() && fe.target.hasComponent<PositionComponent>()) {
             // If the entity we're tring to face exists and has a position...
-            RenderableComponent& ren = e.getComponent<RenderableComponent>();
-            if (ren.transformable) {
-                // If the entity doing the facing can be rotated...
-                PositionComponent& pos = e.getComponent<PositionComponent>();
-                PositionComponent& target_pos = fe.target.getComponent<PositionComponent>();
+            PositionComponent& pos = e.getComponent<PositionComponent>();
+            PositionComponent& target_pos = fe.target.getComponent<PositionComponent>();
 
-                Vector2f difference = pos.position - target_pos.position;
-                float theta = atan2(-difference.y, -difference.x);
-                ren.transformable->setRotation(toDegrees(theta));
+            Vector2f difference = pos.position - target_pos.position;
+            float theta = atan2(-difference.y, -difference.x);
+
+            if (e.hasComponent<PhysicsBodyComponent>()) {
+                PhysicsBodyComponent& pb = e.getComponent<PhysicsBodyComponent>();
+                pb.body->SetTransform(pb.body->GetPosition(), theta);
+            }
+
+            if (e.hasComponent<RenderableComponent>()) {
+                RenderableComponent& ren = e.getComponent<RenderableComponent>();
+                if (ren.transformable) {
+                    // If the entity doing the facing can be rotated...
+                    ren.transformable->setRotation(toDegrees(theta));
+                }
             }
         }
     }
