@@ -59,6 +59,8 @@ struct RenderableComponent : Component<RenderableComponent>
      */
     RenderableComponent(Drawable* d) : RenderableComponent(d, 0) {}
 
+    RenderableComponent(shared_ptr<Drawable> d) : RenderableComponent(d, 0) {}
+
     /**
      * Constructs a Renderable that is initialized with the given @c sf::Drawable
      * and onto the given layer.
@@ -75,6 +77,11 @@ struct RenderableComponent : Component<RenderableComponent>
         layer(layer)
     {}
 
+    RenderableComponent(shared_ptr<Drawable> d, const int layer) :
+        drawable(d),
+        transformable(dynamic_pointer_cast<Transformable>(drawable)),
+        layer(layer)
+    {}
 
     /**
      * A @c std::shared_ptr to the drawable object.

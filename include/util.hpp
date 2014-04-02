@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <type_traits>
 
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -125,6 +126,20 @@ inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) {
 }
 
 /**
+ * Returns the sign of a number; i.e. 1 if the number is positive, -1 is the
+ * number is negative, 0 if neither.
+ *
+ * @tparam The type of the number
+ */
+template<class NumberType>
+inline NumberType sign(const NumberType num) {
+    static_assert(std::is_signed<NumberType>::value, "Can't use an unsigned type");
+    if (num > 0) return 1;
+    if (num < 0) return -1;
+    return 0;
+}
+
+/**
  * Returns a lambda function that calls the default constructor with on a
  * given class.
  *
@@ -137,6 +152,12 @@ inline function<T(void)> getDefaultConstructorLambda() {
     };
 }
 
+/**
+ * Returns a lambda function that calls the default constructor with new on a
+ * given class.
+ *
+ * @tparam T The type that the returned lambda will default-construct
+ */
 template<class T>
 inline function<T*(void)> getNewDefaultConstructorLambda() {
     return []() {

@@ -12,7 +12,6 @@
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
 #include <LuaContext.hpp>
-
 #include "config.hpp"
 #include "components.hpp"
 #include "fsm.hpp"
@@ -48,10 +47,9 @@ int main()
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
-    ScriptManager sm(gm.getLuaContext());
-    sm.loadConfigFile("data/script/scripts.json");
-
+    gm.getScriptManager()->loadConfigFile("data/script/scripts.json");
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
+    gm.getShapeManager()->loadConfigFile("data/shape/shapes.json");
 
     FourWayControlSystem four_way_movement;
     RenderSystem rendering(window);
@@ -74,6 +72,15 @@ int main()
         Entity crosshair = entities::createEntity("MouseCircle", 16.0);
         Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
+
+        GameShape s = gm.getShapeManager()->makeShape("concave");
+
+        for (auto i : s.graphics_shapes) {
+            Entity e = w.createEntity();
+            e.addComponent<PositionComponent>(dynamic_pointer_cast<Transformable>(i)->getPosition());
+            e.addComponent<RenderableComponent>(dynamic_pointer_cast<Drawable>(i));
+            w.activateEntity(e);
+        }
 
         w.addSystem(four_way_movement);
         w.addSystem(mouse_following);
@@ -102,7 +109,7 @@ int main()
         gm.getWorld()->refresh();
     };
 
-    auto gameExit = [&](World& w) {
+    auto gameExit = [&gm](World& w) {
         auto ent = w.getEntities();
         w.killEntities(ent);
         w.removeAllSystems();

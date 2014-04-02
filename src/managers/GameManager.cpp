@@ -37,6 +37,10 @@ shared_ptr<ImageManager> GameManager::getImageManager() const {
     return this->_image_manager;
 }
 
+shared_ptr<ShapeManager> GameManager::getShapeManager() const {
+    return this->_shape_manager;
+}
+
 void GameManager::resetPhysicsWorld() {
     this->_physics_world.reset(new b2World(b2Vec2_zero));
 }
