@@ -18,6 +18,10 @@
 # Executables
 *.exe
 
+# Precompiled Headers
+*.pch
+*.gch
+
 # Folders
 obj
 bin
