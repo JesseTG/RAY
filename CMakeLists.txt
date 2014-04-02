@@ -7,6 +7,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
 include(cotire)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+   message(STATUS "Setting build type to 'Debug' as none was specified.")
+   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+   # Set the possible values of build type for cmake-gui
+   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+endif()
+
+set(EXECUTABLE_NAME PROJECT_NAME-CMAKE_BUILD_TYPE)
+
 set(SRC_FILES
     src/entities/sfml_type_bindings.cpp
     src/entities/anax_type_bindings.cpp
@@ -79,74 +88,59 @@ include_directories(
     include
     include/components
     include/fsm
-    include/systems
     include/listeners
     include/managers
+    include/misc
+    include/systems
+    include/util
     /usr/include
     /usr/local/include
     /usr/include/luajit-2.0
 )
 
-find_package(Boost)
 find_package(LuaJIT)
-find_package(anax)
 find_package(Box2D)
-find_package(SFML 2 REQUIRED COMPONENTS graphics window system)
 
-add_executable(Debug
-    main.cpp
-    ${SRC_FILES}
-    ${INCLUDE_FILES}
-)
-
-add_executable(Release
-    EXCLUDE_FROM_ALL
-    main.cpp
-    ${SRC_FILES}
-    ${INCLUDE_FILES}
-)
-
-target_compile_definitions(Debug
-    PUBLIC DEBUG
-)
-
-target_compile_definitions(Release
-    PUBLIC NDEBUG
-)
-
-target_compile_options(Debug
-    PUBLIC -Wall
-    PUBLIC -Wno-c++98-compat
-)
-
-target_compile_options(Release
-    PUBLIC -Wall
-    PUBLIC -Wno-c++98-compat
-)
-
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-   message(STATUS "Setting build type to 'Debug' as none was specified.")
-   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
-   # Set the possible values of build type for cmake-gui
-   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-     "MinSizeRel" "RelWithDebInfo")
+find_package(anax REQUIRED)
+if (ANAX_FOUND)
+    include_directories(${ANAX_INCLUDE_DIR})
+    target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARIES})
 endif()
 
-target_link_libraries(Debug
-    anax_d
-    luajit-5.1
-    Box2D
-    ${SFML_LIBRARIES}
+find_package(SFML 2 REQUIRED graphics window system)
+if(SFML_FOUND)
+  include_directories(${SFML_INCLUDE_DIR})
+  target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
+endif()
+
+find_package(Boost 1.55.0 REQUIRED regex)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+  target_link_libraries(${EXECUTABLE_NAME} ${Boost_LIBRARIES})
+endif()
+
+add_executable(EXECUTABLE_NAME
+    main.cpp
+    ${SRC_FILES}
+    ${INCLUDE_FILES}
 )
 
-target_link_libraries(Release
-    anax
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(PROJECT_NAME-CMAKE_BUILD_TYPE
+        PUBLIC DEBUG
+    )
+else()
+    target_compile_definitions(PROJECT_NAME-CMAKE_BUILD_TYPE
+        PUBLIC NDEBUG
+    )
+endif()
+
+target_link_libraries(PROJECT_NAME-CMAKE_BUILD_TYPE
     luajit-5.1
     Box2D
-    ${SFML_LIBRARIES}
 )
 
-if (WIN)
+if (WIN AND CMAKE_BUILD_TYPE STREQUAL "Release")
     set_property(TARGET Release PROPERTY WIN32_EXECUTABLE)
     # So that Release builds on Windows don't pop up a console window
 endif()
@@ -156,3 +150,15 @@ if (NOT MSVC)
         -std=c++11
     )
 endif()
+
+# Install target
+install(TARGETS ${EXECUTABLE_NAME} DESTINATION bin)
+
+
+# CPack packaging
+include(InstallRequiredSystemLibraries)
+#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
+#set(CPACK_PACKAGE_VERSION_MAJOR "${myproject_VERSION_MAJOR}")
+#set(CPACK_PACKAGE_VERSION_MINOR "${myproject_VERSION_MINOR}")
+include(CPack)
+
