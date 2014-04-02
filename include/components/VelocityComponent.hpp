@@ -3,12 +3,14 @@
 
 #include <anax/anax.hpp>
 #include <SFML/System.hpp>
+#include <LuaContext.hpp>
 
 namespace ray
 {
 
 using anax::Component;
 using sf::Vector2;
+using sf::Vector2f;
 
 /**
  * Enables an @c Entity to move around with some form of motion.
@@ -46,24 +48,7 @@ struct VelocityComponent : public Component<VelocityComponent>
      */
     Vector2f velocity;
 
-    static void luaInit(LuaContext& lua) {
-        lua.registerMember("velocity", &VelocityComponent::velocity);
-        lua.registerMember<VelocityComponent, float>("x",
-        [](const VelocityComponent& v) -> float {
-            return v.velocity.x;
-        },
-        [](VelocityComponent& v, float val) {
-            v.velocity.x = val;
-        });
-
-        lua.registerMember<VelocityComponent, float>("y",
-        [](const VelocityComponent& v) -> float {
-            return v.velocity.y;
-        },
-        [](VelocityComponent& v, float val) {
-            v.velocity.y = val;
-        });
-    }
+    static void luaInit(LuaContext& lua);
 };
 }
 

@@ -5,14 +5,27 @@ project(RAY CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
+include(cotire)
+
 set(SRC_FILES
-    src/entity_base_types.cpp
+    src/entities/sfml_type_bindings.cpp
+    src/entities/anax_type_bindings.cpp
+    src/entities/box2d_type_bindings.cpp
     src/entities.cpp
     src/util.cpp
+    src/components/EntityFollowComponent.cpp
+    src/components/FaceEntityComponent.cpp
+    src/components/FourWayControlComponent.cpp
+    src/components/PhysicsBodyComponent.cpp
+    src/components/PhysicsFixtureComponent.cpp
     src/components/PositionComponent.cpp
     src/components/RenderableComponent.cpp
+    src/components/TractorBeamComponent.cpp
+    src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
+    src/fsm/WorldStateMachine.cpp
+    src/fsm/WorldState.cpp
     src/listeners/TractorBeamRepellingListener.cpp
     src/systems/DebugSystem.cpp
     src/systems/EntityFollowSystem.cpp
@@ -46,6 +59,8 @@ set(INCLUDE_FILES
     include/components/VelocityComponent.hpp
     include/fsm/EntityState.hpp
     include/fsm/EntityStateMachine.hpp
+    include/fsm/WorldStateMachine.hpp
+    include/fsm/WorldState.hpp
     include/managers/ResourceManager.hpp
     include/listeners/TractorBeamRepellingListener.hpp
     include/systems/DebugSystem.hpp
@@ -100,19 +115,13 @@ target_compile_definitions(Release
 )
 
 target_compile_options(Debug
-    PUBLIC -O0
-    PUBLIC -g
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
-    PUBLIC -pedantic-errors
 )
 
 target_compile_options(Release
-    PUBLIC -Ofast
-    PUBLIC -s
     PUBLIC -Wall
     PUBLIC -Wno-c++98-compat
-    PUBLIC -pedantic-errors
 )
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

@@ -1,7 +1,5 @@
-#ifndef BOUNDINGVOLUMECOMPONENT_HPP
-#define BOUNDINGVOLUMECOMPONENT_HPP
-
-#include <exception>
+#ifndef PHYSICSBODYCOMPONENT_HPP
+#define PHYSICSBODYCOMPONENT_HPP
 
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
@@ -42,16 +40,12 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
          * @param e The @c Entity that will hold @c *this. A pointer to it will be
          * stored in @c body's user data.
          */
-        PhysicsBodyComponent(b2Body* body, Entity& e) : body(body), entity(e) {
-            this->_set_body(body, e);
-        }
+        PhysicsBodyComponent(b2Body* body, Entity& e);
 
         /**
-         * Destructor. Tells the b2World to destroy @c this->body.
+         * Destructor.
          */
-        ~PhysicsBodyComponent() {
-            this->body->GetWorld()->DestroyBody(this->body);
-        }
+        ~PhysicsBodyComponent();
 
         /**
          * Pointer to a @c b2Body that was created by the game's @c b2World. Not a
@@ -62,35 +56,11 @@ struct PhysicsBodyComponent : public anax::Component<PhysicsBodyComponent>
 
         Entity entity;
 
-        static void luaInit(LuaContext& lua) {
-            lua.writeFunction(
-                "PhysicsBodyComponent",
-                "new",
-            [](b2Body* body, Entity& e) {
-                return new PhysicsBodyComponent(body, e);
-            });
-        }
+        static void luaInit(LuaContext& lua);
 
     private:
-        void _set_body(b2Body* b, Entity& e) {
-            this->body = b;
-            this->entity = e;
-#ifdef DEBUG
-            if (!this->body) {
-                // If we got a null b2Body...
-                throw std::invalid_argument("Expected a valid b2Body, got nullptr");
-            }
-
-            if (!e.isValid()) {
-                // If the given Entity isn't properly attached to a World
-                throw std::logic_error("Cannot use a PhysicsBodyComponent with an invalid Entity");
-            }
-#endif
-
-            this->body->SetUserData(&(this->entity));
-        }
+        void _set_body(b2Body* b, Entity& e);
 };
 
 }
-#endif // BOUNDINGVOLUMECOMPONENT_HPP
-
+#endif // PHYSICSBODYCOMPONENT_HPP
