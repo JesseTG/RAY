@@ -1,3 +1,45 @@
+function create_Entity_Drone(x, y, r)
+	print("something")
+	local e = Anax.Entity.new()
+    local bodydef = Box2D.BodyDef.new()
+    local fixturedef = Box2D.FixtureDef.new()
+    local position = Box2D.Vector.new(x, y)
+    local shape = Box2D.Shape.Circle.new(r)
+    local circle = SFML.CircleShape.new(r, 3)
+	
+	print("something")
+	circle.origin = SFML.Vector.new(r, r)
+    circle.position =  SFML.Vector.new(position.x, position.y)
+    circle.fillColor = SFML.Color.Red
+
+    bodydef.active = true
+    bodydef.allowSleep = false
+    bodydef.type = Box2D.BodyType.Dynamic
+    bodydef.position = position
+	bodydef.fixedRotation = false;
+	
+	fixturedef:setShape(shape)
+	print("something")
+	local body = Box2D.Body.new(bodydef)
+	local fixture = body:CreateFixture(fixturedef)
+	
+	local pc = PositionComponent.new(x, y)
+	local rc = RenderableComponent.new(circle)
+	local pbc = PhysicsBodyComponent.new(body, e)
+	local pfc = PhysicsFixtureComponent.new(fixture, e)
+    local tbrc = TractorBeamRepellableComponent.new()
+	local wc = WanderingComponent.new()
+	
+	e:addPositionComponent(pc)
+    e:addRenderableComponent(rc)
+    e:addPhysicsBodyComponent(pbc)
+    e:addTractorBeamRepellableComponent(tbrc)
+    e:addPhysicsFixtureComponent(pfc)
+	e:addWanderingComponent(wc)
+
+    return e
+end
+
 function create_Entity_Enemy(x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()

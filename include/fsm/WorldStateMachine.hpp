@@ -5,10 +5,10 @@
 #include <memory>
 #include <unordered_map>
 #include <utility>
+#include <sstream>
 
 #ifdef DEBUG
 #include <exception>
-#include <sstream>
 #include <unordered_set>
 #endif // DEBUG
 

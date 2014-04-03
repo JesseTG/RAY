@@ -28,6 +28,13 @@ void DebugSystem::update(const vector<Event>& events) {
 
                 entities::createEntity("Enemy", worldpos.x, worldpos.y, 8.0f);
             }
+            else if (e.key.code == Keyboard::Key::F) {
+                Vector2f worldpos =
+                    this->_window->mapPixelToCoords(Mouse::getPosition(*this->_window));
+                // Where in the world will the bullet fly to?
+
+                entities::createEntity("Drone", worldpos.x, worldpos.y, 8.0f);
+            }
         }
     }
 }

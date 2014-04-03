@@ -13,6 +13,7 @@ namespace ray {
     struct VelocityComponent;
     struct TractorBeamComponent;
     struct TractorBeamRepellableComponent;
+    struct WanderingComponent;
 }
 
 #include "EntityFollowComponent.hpp"
@@ -26,5 +27,6 @@ namespace ray {
 #include "VelocityComponent.hpp"
 #include "TractorBeamComponent.hpp"
 #include "TractorBeamRepellableComponent.hpp"
+#include "WanderingComponent.hpp"
 
 #endif // COMPONENTS_HPP

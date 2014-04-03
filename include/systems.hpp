@@ -14,6 +14,7 @@ namespace ray {
     class PhysicsSystem;
     class RenderSystem;
     class TractorBeamSystem;
+    class WanderingSystem;
 }
 
 #ifdef DEBUG
@@ -28,5 +29,6 @@ namespace ray {
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
 #include "TractorBeamSystem.hpp"
+#include "WanderingSystem.hpp"
 
 #endif // SYSTEMS_HPP

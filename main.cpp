@@ -60,6 +60,7 @@ int main()
     FaceEntitySystem face_entity;
     EntityFollowSystem follow_entity;
     TractorBeamSystem tractor_system(tb_listener);
+    WanderingSystem wandering;
     PhysicsSystem physics(gm.getPhysicsWorld().get());
 #ifdef DEBUG
     DebugSystem debug(window, gm);
@@ -80,6 +81,7 @@ int main()
         w.addSystem(face_entity);
         w.addSystem(follow_entity);
         w.addSystem(tractor_system);
+        w.addSystem(wandering);
         w.addSystem(physics);
 #ifdef DEBUG
         w.addSystem(debug);
@@ -95,6 +97,7 @@ int main()
         follow_entity.update();
         tractor_system.update();
         physics.update();
+        wandering.update();
 #ifdef DEBUG
         debug.update(e);
 #endif // DEBUG
