@@ -42,7 +42,7 @@ template<typename...Types> using optional_variant = optional<variant<Types...>>;
  * closest value otherwise.
  */
 template<class NumberType>
-inline NumberType constrain(const NumberType value, const NumberType min, const NumberType max) {
+inline NumberType constrain(const NumberType value, const NumberType min, const NumberType max) noexcept {
     if (value < min) return min;
     if (value > max) return max;
     return value;
@@ -58,7 +58,7 @@ inline NumberType constrain(const NumberType value, const NumberType min, const 
  * @return The dot product of vectors @c a and @c b
  */
 template<class NumberType>
-inline NumberType dot(const Vector2<NumberType>& a, const Vector2<NumberType>& b) {
+inline NumberType dot(const Vector2<NumberType>& a, const Vector2<NumberType>& b) noexcept {
     return (a.x * b.x) + (a.y * b.y);
 }
 
@@ -71,7 +71,7 @@ inline NumberType dot(const Vector2<NumberType>& a, const Vector2<NumberType>& b
  * @return @c x converted from degrees to radians
  */
 template<class NumberType>
-inline NumberType toRadians(const NumberType x) {
+inline NumberType toRadians(const NumberType x) noexcept {
     return x * (PI / 180.0);
 }
 
@@ -84,7 +84,7 @@ inline NumberType toRadians(const NumberType x) {
  * @return @c x converted from radians to degrees
  */
 template<class NumberType>
-inline NumberType toDegrees(const NumberType x) {
+inline NumberType toDegrees(const NumberType x) noexcept {
     return x * (180.0 / PI);
 }
 
@@ -95,7 +95,7 @@ inline NumberType toDegrees(const NumberType x) {
  * @tparam NumberType The numerical type of @c x
  */
 template<class NumberType>
-inline NumberType square(const NumberType x) {
+inline NumberType square(const NumberType x) noexcept {
     return x * x;
 }
 
@@ -108,9 +108,21 @@ inline NumberType square(const NumberType x) {
  * @return A @c b2Vec2 constructed from @c vec's values
  */
 template<class NumberType>
-inline b2Vec2 sfVecToB2Vec(const Vector2<NumberType>& vec) {
+inline b2Vec2 sfVecToB2Vec(const Vector2<NumberType>& vec) noexcept {
     return b2Vec2(vec.x, vec.y);
 }
+
+template<class ContainerType, class NumberType>
+inline vector<b2Vec2> sfVecsToB2Vecs(const ContainerType& container) noexcept {
+    vector<b2Vec2> vecs;
+    vecs.reserve(container.size());
+    for (const Vector2<NumberType>& v : container) {
+        vecs.push_back(b2Vec2(v.x, v.y));
+    }
+
+    return vecs;
+}
+
 
 /**
  * Converts a @c b2Vec2 to a @c sf::Vector2
@@ -121,7 +133,7 @@ inline b2Vec2 sfVecToB2Vec(const Vector2<NumberType>& vec) {
  * @return A @c sf::Vector<NumberType> constructed from @c vec's values
  */
 template<class NumberType = float>
-inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) {
+inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) noexcept {
     return Vector2<NumberType>(vec.x, vec.y);
 }
 
@@ -132,7 +144,7 @@ inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) {
  * @tparam The type of the number
  */
 template<class NumberType>
-inline NumberType sign(const NumberType num) {
+inline NumberType sign(const NumberType num) noexcept {
     static_assert(std::is_signed<NumberType>::value, "Can't use an unsigned type");
     if (num > 0) return 1;
     if (num < 0) return -1;
@@ -146,7 +158,7 @@ inline NumberType sign(const NumberType num) {
  * @tparam T The type that the returned lambda will default-construct
  */
 template<class T>
-inline function<T(void)> getDefaultConstructorLambda() {
+inline function<T(void)> getDefaultConstructorLambda() noexcept {
     return []() {
         return T();
     };
@@ -159,7 +171,7 @@ inline function<T(void)> getDefaultConstructorLambda() {
  * @tparam T The type that the returned lambda will default-construct
  */
 template<class T>
-inline function<T*(void)> getNewDefaultConstructorLambda() {
+inline function<T*(void)> getNewDefaultConstructorLambda() noexcept {
     return []() {
         return new T;
     };
