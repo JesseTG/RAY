@@ -1,16 +1,13 @@
 #ifndef WORLDSTATEMACHINE_HPP
 #define WORLDSTATEMACHINE_HPP
 
+#include <exception>
 #include <map>
 #include <memory>
-#include <unordered_map>
-#include <utility>
-
-#ifdef DEBUG
-#include <exception>
 #include <sstream>
+#include <unordered_map>
 #include <unordered_set>
-#endif // DEBUG
+#include <utility>
 
 #include <anax/anax.hpp>
 
