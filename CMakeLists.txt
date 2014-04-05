@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(RAY CXX)
 
+project(RAY CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 
 include(cotire)
 
@@ -14,7 +13,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-set(EXECUTABLE_NAME PROJECT_NAME-CMAKE_BUILD_TYPE)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
+
+set(EXECUTABLE_NAME ${PROJECT_NAME}-${CMAKE_BUILD_TYPE})
 
 set(SRC_FILES
     src/entities/sfml_type_bindings.cpp
@@ -33,9 +34,13 @@ set(SRC_FILES
     src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
-    src/fsm/WorldStateMachine.cpp
-    src/fsm/WorldState.cpp
     src/listeners/TractorBeamRepellingListener.cpp
+    src/managers/color_table.cpp
+    src/managers/GameManager.cpp
+    src/managers/ImageManager.cpp
+    src/managers/ResourceManager.cpp
+    src/managers/ScriptManager.cpp
+    src/managers/ShapeManager.cpp
     src/systems/DebugSystem.cpp
     src/systems/EntityFollowSystem.cpp
     src/systems/FaceEntitySystem.cpp
@@ -45,6 +50,9 @@ set(SRC_FILES
     src/systems/PhysicsSystem.cpp
     src/systems/RenderSystem.cpp
     src/systems/TractorBeamSystem.cpp
+    src/util/EllipseShape.cpp
+    src/util/Logger.cpp
+    src/util/PolylineShape.cpp
 )
 
 set(INCLUDE_FILES
@@ -66,11 +74,17 @@ set(INCLUDE_FILES
     include/components/TractorBeamComponent.hpp
     include/components/TractorBeamRepellableComponent.hpp
     include/components/VelocityComponent.hpp
+    include/fsm/CompositionWorldState.hpp
     include/fsm/EntityState.hpp
     include/fsm/EntityStateMachine.hpp
     include/fsm/WorldStateMachine.hpp
     include/fsm/WorldState.hpp
     include/managers/ResourceManager.hpp
+    include/managers/GameManager.hpp
+    include/managers/ImageManager.hpp
+    include/managers/ResourceManager.hpp
+    include/managers/ScriptManager.hpp
+    include/managers/ShapeManager.hpp
     include/listeners/TractorBeamRepellingListener.hpp
     include/systems/DebugSystem.hpp
     include/systems/EntityFollowSystem.hpp
@@ -81,7 +95,11 @@ set(INCLUDE_FILES
     include/systems/PhysicsSystem.hpp
     include/systems/RenderSystem.hpp
     include/systems/TractorBeamSystem.hpp
+    include/util/EllipseShape.hpp
+    include/util/Logger.hpp
+    include/util/PolylineShape.hpp
     include/LuaContext.hpp
+    include/misc/exception.hpp
 )
 
 include_directories(
@@ -93,52 +111,58 @@ include_directories(
     include/misc
     include/systems
     include/util
-    /usr/include
-    /usr/local/include
-    /usr/include/luajit-2.0
 )
 
-find_package(LuaJIT)
-find_package(Box2D)
-
-find_package(anax REQUIRED)
-if (ANAX_FOUND)
-    include_directories(${ANAX_INCLUDE_DIR})
-    target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARIES})
-endif()
-
-find_package(SFML 2 REQUIRED graphics window system)
-if(SFML_FOUND)
-  include_directories(${SFML_INCLUDE_DIR})
-  target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
-endif()
-
-find_package(Boost 1.55.0 REQUIRED regex)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-  target_link_libraries(${EXECUTABLE_NAME} ${Boost_LIBRARIES})
-endif()
-
-add_executable(EXECUTABLE_NAME
+add_executable(${EXECUTABLE_NAME}
     main.cpp
     ${SRC_FILES}
     ${INCLUDE_FILES}
 )
 
+find_package(LuaJIT)
+if (LUAJIT_FOUND)
+    include_directories(${LUAJIT_INCLUDE_DIR})
+    target_link_libraries(${EXECUTABLE_NAME} ${LUAJIT_LIBRARIES})
+else()
+    find_package(Lua52)
+    if (LUA52_FOUND)
+        message(STATUS "LuaJIT not found, using Lua 5.2 instead (we prefer LuaJIT, it's faster)")
+        include_directories(${LUA_INCLUDE_DIR})
+        target_link_libraries(${EXECUTABLE_NAME} ${LUA_LIBRARIES})
+    else()
+        message(SEND_ERROR "LuaJIT or Lua 5.2 is required")
+    endif()
+endif()
+
+find_package(Box2D REQUIRED)
+include_directories(${BOX2D_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${BOX2D_LIBRARY})
+
+find_package(Thor 2 REQUIRED)
+include_directories(${THOR_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${THOR_LIBRARY})
+
+find_package(anax REQUIRED)
+include_directories(${ANAX_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARIES})
+
+find_package(SFML 2 REQUIRED graphics window system)
+include_directories(${SFML_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
+
+find_package(Boost 1.55.0 REQUIRED regex)
+include_directories(${Boost_INCLUDE_DIRS})
+target_link_libraries(${EXECUTABLE_NAME} ${Boost_LIBRARIES})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(PROJECT_NAME-CMAKE_BUILD_TYPE
+    target_compile_definitions(${EXECUTABLE_NAME}
         PUBLIC DEBUG
     )
 else()
-    target_compile_definitions(PROJECT_NAME-CMAKE_BUILD_TYPE
+    target_compile_definitions(${EXECUTABLE_NAME}
         PUBLIC NDEBUG
     )
 endif()
-
-target_link_libraries(PROJECT_NAME-CMAKE_BUILD_TYPE
-    luajit-5.1
-    Box2D
-)
 
 if (WIN AND CMAKE_BUILD_TYPE STREQUAL "Release")
     set_property(TARGET Release PROPERTY WIN32_EXECUTABLE)
@@ -146,6 +170,7 @@ if (WIN AND CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 if (NOT MSVC)
+    # Only MSVC builds in C++11 mode by default
     add_definitions(
         -std=c++11
     )

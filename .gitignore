@@ -34,7 +34,8 @@ doc
 Makefile
 Makefile.include
 *.make
-cmake_install.cmake
+*.cmake
+!cmake/Modules/*.cmake
 configure
 CMakeCache.txt
 
