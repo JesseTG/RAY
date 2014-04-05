@@ -1,0 +1,6 @@
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 256 256">
+<title>Untitled 0</title>
+<rect style="fill:green;fill-opacity: 1 ; stroke : white ; stroke-opacity: 1; stroke-width: 1px; stroke-dashoffset: 0px; visibility: visible;" height="213" transform="rotate(0)" x="77.5" width="106" y="19.4449" ry="0" rx="0"><title>rectangle1</title><desc></desc></rect><rect style="fill:#eeb;fill-opacity: .5; stroke: pink; stroke-opacity: 0.5; stroke-width : -8 px ; stroke-dashoffset: 0px; visibility: visible;" height="25" transform="rotate(0)" x="25.5" width="215" y="50">
+    <title>rectangle3</title><desc></desc></rect>
+<circle style="fill:orange;fill-opacity:.9;stroke:red;stroke-width:2" cx="512" cy="512" r="16"/>
+</svg>

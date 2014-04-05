@@ -2,6 +2,6 @@
     "config" : {
     },
     "files" : {
-        "entities" : "./data/script/entities.lua"
+        "entities" : "data/script/entities.lua"
     }
 }
