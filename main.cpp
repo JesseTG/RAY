@@ -29,6 +29,7 @@ int main()
     using sf::Event;
     using sf::RenderWindow;
     using sf::VideoMode;
+    using sf::ContextSettings;
     using namespace util;
     using namespace ray;
 
@@ -36,7 +37,12 @@ int main()
     GameManager gm;
 
     // Create the main window
-    RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
+    RenderWindow window(
+        VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
+        "RAY",
+        sf::Style::Default,
+        ContextSettings(0, 0, 4)
+    );
     window.setFramerateLimit(FPS);
 
     entities::setWorld(gm.getWorld());
@@ -48,8 +54,8 @@ int main()
     entities::initComponentLuaBindings();
 
     gm.getScriptManager()->loadConfigFile("data/script/scripts.json");
-    gm.getPhysicsWorld()->SetContactListener(&tb_listener);
     gm.getShapeManager()->loadConfigFile("data/shape/shapes.json");
+    gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
     RenderSystem rendering(window);
@@ -69,7 +75,7 @@ int main()
         gm.getPhysicsWorld()->SetContactListener(&tb_listener);
         physics.setWorld(gm.getPhysicsWorld().get());
 
-        Entity crosshair = entities::createEntity("MouseCircle", 16.0);
+        Entity crosshair = entities::createEntity("MouseCircle", 16.0f);
         Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
 
