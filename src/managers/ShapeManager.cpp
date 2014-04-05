@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <exception>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -16,12 +17,16 @@
 #include <Thor/Vectors.hpp>
 
 #include "util.hpp"
+#include "PolylineShape.hpp"
+#include "EllipseShape.hpp"
 
 namespace ray {
 using std::array;
 using std::count;
 using std::stof;
 using std::max;
+using std::find;
+using std::static_pointer_cast;
 
 using boost::trim_copy;
 using boost::to_lower_copy;
@@ -29,6 +34,9 @@ using boost::regex;
 using boost::regex_match;
 using boost::ssub_match;
 using boost::smatch;
+
+using sf::PolylineShape;
+using sf::EllipseShape;
 
 const string ShapeManager::HEX_COLOR_STRING =
     "(?:#)([0-9a-fA-f]{6})|(?:#)([0-9a-fA-f]{3})";
@@ -72,6 +80,15 @@ const string ShapeManager::STROKE_WIDTH_STRING =
 const string ShapeManager::OPTIONAL_COMMA_STRING =
     "\\s*,\\s*|\\s+,?\\s*";
 
+const string ShapeManager::VISIBILITY_STRING =
+    "visibility\\s*:\\s*(visible|hidden|collapse)\\s*;";
+
+const string ShapeManager::NAME_STRING =
+    "[^,()\\s]+";
+
+const string ShapeManager::NAME_LIST_STRING =
+    "(" + NAME_STRING + OPTIONAL_COMMA_STRING + ")*" + NAME_STRING;
+
 const regex ShapeManager::HEX_COLOR_REGEX(ShapeManager::HEX_COLOR_STRING);
 const regex ShapeManager::RGB_COLOR_REGEX(ShapeManager::RGB_COLOR_STRING);
 const regex ShapeManager::RGB_PERCENT_COLOR_REGEX(ShapeManager::RGB_PERCENT_COLOR_STRING);
@@ -85,6 +102,15 @@ const regex ShapeManager::STROKE_REGEX(ShapeManager::STROKE_STRING);
 const regex ShapeManager::STROKE_OPACITY_REGEX(ShapeManager::STROKE_OPACITY_STRING);
 const regex ShapeManager::STROKE_WIDTH_REGEX(ShapeManager::STROKE_WIDTH_STRING);
 const regex ShapeManager::OPTIONAL_COMMA_REGEX(ShapeManager::OPTIONAL_COMMA_STRING);
+const regex ShapeManager::VISIBILITY_REGEX(ShapeManager::VISIBILITY_STRING);
+const regex ShapeManager::NAME_REGEX(ShapeManager::NAME_STRING);
+const regex ShapeManager::NAME_LIST_REGEX(ShapeManager::NAME_LIST_STRING);
+
+const string ShapeManager::COLLIDABLE_CLASS = "collidable";
+const string ShapeManager::POLYGON_CLASS = "polygon";
+const string ShapeManager::EDGE_CLASS = "edge";
+const string ShapeManager::CHAIN_CLASS = "chain";
+
 
 ShapeManager::ShapeManager()
 {
@@ -115,17 +141,36 @@ GameShape ShapeManager::_parse_shape(const string& name, const ptree& xml) {
     GameShape shape;
     for (const auto& i : xml) {
         std::cout << i.first << " " << i.second.data() << std::endl;
+        pair<shared_ptr<Drawable>, shared_ptr<b2Shape>> shape_pair;
         if (i.first == "circle") {
             // If this is a circle...
-            shape.graphics_shapes.push_back(_parse_circle(i.second));
+            shape_pair = _parse_circle(i.second);
         }
         else if (i.first == "rect") {
             // If this is a rectangle...
-            shape.graphics_shapes.push_back(_parse_rect(i.second));
+            shape_pair = _parse_rect(i.second);
         }
         else if (i.first == "polygon") {
             // If this is a polygon...
-            shape.graphics_shapes.push_back(_parse_polygon(i.second));
+            shape_pair = _parse_polygon(i.second);
+        }
+        else if (i.first == "line") {
+            // If this is a line...
+            shape_pair = _parse_line(i.second);
+        }
+        else if (i.first == "polyline") {
+            // If this is a polyline...
+            shape_pair = _parse_polyline(i.second);
+        }
+        else if (i.first == "ellipse") {
+            // If this is an ellipse...
+            shape_pair = _parse_ellipse(i.second);
+        }
+
+        if (shape_pair.first) {
+            // If we managed to load and parse a SVG element...
+            shape.graphics_shapes.push_back(shape_pair.first);
+            shape.physics_shapes.push_back(shape_pair.second);
         }
     }
 
@@ -137,6 +182,7 @@ ShapeManager::Style ShapeManager::_parse_style(const ptree& xml) {
         for (int i = 1; i < m.size(); ++i) {
             if (m[i].matched) return m[i];
         }
+        return m[0];
     };
 
     smatch attribute;
@@ -160,12 +206,20 @@ ShapeManager::Style ShapeManager::_parse_style(const ptree& xml) {
                            constrain(stof(first_match(attribute)), 0.f, 1.f) :
                            1.f; // Unspecified stroke opacity means fully opaque
 
+    bool visibility = regex_search(xml.data(), attribute, VISIBILITY_REGEX) ?
+                      first_match(attribute) == "visibility" :
+                      true; // Unspecified visibility defaults to visibility
+
+    vector<string> classes = regex_search(xml.data(), attribute, NAME_LIST_REGEX) ?
+                             _parse_class(attribute.str()) :
+                             vector<string>();
+
     fill.a = constrain(int(fill_opacity * 255.f), 0, 255);
     stroke.a = constrain(int(stroke_opacity * 255.f), 0, 255);
-    return Style(stroke, stroke_width, fill);
+    return Style(stroke, stroke_width, fill, classes, visibility);
 }
 
-shared_ptr<Shape> ShapeManager::_parse_circle(const ptree& xml) {
+ShapeManager::ShapePair ShapeManager::_parse_circle(const ptree& xml) {
     // Assume that xml represents a <circle> node
 #ifdef DEBUG
     _throw_if_wrong_element(xml, "circle");
@@ -174,12 +228,12 @@ shared_ptr<Shape> ShapeManager::_parse_circle(const ptree& xml) {
     const auto& circle = xml.get_child_optional("<xmlattr>");
     if (!circle) {
         // If we see a blank <circle/> element without attributes...
-        shared_ptr<CircleShape> shape = make_shared<CircleShape>(0.0f);
+        shared_ptr<CircleShape> shape = make_shared<CircleShape>();
         shape->setFillColor(Color::Black);
         shape->setOutlineColor(Color::Transparent);
         shape->setOutlineThickness(0.0);
 
-        return shape;
+        return make_pair(shape, nullptr);
     }
     else {
         float r = max(stof(circle->get("r", "0")), 0.0f);
@@ -199,11 +253,19 @@ shared_ptr<Shape> ShapeManager::_parse_circle(const ptree& xml) {
         shape->setOutlineThickness(style.stroke_width);
         shape->setPosition(cx - r, cy - r);
 
-        return shape;
+        shared_ptr<b2CircleShape> b2shape;
+        if (find(style.classes.begin(), style.classes.end(), COLLIDABLE_CLASS) != style.classes.end()) {
+            // If this <circle> is marked as collidable...
+            b2shape = make_shared<b2CircleShape>();
+            b2shape->m_radius = r;
+            b2shape->m_p = b2Vec2(cx - r, cy - r);
+        }
+
+        return make_pair(shape, b2shape);
     }
 }
 
-shared_ptr<Shape> ShapeManager::_parse_rect(const ptree& xml) {
+ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
     // Assume that xml represents a <rect> node
 #ifdef DEBUG
     _throw_if_wrong_element(xml, "rect");
@@ -217,7 +279,7 @@ shared_ptr<Shape> ShapeManager::_parse_rect(const ptree& xml) {
         shape->setOutlineColor(Color::Transparent);
         shape->setOutlineThickness(0.0);
 
-        return shape;
+        return make_pair(shape, nullptr);
     }
     else {
         Vector2f pos(stof(rect->get("x", "0")), stof(rect->get("y", "0")));
@@ -246,56 +308,137 @@ shared_ptr<Shape> ShapeManager::_parse_rect(const ptree& xml) {
                     );
         }
 
+        shared_ptr<b2Shape> ptr;
+        const vector<string>& classes = style.classes;
+        if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
+            // If this <rect> is collidable...
+            if (find(classes.begin(), classes.end(), POLYGON_CLASS) != classes.end()) {
+                // If this <rect> should be a solid polygon...
+                ptr = make_shared<b2PolygonShape>();
+                static_pointer_cast<b2PolygonShape>(ptr)->SetAsBox(
+                    size.x / 2,
+                    size.y / 2,
+                    b2Vec2(size.x / 2, size.y / 2),
+                    0.0
+                );
+            }
+            else if (find(classes.begin(), classes.end(), CHAIN_CLASS) != classes.end()) {
+                // Else if this <rect> should be a chain...
+                ptr = make_shared<b2ChainShape>();
+                array<b2Vec2, 4> vecs = {
+                    b2Vec2(pos.x, pos.y), // NW corner
+                    b2Vec2(pos.x + size.x, pos.y), // NE corner
+                    b2Vec2(pos.x + size.x, pos.y + size.y), // SE corner
+                    b2Vec2(pos.x, pos.y + size.y) // SW corner
+                };
+                static_pointer_cast<b2ChainShape>(ptr)->CreateLoop(vecs.data(),vecs.size());
+            }
+            // Not a valid collision class, let's not make this shape collidable
+        }
+
         shape->setPosition(pos);
-        return shape;
+        return make_pair(shape, ptr);
     }
 }
 
-shared_ptr<Shape> ShapeManager::_parse_ellipse(const ptree& xml) {
-    return nullptr;
+// TODO: collision detection as a polygon
+ShapeManager::ShapePair ShapeManager::_parse_ellipse(const ptree& xml) {
+    // Assume that xml represents a <ellipse> node
+#ifdef DEBUG
+    _throw_if_wrong_element(xml, "ellipse");
+#endif // DEBUG
+
+    const auto& ellipse = xml.get_child_optional("<xmlattr>");
+    if (!ellipse) {
+        // If we see a blank <ellipse/> element without attributes...
+        shared_ptr<EllipseShape> shape = make_shared<EllipseShape>();
+        shape->setFillColor(Color::Black);
+        shape->setOutlineColor(Color::Transparent);
+        shape->setOutlineThickness(0.0);
+
+        return make_pair(shape, nullptr);
+    }
+    else {
+        float rx = max(stof(ellipse->get("rx", "0")), 0.0f);
+        // Negative or invalid radii means no visible ellipse
+
+        float ry = max(stof(ellipse->get("ry", "0")), 0.0f);
+        // Negative or invalid radii means no visible ellipse
+
+        float cx = stof(ellipse->get("cx", "0"));
+        // Unspecified x-center means 0
+
+        float cy = stof(ellipse->get("cy", "0"));
+        // Unspecified y-center means 0
+
+        Style style = _parse_style(ellipse->get_child("style"));
+
+        shared_ptr<EllipseShape> shape = make_shared<EllipseShape>(rx, ry);
+        shape->setFillColor(style.fill);
+        shape->setOutlineColor(style.stroke);
+        shape->setOutlineThickness(style.stroke_width);
+        shape->setPosition(cx - rx, cy - ry);
+
+        return make_pair(shape, nullptr);
+        // collision not yet supported
+    }
 }
 
-shared_ptr<Shape> ShapeManager::_parse_line(const ptree& xml) {
+ShapeManager::ShapePair ShapeManager::_parse_line(const ptree& xml) {
     // Assume that xml represents a <line> node
 #ifdef DEBUG
     _throw_if_wrong_element(xml, "line");
 #endif // DEBUG
 
     const auto& line = xml.get_child_optional("<xmlattr>");
+    shared_ptr<Arrow> shape;
+    shared_ptr<b2Shape> b2shape;
     if (!line) {
         // If we see a blank <line/> element without attributes...
-        shared_ptr<ConvexShape> shape = make_shared<ConvexShape>(thor::Shapes::line(sf::Vector2f(0, 0), Color::Transparent));
-
-        return shape;
+        shape = make_shared<Arrow>(Vector2f(), Vector2f(), Color::White, 0.0);
     }
     else {
         Vector2f v1(stof(line->get("x1", "0")), stof(line->get("y1", "0")));
         Vector2f v2(stof(line->get("x2", "0")), stof(line->get("y2", "0")));
         // Unspecified coordinates default to zero
 
-        Color stroke = _parse_color(line->get("stroke", "transparent"));
-        // Unspecified stroke color means no stroke
+        Style style = _parse_style(line->get_child("style"));
+        shape = make_shared<Arrow>(v1, v2 - v1, style.stroke, style.stroke_width);
 
-        float stroke_width = stof(line->get("stroke-width", "1.0"));
-        // Unspecified stroke width is one unit
-
-        float stroke_opacity = constrain(stof(line->get("stroke-opacity", "1.0")), 0.0f, 1.0f);
-        // Unspecified stroke opacity means fully opaque
-
-        stroke.a = stroke_opacity * 255;
-
-        return make_shared<ConvexShape>(thor::Shapes::line(v1, stroke, stroke_width));
-        // TODO: May not be in the correct position
+        const vector<string>& classes = style.classes;
+        if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
+            // If this <line> is collidable...
+            if (find(classes.begin(), classes.end(), EDGE_CLASS) != classes.end()) {
+                // If this <line> should be a solid polygon...
+                b2shape = make_shared<b2EdgeShape>();
+                static_pointer_cast<b2EdgeShape>(b2shape)->Set(sfVecToB2Vec(v1), sfVecToB2Vec(v2 - v1));
+            }
+            else if (find(classes.begin(), classes.end(), CHAIN_CLASS) != classes.end()) {
+                // Else if this <rect> should be a chain...
+                b2shape = make_shared<b2ChainShape>();
+                array<b2Vec2, 2> vecs = {
+                    sfVecToB2Vec(v1),
+                    sfVecToB2Vec(v2 - v1)
+                };
+                static_pointer_cast<b2ChainShape>(b2shape)->CreateChain(vecs.data(), vecs.size());
+            }
+            // Not a valid collision type, let's not make this shape collidable
+        }
     }
+
+    shape->setStyle(Arrow::Style::Line);
+
+    return make_pair(shape, b2shape);
 }
 
-shared_ptr<Shape> ShapeManager::_parse_path(const ptree& xml) {
-    return nullptr;
+/// NOT SUPPORTED
+ShapeManager::ShapePair ShapeManager::_parse_path(const ptree& xml) {
+    return make_pair(nullptr, nullptr);
 }
 
 /// returns either a sf::ConvexShape if the given polygon is convex or a
 /// thor::ConcaveShape if it's concave
-shared_ptr<Drawable> ShapeManager::_parse_polygon(const ptree& xml) {
+ShapeManager::ShapePair ShapeManager::_parse_polygon(const ptree& xml) {
     // Assume that xml represents a <polygon> node
 #ifdef DEBUG
     _throw_if_wrong_element(xml, "polygon");
@@ -309,7 +452,7 @@ shared_ptr<Drawable> ShapeManager::_parse_polygon(const ptree& xml) {
         shape->setOutlineColor(Color::Transparent);
         shape->setOutlineThickness(0.0);
 
-        return shape;
+        return make_pair(shape, nullptr);
     }
     else {
         Style style = _parse_style(polygon->get_child("style"));
@@ -346,7 +489,7 @@ shared_ptr<Drawable> ShapeManager::_parse_polygon(const ptree& xml) {
             shape->setOutlineColor(style.stroke);
             shape->setOutlineThickness(style.stroke_width);
 
-            return shape;
+            return make_pair(shape, nullptr);
         }
         else {
             shared_ptr<ConcaveShape> shape = make_shared<ConcaveShape>();
@@ -360,13 +503,42 @@ shared_ptr<Drawable> ShapeManager::_parse_polygon(const ptree& xml) {
             shape->setOutlineColor(style.stroke);
             shape->setOutlineThickness(style.stroke_width);
 
-            return shape;
+            return make_pair(shape, nullptr);
         }
     }
 }
 
-shared_ptr<Drawable> ShapeManager::_parse_polyline(const ptree& xml) {
-    return nullptr;
+ShapeManager::ShapePair ShapeManager::_parse_polyline(const ptree& xml) {
+    // Assume that xml represents a <polyline> node
+#ifdef DEBUG
+    _throw_if_wrong_element(xml, "polyline");
+#endif // DEBUG
+
+    const auto& polyline = xml.get_child_optional("<xmlattr>");
+    if (!polyline) {
+        // If we see a blank <polyline/> element without attributes...
+        shared_ptr<PolylineShape> shape = make_shared<PolylineShape>();
+        shape->setFillColor(Color::Transparent);
+        shape->setOutlineColor(Color::Transparent);
+        shape->setOutlineThickness(0.0);
+
+        return make_pair(shape, nullptr);
+    }
+    else {
+        Style style = _parse_style(polyline->get_child("style"));
+        if (style.fill == Color::Black) {
+            // TODO: Remove this hack
+            style.fill = Color::Transparent;
+        }
+        vector<Vector2f> points = _parse_points(polyline->get_child("points"));
+
+        shared_ptr<PolylineShape> shape = make_shared<PolylineShape>(points);
+        shape->setFillColor(style.fill);
+        shape->setOutlineColor(style.stroke);
+        shape->setOutlineThickness(style.stroke_width);
+
+        return make_pair(shape, nullptr);
+    }
 }
 
 const Color ShapeManager::_parse_color(const string& text) {
@@ -449,12 +621,31 @@ vector<Vector2f> ShapeManager::_parse_points(const ptree& xml) {
         throw std::invalid_argument(err.str());
     }
 
+    points.reserve(points_str.size());
     for (int i = 0; i < points_str.size(); i += 2) {
         points.push_back(Vector2f(stof(points_str[i]), stof(points_str[i+1])));
     }
     return points;
 }
 
+vector<string> ShapeManager::_parse_class(const string& text) {
+    smatch match;
+
+    const string classtext = to_lower_copy(trim_copy(text));
+    vector<string> classes;
+
+    boost::algorithm::split_regex(classes, classtext, OPTIONAL_COMMA_REGEX);
+    classes.shrink_to_fit();
+    for (const string& i : classes) {
+        regex_match(i, match, NAME_REGEX);
+        if (match.size() <= 0) return vector<string>();
+    }
+
+    return classes;
+
+}
+
+// TODO: Make this work
 void ShapeManager::_throw_if_wrong_element(const ptree& xml, const string& element) {
     return;
 #ifdef DEBUG

@@ -39,6 +39,7 @@ using sf::RectangleShape;
 using sf::ConvexShape;
 using sf::Vector2f;
 using thor::ConcaveShape;
+using thor::Arrow;
 
 /**
  * A structure containing the resulting graphics of an SVG file and a collision
@@ -46,7 +47,7 @@ using thor::ConcaveShape;
  */
 struct GameShape {
     vector<shared_ptr<Drawable>> graphics_shapes;
-    shared_ptr<b2Shape> physics_shape;
+    vector<shared_ptr<b2Shape>> physics_shapes;
 };
 
 /**
@@ -71,10 +72,17 @@ class ShapeManager : public ResourceManager
          * Represents common style attributes stored within the SVG attribute "style".
          */
         struct Style {
-            Style(const Color& stroke, const float stroke_width, const Color& fill) :
+            Style(
+                const Color& stroke,
+                const float stroke_width,
+                const Color& fill,
+                const vector<string>& classes,
+                const bool visibility=true
+            ) :
                 stroke(stroke),
                 stroke_width(stroke_width),
-                fill(fill)
+                fill(fill),
+                visibility(visibility)
             {}
 
             Style() :
@@ -97,28 +105,42 @@ class ShapeManager : public ResourceManager
              * Corresponds to the @c fill and @c fill-opacity attributes.
              */
             Color fill;
+
+            /**
+             * Corresponds to the @c visibility attribute.
+             */
+            bool visibility;
+
+            /**
+             * Corresponds to the @c class attribute.
+             */
+            vector<string> classes;
         };
+
+        typedef pair<shared_ptr<Drawable>, shared_ptr<b2Shape>> ShapePair;
 
         unordered_map<string, pair<ptree, GameShape>> _shapes;
         GameShape _parse_shape(const string& name, const ptree& xml);
 
         void _throw_if_wrong_element(const ptree& xml, const string& element);
 
-        shared_ptr<Shape> _parse_circle(const ptree& xml);
-        shared_ptr<Shape> _parse_ellipse(const ptree& xml);
-        shared_ptr<Shape> _parse_line(const ptree& xml);
-        shared_ptr<Shape> _parse_path(const ptree& xml);
-        shared_ptr<Drawable> _parse_polygon(const ptree& xml);
-        shared_ptr<Drawable> _parse_polyline(const ptree& xml);
-        shared_ptr<Shape> _parse_rect(const ptree& xml);
+        ShapePair _parse_circle(const ptree& xml);
+        ShapePair _parse_ellipse(const ptree& xml);
+        ShapePair _parse_line(const ptree& xml);
+        ShapePair _parse_path(const ptree& xml);
+        ShapePair _parse_polygon(const ptree& xml);
+        ShapePair _parse_polyline(const ptree& xml);
+        ShapePair _parse_rect(const ptree& xml);
         vector<Vector2f> _parse_points(const ptree& xml);
-        Style _parse_style(const ptree& xml);
+        vector<string> _parse_class(const string& text);
 
         /**
          * Given a string representing a CSS color, figure out exactly what
          * form it is and return a @c sf::Color based on it.
          */
         const Color _parse_color(const string& text);
+
+        Style _parse_style(const ptree& xml);
 
         static unordered_map<string, const Color> NAMED_COLORS;
         static const string HEX_COLOR_STRING;
@@ -134,6 +156,9 @@ class ShapeManager : public ResourceManager
         static const string STROKE_OPACITY_STRING;
         static const string STROKE_WIDTH_STRING;
         static const string OPTIONAL_COMMA_STRING;
+        static const string VISIBILITY_STRING;
+        static const string NAME_STRING;
+        static const string NAME_LIST_STRING;
 
         static const regex HEX_COLOR_REGEX;
         static const regex RGB_COLOR_REGEX;
@@ -148,6 +173,14 @@ class ShapeManager : public ResourceManager
         static const regex STROKE_OPACITY_REGEX;
         static const regex STROKE_WIDTH_REGEX;
         static const regex OPTIONAL_COMMA_REGEX;
+        static const regex VISIBILITY_REGEX;
+        static const regex NAME_REGEX;
+        static const regex NAME_LIST_REGEX;
+
+        static const string COLLIDABLE_CLASS;
+        static const string POLYGON_CLASS;
+        static const string EDGE_CLASS;
+        static const string CHAIN_CLASS;
 
 };
 
