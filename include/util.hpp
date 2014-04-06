@@ -11,6 +11,7 @@
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
+#include "config.hpp"
 
 #include "config.hpp"
 
@@ -177,7 +178,5 @@ inline function<T*(void)> getNewDefaultConstructorLambda() noexcept {
     };
 }
 }
-
-
 
 #endif // UTIL_HPP
