@@ -21,6 +21,8 @@
 #include "managers.hpp"
 #include "listeners.hpp"
 
+#include "sfgui/sfgui.hpp"
+
 int main()
 {
     using std::vector;
@@ -33,9 +35,10 @@ int main()
     using namespace util;
     using namespace ray;
 
+    sfg::SFGUI sfgui;
+
     TractorBeamRepellingListener tb_listener;
     GameManager gm;
-
     // Create the main window
     RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
     window.setFramerateLimit(FPS);
@@ -111,9 +114,13 @@ int main()
         gm.resetPhysicsWorld();
     };
 
+    sfg::Desktop desktop;
+
     auto startEnter = [](World& w) {};
-    auto startUpdate = [&window](const vector<Event>&) {
+    auto startUpdate = [&](const vector<Event>&) {
+        desktop.Update( 1.0f );
         window.clear(sf::Color::Magenta);
+        sfgui.Display( window );
         window.display();
     };
     auto startExit = [](World& w) {};
@@ -127,6 +134,18 @@ int main()
         {make_pair("swap", "start"), "game"},
         {make_pair("swap", "game"), "start"},
     });
+
+    // start menu gui
+    auto startButton = sfg::Button::Create("Start Game");
+    auto startButtonClicked = [&wsm]() {};
+    startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(
+        std::bind( startButtonClicked )
+    );
+    auto startMenu = sfg::Window::Create();
+    startMenu->SetTitle( "Start Menu" );
+    startMenu->Add( startButton );
+    desktop.Add( startMenu );
+    window.resetGLStates();
 
     vector<Event> events;
     bool focused = true;
@@ -164,4 +183,3 @@ int main()
         events.clear();
     }
 }
-
