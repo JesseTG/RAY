@@ -117,7 +117,10 @@ int main()
     sfg::Desktop desktop;
 
     auto startEnter = [](World& w) {};
-    auto startUpdate = [&](const vector<Event>&) {
+    auto startUpdate = [&](const vector<Event>& events) {
+        for (auto& e : events) {
+            desktop.HandleEvent(e);
+        }
         desktop.Update( 1.0f );
         window.clear(sf::Color::Magenta);
         sfgui.Display( window );
@@ -137,10 +140,10 @@ int main()
 
     // start menu gui
     auto startButton = sfg::Button::Create("Start Game");
-    auto startButtonClicked = [&wsm]() {};
-    startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(
-        std::bind( startButtonClicked )
-    );
+    auto startButtonClicked = [&wsm]() {
+        wsm.transition("swap");
+    };
+    startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
     auto startMenu = sfg::Window::Create();
     startMenu->SetTitle( "Start Menu" );
     startMenu->Add( startButton );
