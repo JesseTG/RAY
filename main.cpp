@@ -12,6 +12,7 @@
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
 #include <LuaContext.hpp>
+
 #include "config.hpp"
 #include "components.hpp"
 #include "fsm.hpp"
@@ -19,6 +20,8 @@
 #include "entities.hpp"
 #include "managers.hpp"
 #include "listeners.hpp"
+
+#include <SFGUI/SFGUI.hpp>
 
 int main()
 {
@@ -29,20 +32,15 @@ int main()
     using sf::Event;
     using sf::RenderWindow;
     using sf::VideoMode;
-    using sf::ContextSettings;
     using namespace util;
     using namespace ray;
 
+    sfg::SFGUI sfgui;
+
     TractorBeamRepellingListener tb_listener;
     GameManager gm;
-
     // Create the main window
-    RenderWindow window(
-        VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
-        "RAY",
-        sf::Style::Default,
-        ContextSettings(0, 0, 4)
-    );
+    RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
     window.setFramerateLimit(FPS);
 
     entities::setWorld(gm.getWorld());
@@ -53,8 +51,9 @@ int main()
     entities::initBaseTypes();
     entities::initComponentLuaBindings();
 
-    gm.getScriptManager()->loadConfigFile("data/script/scripts.json");
-    gm.getShapeManager()->loadConfigFile("data/shape/shapes.json");
+    ScriptManager sm(gm.getLuaContext());
+    sm.loadConfigFile("data/script/scripts.json");
+
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
@@ -75,18 +74,9 @@ int main()
         gm.getPhysicsWorld()->SetContactListener(&tb_listener);
         physics.setWorld(gm.getPhysicsWorld().get());
 
-        Entity crosshair = entities::createEntity("MouseCircle", 16.0f);
+        Entity crosshair = entities::createEntity("MouseCircle", 16.0);
         Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
-
-        GameShape s = gm.getShapeManager()->makeShape("concave");
-
-        for (auto i : s.graphics_shapes) {
-            Entity e = w.createEntity();
-            e.addComponent<PositionComponent>(dynamic_pointer_cast<Transformable>(i)->getPosition());
-            e.addComponent<RenderableComponent>(dynamic_pointer_cast<Drawable>(i));
-            w.activateEntity(e);
-        }
 
         w.addSystem(four_way_movement);
         w.addSystem(mouse_following);
@@ -115,7 +105,7 @@ int main()
         gm.getWorld()->refresh();
     };
 
-    auto gameExit = [&gm](World& w) {
+    auto gameExit = [&](World& w) {
         auto ent = w.getEntities();
         w.killEntities(ent);
         w.removeAllSystems();
@@ -124,9 +114,16 @@ int main()
         gm.resetPhysicsWorld();
     };
 
+    sfg::Desktop desktop;
+
     auto startEnter = [](World& w) {};
-    auto startUpdate = [&window](const vector<Event>&) {
+    auto startUpdate = [&](const vector<Event>& events) {
+        desktop.Update( 1.0f );
         window.clear(sf::Color::Magenta);
+        for (auto& e : events) {
+            desktop.HandleEvent(e);
+        }
+        sfgui.Display( window );
         window.display();
     };
     auto startExit = [](World& w) {};
@@ -140,6 +137,16 @@ int main()
         {make_pair("swap", "start"), "game"},
         {make_pair("swap", "game"), "start"},
     });
+
+    // start menu gui
+    auto startButton = sfg::Button::Create("Start Game");
+    auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
+    startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
+    auto startMenu = sfg::Window::Create();
+    startMenu->SetTitle( "Start Menu" );
+    startMenu->Add( startButton );
+    desktop.Add( startMenu );
+    window.resetGLStates();
 
     vector<Event> events;
     bool focused = true;
@@ -177,4 +184,3 @@ int main()
         events.clear();
     }
 }
-
