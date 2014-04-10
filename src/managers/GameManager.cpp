@@ -7,7 +7,9 @@ GameManager::GameManager() :
     _world(new World),
     _script_manager(new ScriptManager(_lua)),
     _image_manager(new ImageManager),
-    _shape_manager(new ShapeManager)
+    _shape_manager(new ShapeManager),
+    _sfgui(new sfg::SFGUI),
+    _desktop(new sfg::Desktop)
 {
     //ctor
 }
@@ -39,6 +41,14 @@ shared_ptr<ImageManager> GameManager::getImageManager() const {
 
 shared_ptr<ShapeManager> GameManager::getShapeManager() const {
     return this->_shape_manager;
+}
+
+shared_ptr<sfg::SFGUI> GameManager::getSfgui() const {
+    return this->_sfgui;
+}
+
+shared_ptr<sfg::Desktop> GameManager::getDesktop() const {
+    return this->_desktop;
 }
 
 void GameManager::resetPhysicsWorld() {

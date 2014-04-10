@@ -11,6 +11,7 @@
 #include "entities.hpp"
 #include "config.hpp"
 #include "managers.hpp"
+#include <SFGUI/SFGUI.hpp>
 
 namespace ray {
 
@@ -31,6 +32,8 @@ class GameManager
         shared_ptr<ScriptManager> getScriptManager() const;
         shared_ptr<ImageManager> getImageManager() const;
         shared_ptr<ShapeManager> getShapeManager() const;
+        shared_ptr<sfg::SFGUI> getSfgui() const;
+        shared_ptr<sfg::Desktop> getDesktop() const;
 
         void resetPhysicsWorld();
         void resetLuaContext();
@@ -43,6 +46,8 @@ class GameManager
         shared_ptr<ScriptManager> _script_manager;
         shared_ptr<ImageManager> _image_manager;
         shared_ptr<ShapeManager> _shape_manager;
+        shared_ptr<sfg::SFGUI> _sfgui;
+        shared_ptr<sfg::Desktop> _desktop;
 };
 }
 

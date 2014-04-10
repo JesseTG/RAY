@@ -10,8 +10,16 @@ using std::sort;
 const ComponentFilter RenderSystem::FILTER = ComponentFilter()
         .requires<RenderableComponent, PositionComponent>();
 
-RenderSystem::RenderSystem(RenderWindow& window) : Base(FILTER), _window(&window)
+RenderSystem::RenderSystem(RenderWindow& window, GameManager& gm) : Base(FILTER), _window(&window), _gm(&gm)
 {
+    // Initialize the view to a rectangle located at (0, 0) and with a size of 400x200
+    _view->reset(sf::FloatRect(0, 0, _window->getSize().x, _window->getSize().y));
+    // Set its target viewport to be half of the window
+    _view->setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+    //testing scrolling
+    //_view->setCenter(0, 0);
+    _window->setView(*_view);
+    std::cout << _view->getCenter().x << ", " << _view->getCenter().y;
 }
 
 void RenderSystem::update() {
@@ -30,6 +38,8 @@ void RenderSystem::update() {
         }
         this->_window->draw(*(graphic.drawable));
     }
+    _gm->getDesktop()->Update(1.0f);
+    _gm->getSfgui()->Display(*_window);
     this->_window->display();
 }
 

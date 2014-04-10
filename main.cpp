@@ -35,8 +35,6 @@ int main()
     using namespace util;
     using namespace ray;
 
-    sfg::SFGUI sfgui;
-
     TractorBeamRepellingListener tb_listener;
     GameManager gm;
     // Create the main window
@@ -57,7 +55,7 @@ int main()
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
-    RenderSystem rendering(window);
+    RenderSystem rendering(window, gm);
     MovementSystem movement;
     MouseFollowControlSystem mouse_following(window);
     FaceEntitySystem face_entity;
@@ -114,16 +112,14 @@ int main()
         gm.resetPhysicsWorld();
     };
 
-    sfg::Desktop desktop;
-
     auto startEnter = [](World& w) {};
     auto startUpdate = [&](const vector<Event>& events) {
-        desktop.Update( 1.0f );
+        gm.getDesktop()->Update( 1.0f );
         window.clear(sf::Color::Magenta);
         for (auto& e : events) {
-            desktop.HandleEvent(e);
+            gm.getDesktop()->HandleEvent(e);
         }
-        sfgui.Display( window );
+        gm.getSfgui()->Display( window );
         window.display();
     };
     auto startExit = [](World& w) {};
@@ -140,12 +136,13 @@ int main()
 
     // start menu gui
     auto startButton = sfg::Button::Create("Start Game");
+
     auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
     auto startMenu = sfg::Window::Create();
     startMenu->SetTitle( "Start Menu" );
     startMenu->Add( startButton );
-    desktop.Add( startMenu );
+    gm.getDesktop()->Add( startMenu );
     window.resetGLStates();
 
     vector<Event> events;
