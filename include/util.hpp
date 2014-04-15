@@ -58,7 +58,7 @@ inline NumberType constrain(const NumberType value, const NumberType min, const 
  *
  * @return The dot product of vectors @c a and @c b
  */
-template<class NumberType>
+template<class NumberType = float>
 inline NumberType dot(const Vector2<NumberType>& a, const Vector2<NumberType>& b) noexcept {
     return (a.x * b.x) + (a.y * b.y);
 }
@@ -113,7 +113,7 @@ inline b2Vec2 sfVecToB2Vec(const Vector2<NumberType>& vec) noexcept {
     return b2Vec2(vec.x, vec.y);
 }
 
-template<class ContainerType, class NumberType>
+template<class ContainerType, class NumberType = float>
 inline vector<b2Vec2> sfVecsToB2Vecs(const ContainerType& container) noexcept {
     vector<b2Vec2> vecs;
     vecs.reserve(container.size());
