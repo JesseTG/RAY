@@ -6,6 +6,7 @@ namespace ray {
     class DebugSystem;
     #endif //DEBUG
 
+    class AISystem;
     class EntityFollowSystem;
     class FaceEntitySystem;
     class FourWayControlSystem;
@@ -20,6 +21,7 @@ namespace ray {
 #include "DebugSystem.hpp"
 #endif //DEBUG
 
+#include "AISystem.hpp"
 #include "EntityFollowSystem.hpp"
 #include "FaceEntitySystem.hpp"
 #include "FourWayControlSystem.hpp"
