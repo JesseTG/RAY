@@ -67,6 +67,21 @@ int main()
 #endif // DEBUG
 
     auto startMenu = sfg::Window::Create();
+    gm.getDesktop()->Add( startMenu );
+    auto startButton = sfg::Button::Create("Start Game");
+    startMenu->SetTitle( "Start Menu" );
+    startMenu->Add( startButton );
+    gm.getDesktop()->Add( startMenu );
+    sfg::Window::Ptr progressBar = sfg::Window::Create();
+    progressBar->SetTitle("Health");
+    sfg::ProgressBar::Ptr health = sfg::ProgressBar::Create();
+    health->SetRequisition( sf::Vector2f( 200.f, 20.f ) );
+    sfg::Box::Ptr healthBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
+    healthBox->Pack(health);
+    progressBar->Add(healthBox);
+    gm.getDesktop()->Add(progressBar);
+    health->SetFraction(0.5f);
+    progressBar->Show(false);
 
     auto gameEnter = [&](World& w) {
         gm.resetPhysicsWorld();
@@ -76,6 +91,7 @@ int main()
 
         Entity crosshair = entities::createEntity("MouseCircle", 16.0);
         Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
+        gm.setPlayer(player);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
 
         w.addSystem(four_way_movement);
@@ -90,7 +106,7 @@ int main()
         w.addSystem(rendering);
         w.refresh();
         startMenu->Show(false);
-        sfg::ProgressBar::Ptr m_progressbar;
+        progressBar->Show(true);
     };
 
     auto gameUpdate = [&](const vector<Event>& e) {
@@ -114,6 +130,7 @@ int main()
         // Can't call w.clear(), it causes a segfault if you go back to this
         // state later; a bug in Anax?
         gm.resetPhysicsWorld();
+        progressBar->Show(false);
     };
 
     auto startEnter = [&gm, &startMenu](World& w) {
@@ -140,14 +157,8 @@ int main()
         {make_pair("swap", "game"), "start"},
     });
 
-    // start menu gui
-    gm.getDesktop()->Add( startMenu );
-    auto startButton = sfg::Button::Create("Start Game");
     auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
-    startMenu->SetTitle( "Start Menu" );
-    startMenu->Add( startButton );
-    gm.getDesktop()->Add( startMenu );
     window.resetGLStates();
 
     vector<Event> events;

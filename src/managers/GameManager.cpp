@@ -51,6 +51,10 @@ shared_ptr<sfg::Desktop> GameManager::getDesktop() const {
     return this->_desktop;
 }
 
+anax::Entity GameManager::getPlayer() const {
+    return this->_player_entity;
+}
+
 void GameManager::resetPhysicsWorld() {
     this->_physics_world.reset(new b2World(b2Vec2_zero));
 }
@@ -61,6 +65,10 @@ void GameManager::resetLuaContext() {
 
 void GameManager::resetWorld() {
     this->_world.reset(new World);
+}
+
+void GameManager::setPlayer(anax::Entity e) {
+    this->_player_entity = e;
 }
 
 }

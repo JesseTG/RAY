@@ -25,6 +25,9 @@ void RenderSystem::update() {
     auto entities = this->getEntities();
     sort(entities.begin(), entities.end(), &RenderSystem::_sort_entities);
     this->_window->clear();
+    const Vector2f playerPosVect = (_gm->getPlayer().getComponent<PositionComponent>()).position;
+    _view->setCenter(playerPosVect.x, playerPosVect.y);
+    _window->setView(*_view);
 
     for (Entity& e : entities) {
         RenderableComponent& graphic = e.getComponent<RenderableComponent>();
@@ -37,6 +40,7 @@ void RenderSystem::update() {
         }
         this->_window->draw(*(graphic.drawable));
     }
+    _gm->getDesktop()->Update(1.0f);
     _gm->getSfgui()->Display(*_window);
     this->_window->display();
 }

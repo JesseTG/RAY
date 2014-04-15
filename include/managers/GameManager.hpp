@@ -34,10 +34,12 @@ class GameManager
         shared_ptr<ShapeManager> getShapeManager() const;
         shared_ptr<sfg::SFGUI> getSfgui() const;
         shared_ptr<sfg::Desktop> getDesktop() const;
+        anax::Entity getPlayer() const;
 
         void resetPhysicsWorld();
         void resetLuaContext();
         void resetWorld();
+        void setPlayer(anax::Entity);
     protected:
     private:
         shared_ptr<LuaContext> _lua;
@@ -48,6 +50,7 @@ class GameManager
         shared_ptr<ShapeManager> _shape_manager;
         shared_ptr<sfg::SFGUI> _sfgui;
         shared_ptr<sfg::Desktop> _desktop;
+        anax::Entity _player_entity;
 };
 }
 
