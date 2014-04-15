@@ -66,6 +66,8 @@ int main()
     DebugSystem debug(window, gm);
 #endif // DEBUG
 
+    auto startMenu = sfg::Window::Create();
+
     auto gameEnter = [&](World& w) {
         gm.resetPhysicsWorld();
         entities::setPhysicsWorld(gm.getPhysicsWorld());
@@ -87,8 +89,7 @@ int main()
 #endif // DEBUG
         w.addSystem(rendering);
         w.refresh();
-        gm.getDesktop()->RemoveAll();
-        gm.getDesktop()->Refresh();
+        startMenu->Show(false);
         sfg::ProgressBar::Ptr m_progressbar;
     };
 
@@ -106,8 +107,6 @@ int main()
         gm.getWorld()->refresh();
     };
 
-    auto startMenu = sfg::Window::Create();
-
     auto gameExit = [&](World& w) {
         auto ent = w.getEntities();
         w.killEntities(ent);
@@ -118,7 +117,7 @@ int main()
     };
 
     auto startEnter = [&gm, &startMenu](World& w) {
-        gm.getDesktop()->Add( startMenu );
+        startMenu->Show(true);
     };
     auto startUpdate = [&](const vector<Event>& events) {
         gm.getDesktop()->Update( 1.0f );
@@ -142,8 +141,8 @@ int main()
     });
 
     // start menu gui
+    gm.getDesktop()->Add( startMenu );
     auto startButton = sfg::Button::Create("Start Game");
-
     auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
     startMenu->SetTitle( "Start Menu" );
