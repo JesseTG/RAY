@@ -33,19 +33,19 @@ BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION(luaInit);
         constexpr bool constructible = is_default_constructible<ctype>::value; \
         typedef conditional<constructible, ctype, LuaInitDummy> construct; \
         if (typeid(construct::type) == typeid(ctype)) { \
-            _lua->writeFunction(#ctype, "new", []() { \
+            lua.writeFunction(#ctype, "new", []() { \
                 return new construct::type; \
             }); \
         } \
         auto addc = [](Entity& e, ctype* c) { e.addComponent<ctype>(c); }; \
         auto hasc = [](Entity& e) { return e.hasComponent<ctype>(); }; \
         auto getc = [](Entity& e) { return &(e.getComponent<ctype>()); }; \
-        _lua->registerFunction<Entity, void(ctype*)>(string("add") + #ctype, addc); \
-        _lua->registerFunction<Entity, bool(void)>(string("has") + #ctype, hasc); \
-        _lua->registerFunction<Entity, ctype*(void)>(string("get") + #ctype, getc); \
+        lua.registerFunction<Entity, void(ctype*)>(string("add") + #ctype, addc); \
+        lua.registerFunction<Entity, bool(void)>(string("has") + #ctype, hasc); \
+        lua.registerFunction<Entity, ctype*(void)>(string("get") + #ctype, getc); \
         constexpr bool init = has_static_member_function_luaInit<ctype, void(LuaContext&)>::value; \
         typedef conditional<init, ctype, LuaInitDummy> t; \
-        t::type::luaInit(*_lua); \
+        t::type::luaInit(lua); \
     } while (0)
 
 namespace ray {
@@ -70,38 +70,11 @@ using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2f;
 
-RenderWindow* _window;
-shared_ptr<World> _world;
-shared_ptr<b2World> _physics_world;
 shared_ptr<LuaContext> _lua;
 
 struct LuaInitDummy {
     static void luaInit(LuaContext&) {}
 };
-
-void setWorld(World& world) noexcept {
-    _world = shared_ptr<World>(&world);
-}
-
-void setWorld(shared_ptr<World> world) noexcept {
-    _world = world;
-}
-
-void setRenderWindow(RenderWindow& window) noexcept {
-    _window = &window;
-}
-
-void setPhysicsWorld(b2World& world) noexcept {
-    _physics_world = shared_ptr<b2World>(&world);
-}
-
-void setPhysicsWorld(shared_ptr<b2World> world) noexcept {
-    _physics_world = world;
-}
-
-void setPhysicsWorld(b2World* world) noexcept {
-    _physics_world = shared_ptr<b2World>(world);
-}
 
 void setLuaState(LuaContext& lua) noexcept {
     _lua = shared_ptr<LuaContext>(&lua);
@@ -111,13 +84,16 @@ void setLuaState(shared_ptr<LuaContext> lua) noexcept {
     _lua = lua;
 }
 
-void initBaseTypes() {
-    initAnaxTypeBindings();
-    initSFMLTypeBindings();
-    initBox2DTypeBindings();
+void initBaseTypes(GameManager& game) {
+    initAnaxTypeBindings(game);
+    initSFMLTypeBindings(game);
+    initBox2DTypeBindings(game);
 }
 
-void initComponentLuaBindings() {
+void initComponentLuaBindings(GameManager& game) {
+    LuaContext& lua = *game.getLuaContext();
+
+    REGISTER_COMPONENT(AIComponent);
     REGISTER_COMPONENT(EntityFollowComponent);
     REGISTER_COMPONENT(FaceEntityComponent);
     REGISTER_COMPONENT(FourWayControlComponent);
