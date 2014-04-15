@@ -9,7 +9,13 @@ GameManager::GameManager() :
     _image_manager(new ImageManager),
     _shape_manager(new ShapeManager)
 {
-    //ctor
+    this->_render_window = make_shared<RenderWindow>(
+                               VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
+                               "RAY",
+                               sf::Style::Default,
+                               ContextSettings(0, 0, 4)
+                           );
+    this->_render_window->setFramerateLimit(FPS);
 }
 
 GameManager::~GameManager()
@@ -39,6 +45,10 @@ shared_ptr<ImageManager> GameManager::getImageManager() const {
 
 shared_ptr<ShapeManager> GameManager::getShapeManager() const {
     return this->_shape_manager;
+}
+
+shared_ptr<RenderWindow> GameManager::getRenderWindow() const {
+    return this->_render_window;
 }
 
 void GameManager::resetPhysicsWorld() {

@@ -6,6 +6,7 @@
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
 #include <LuaContext.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "components.hpp"
 #include "entities.hpp"
@@ -16,6 +17,9 @@ namespace ray {
 
 using std::shared_ptr;
 using std::make_shared;
+using sf::RenderWindow;
+using sf::ContextSettings;
+using sf::VideoMode;
 
 using anax::World;
 
@@ -23,6 +27,7 @@ class GameManager
 {
     public:
         GameManager();
+        GameManager(GameManager& other) = delete;
         virtual ~GameManager();
 
         shared_ptr<LuaContext> getLuaContext() const;
@@ -31,6 +36,7 @@ class GameManager
         shared_ptr<ScriptManager> getScriptManager() const;
         shared_ptr<ImageManager> getImageManager() const;
         shared_ptr<ShapeManager> getShapeManager() const;
+        shared_ptr<RenderWindow> getRenderWindow() const;
 
         void resetPhysicsWorld();
         void resetLuaContext();
@@ -43,6 +49,7 @@ class GameManager
         shared_ptr<ScriptManager> _script_manager;
         shared_ptr<ImageManager> _image_manager;
         shared_ptr<ShapeManager> _shape_manager;
+        shared_ptr<RenderWindow> _render_window;
 };
 }
 

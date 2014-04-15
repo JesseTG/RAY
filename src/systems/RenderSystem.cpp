@@ -28,7 +28,7 @@ void RenderSystem::update() {
             // TODO: Figure out if SFML handles clipping under the hood
             graphic.transformable->setPosition(p.position);
         }
-        this->_window->draw(*(graphic.drawable));
+        this->_window->draw(*(graphic.drawable), graphic.render_states);
     }
     this->_window->display();
 }
