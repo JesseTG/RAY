@@ -19,7 +19,6 @@ RenderSystem::RenderSystem(RenderWindow& window, GameManager& gm) : Base(FILTER)
     //testing scrolling
     //_view->setCenter(0, 0);
     _window->setView(*_view);
-    std::cout << _view->getCenter().x << ", " << _view->getCenter().y;
 }
 
 void RenderSystem::update() {

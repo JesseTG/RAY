@@ -87,6 +87,9 @@ int main()
 #endif // DEBUG
         w.addSystem(rendering);
         w.refresh();
+        gm.getDesktop()->RemoveAll();
+        gm.getDesktop()->Refresh();
+        sfg::ProgressBar::Ptr m_progressbar;
     };
 
     auto gameUpdate = [&](const vector<Event>& e) {
@@ -103,6 +106,8 @@ int main()
         gm.getWorld()->refresh();
     };
 
+    auto startMenu = sfg::Window::Create();
+
     auto gameExit = [&](World& w) {
         auto ent = w.getEntities();
         w.killEntities(ent);
@@ -112,7 +117,9 @@ int main()
         gm.resetPhysicsWorld();
     };
 
-    auto startEnter = [](World& w) {};
+    auto startEnter = [&gm, &startMenu](World& w) {
+        gm.getDesktop()->Add( startMenu );
+    };
     auto startUpdate = [&](const vector<Event>& events) {
         gm.getDesktop()->Update( 1.0f );
         window.clear(sf::Color::Magenta);
@@ -139,7 +146,6 @@ int main()
 
     auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
-    auto startMenu = sfg::Window::Create();
     startMenu->SetTitle( "Start Menu" );
     startMenu->Add( startButton );
     gm.getDesktop()->Add( startMenu );
