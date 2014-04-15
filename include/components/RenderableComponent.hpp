@@ -31,7 +31,9 @@ using sf::ConvexShape;
 using sf::RectangleShape;
 using sf::Transformable;
 using sf::CircleShape;
+using sf::Transform;
 using sf::Color;
+using sf::RenderStates;
 
 /**
  * Enables an @c Entity to be drawn on-screen. Typically the drawable object
@@ -97,6 +99,8 @@ struct RenderableComponent : Component<RenderableComponent>
     shared_ptr<Transformable> transformable;
 
     int layer;
+
+    RenderStates render_states;
 
     static void luaInit(LuaContext& lua);
 };
