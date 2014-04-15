@@ -146,6 +146,8 @@ unordered_map<string, const Color> ShapeManager::NAMED_COLORS = {
     { "tomato", Color(255, 99, 71) },
     { "transparent", Color::Transparent },
     // ^ Not in the SVG standard, but convenient for our purposes
+    { "none", Color::Transparent },
+    // ^ Same
     { "turquoise", Color( 64, 224, 208) },
     { "violet", Color(238, 130, 238) },
     { "wheat", Color(245, 222, 179) },
