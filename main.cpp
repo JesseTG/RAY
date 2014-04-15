@@ -20,6 +20,7 @@
 #include "entities.hpp"
 #include "managers.hpp"
 #include "listeners.hpp"
+#include "ai.hpp"
 
 #include <SFGUI/SFGUI.hpp>
 
@@ -30,8 +31,10 @@ int main()
     using std::make_pair;
     using std::chrono::milliseconds;
     using sf::Event;
+    using sf::ContextSettings;
     using sf::RenderWindow;
     using sf::VideoMode;
+    using sf::View;
     using namespace util;
     using namespace ray;
 
@@ -39,47 +42,71 @@ int main()
 
     TractorBeamRepellingListener tb_listener;
     GameManager gm;
+    RenderWindow& window = *gm.getRenderWindow();
     // Create the main window
-    RenderWindow window(VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y), "SFML window");
-    window.setFramerateLimit(FPS);
-
-    entities::setWorld(gm.getWorld());
-    entities::setRenderWindow(window);
-    entities::setPhysicsWorld(gm.getPhysicsWorld());
     entities::setLuaState(gm.getLuaContext());
 
-    entities::initBaseTypes();
-    entities::initComponentLuaBindings();
+    entities::initBaseTypes(gm);
+    entities::initManagerTypeBindings(gm);
+    entities::initComponentLuaBindings(gm);
+    ai::initAIBindings(gm);
 
-    ScriptManager sm(gm.getLuaContext());
-    sm.loadConfigFile("data/script/scripts.json");
-
+    gm.getScriptManager()->loadConfigFile("data/script/scripts.json");
+    gm.getShapeManager()->loadConfigFile("data/shape/shapes.json");
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
-    RenderSystem rendering(window);
+    RenderSystem rendering(*gm.getRenderWindow().get());
+    AISystem ai(*gm.getLuaContext());
     MovementSystem movement;
-    MouseFollowControlSystem mouse_following(window);
+    MouseFollowControlSystem mouse_following(*gm.getRenderWindow().get());
     FaceEntitySystem face_entity;
     EntityFollowSystem follow_entity;
     TractorBeamSystem tractor_system(tb_listener);
     PhysicsSystem physics(gm.getPhysicsWorld().get());
 #ifdef DEBUG
-    DebugSystem debug(window, gm);
+    DebugSystem debug(gm);
 #endif // DEBUG
 
     auto gameEnter = [&](World& w) {
         gm.resetPhysicsWorld();
-        entities::setPhysicsWorld(gm.getPhysicsWorld());
         gm.getPhysicsWorld()->SetContactListener(&tb_listener);
         physics.setWorld(gm.getPhysicsWorld().get());
 
-        Entity crosshair = entities::createEntity("MouseCircle", 16.0);
-        Entity player = entities::createEntity("KeyboardCircle", crosshair, 32, 256, 256);
+        Entity crosshair = entities::createEntity("MouseCircle", 8.0);
+        Entity player = entities::createEntity("KeyboardCircle", crosshair, 16, 256, 256);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
+        GameShape s = gm.getShapeManager()->getShape("collide");
+        for (int i = 0; i < s.graphics_shapes.size(); ++i) {
+            Vector2f pos = dynamic_pointer_cast<Transformable>(s.graphics_shapes[i])->getPosition();
+            Entity e = w.createEntity();
+            e.addComponent<RenderableComponent>(new RenderableComponent(s.graphics_shapes[i]));
+            e.addComponent<PositionComponent>(pos);
+
+            if (s.physics_shapes[i]) {
+                b2BodyDef bdef;
+                bdef.awake = true;
+                bdef.active = true;
+                bdef.position = b2Vec2(pos.x, pos.y);
+                bdef.type = b2BodyType::b2_staticBody;
+                bdef.fixedRotation = true;
+                b2FixtureDef fdef;
+                fdef.shape = s.physics_shapes[i].get();
+                b2Body* body = gm.getPhysicsWorld()->CreateBody(&bdef);
+                b2Fixture* fixture = body->CreateFixture(&fdef);
+                PhysicsBodyComponent* pbc = new PhysicsBodyComponent(body, e);
+                PhysicsFixtureComponent* pfc = new PhysicsFixtureComponent(fixture, e);
+                e.addComponent<PhysicsBodyComponent>(pbc);
+                e.addComponent<PhysicsFixtureComponent>(pfc);
+            }
+
+            e.activate();
+        }
+
 
         w.addSystem(four_way_movement);
         w.addSystem(mouse_following);
+        w.addSystem(ai);
         w.addSystem(face_entity);
         w.addSystem(follow_entity);
         w.addSystem(tractor_system);
@@ -93,6 +120,7 @@ int main()
 
     auto gameUpdate = [&](const vector<Event>& e) {
         mouse_following.update();
+        ai.update();
         four_way_movement.update();
         face_entity.update();
         follow_entity.update();
@@ -123,7 +151,7 @@ int main()
         for (auto& e : events) {
             desktop.HandleEvent(e);
         }
-        sfgui.Display( window );
+        sfgui.Display(*gm.getRenderWindow());
         window.display();
     };
     auto startExit = [](World& w) {};
@@ -140,7 +168,9 @@ int main()
 
     // start menu gui
     auto startButton = sfg::Button::Create("Start Game");
-    auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
+    auto startButtonClicked = [&wsm]() {
+        wsm.transition("swap");
+    };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
     auto startMenu = sfg::Window::Create();
     startMenu->SetTitle( "Start Menu" );
