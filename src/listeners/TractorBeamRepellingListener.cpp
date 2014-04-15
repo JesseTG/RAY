@@ -10,6 +10,7 @@ namespace ray {
 TractorBeamRepellingListener::TractorBeamRepellingListener()
 {
     //ctor
+    // Scriptable component: called once when a flag is set?
 }
 
 TractorBeamRepellingListener::~TractorBeamRepellingListener()
@@ -21,7 +22,7 @@ void TractorBeamRepellingListener::clearGrips() {
     this->_grips.clear();
 }
 
-unordered_map<b2Fixture*, b2Fixture*>& TractorBeamRepellingListener::getTractorBeamGrips() {
+unordered_multimap<b2Fixture*, b2Fixture*>& TractorBeamRepellingListener::getTractorBeamGrips() {
     return this->_grips;
 }
 
@@ -36,7 +37,7 @@ void TractorBeamRepellingListener::BeginContact(b2Contact* contact) {
     b2Fixture* beamfix = nullptr;
     b2Fixture* targetfix = nullptr;
 
-    #ifdef DEBUG
+#ifdef DEBUG
     if (!ea) {
         // If Fixture A doesn't have an Entity attached to it...
         std::stringstream err;
@@ -47,10 +48,10 @@ void TractorBeamRepellingListener::BeginContact(b2Contact* contact) {
     if (!eb) {
         // If Fixture B doesn't have an attached Entity...
         std::stringstream err;
-        err << "b2Fixture B at " << b<< " has no owning Entity";
+        err << "b2Fixture B at " << b << " has no owning Entity";
         throw std::logic_error(err.str());
     }
-    #endif // DEBUG
+#endif // DEBUG
 
     bool tracta = ea->hasComponent<TractorBeamComponent>();
     bool tractb = eb->hasComponent<TractorBeamComponent>();
@@ -75,7 +76,9 @@ void TractorBeamRepellingListener::BeginContact(b2Contact* contact) {
         targetfix = a;
     }
 
-    this->_grips[beamfix] = targetfix;
+    if (target->hasComponent<TractorBeamRepellableComponent>()) {
+        this->_grips.insert(make_pair(beamfix, targetfix));
+    }
 }
 
 void TractorBeamRepellingListener::EndContact(b2Contact* contact) {

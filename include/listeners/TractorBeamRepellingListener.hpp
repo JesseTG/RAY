@@ -2,12 +2,15 @@
 #define TRACTORBEAMREPELLINGLISTENER_HPP
 
 #include <unordered_map>
+#include <utility>
 
 #include <Box2D/Box2D.h>
 #include <anax/anax.hpp>
 
 namespace ray {
-using std::unordered_map;
+using std::unordered_multimap;
+using std::make_pair;
+using std::pair;
 using anax::Entity;
 
 /**
@@ -36,9 +39,9 @@ class TractorBeamRepellingListener : public b2ContactListener
 
         void clearGrips();
 
-        unordered_map<b2Fixture*, b2Fixture*>& getTractorBeamGrips();
+        unordered_multimap<b2Fixture*, b2Fixture*>& getTractorBeamGrips();
     private:
-        unordered_map<b2Fixture*, b2Fixture*> _grips;
+        unordered_multimap<b2Fixture*, b2Fixture*> _grips;
 
 };
 }
