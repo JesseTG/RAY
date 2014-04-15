@@ -38,6 +38,7 @@ Makefile.include
 !cmake/Modules/*.cmake
 configure
 CMakeCache.txt
+*.cscope_file_list
 
 # IDE files
 *.depend
