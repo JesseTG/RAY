@@ -12,33 +12,34 @@ using boost::variant;
 using anax::Entity;
 using anax::World;
 
-void initAnaxTypeBindings() {
-    _lua->writeVariable("Anax", LuaEmptyArray);
+void initAnaxTypeBindings(GameManager& game) {
+    LuaContext& lua = *game.getLuaContext();
+    lua.writeVariable("Anax", LuaEmptyArray);
     {
-        _lua->writeVariable("Anax", "world", _world);
+        lua.writeVariable("Anax", "World", game.getWorld());
         {
-            _lua->registerFunction("killEntity", &World::killEntity);
-            _lua->registerFunction("killEntities", &World::killEntities);
-            _lua->registerFunction("activateEntity", &World::activateEntity);
-            _lua->registerFunction("deactivateEntity", &World::deactivateEntity);
-            _lua->registerFunction("isActivated", &World::isActivated);
-            _lua->registerFunction("isValid", &World::isValid);
-            _lua->registerFunction("refresh", &World::refresh);
-            _lua->registerFunction("clear", &World::clear);
-            _lua->registerFunction("getEntityCount", &World::getEntityCount);
+            lua.registerFunction("killEntity", &World::killEntity);
+            lua.registerFunction("killEntities", &World::killEntities);
+            lua.registerFunction("activateEntity", &World::activateEntity);
+            lua.registerFunction("deactivateEntity", &World::deactivateEntity);
+            lua.registerFunction("isActivated", &World::isActivated);
+            lua.registerFunction("isValid", &World::isValid);
+            lua.registerFunction("refresh", &World::refresh);
+            lua.registerFunction("clear", &World::clear);
+            lua.registerFunction("getEntityCount", &World::getEntityCount);
         }
 
-        _lua->writeVariable("Anax", "Entity", LuaEmptyArray);
+        lua.writeVariable("Anax", "Entity", LuaEmptyArray);
         {
-            _lua->writeFunction("Anax", "Entity", "new", []() {
-                Entity e = _world->createEntity();
-                _world->activateEntity(e);
+            lua.writeFunction("Anax", "Entity", "new", [&game]() {
+                Entity e = game.getWorld()->createEntity();
+                game.getWorld()->activateEntity(e);
                 return e;
             });
-            _lua->registerFunction("isActivated", &Entity::isActivated);
-            _lua->registerFunction("activate", &Entity::activate);
-            _lua->registerFunction("deactivate", &Entity::deactivate);
-            _lua->registerFunction("isValid", &Entity::isValid);
+            lua.registerFunction("isActivated", &Entity::isActivated);
+            lua.registerFunction("activate", &Entity::activate);
+            lua.registerFunction("deactivate", &Entity::deactivate);
+            lua.registerFunction("isValid", &Entity::isValid);
         }
     }
 }
