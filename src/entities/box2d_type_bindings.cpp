@@ -86,7 +86,7 @@ void initBox2DTypeBindings(GameManager& game) {
             [](b2Body& object, const bool val) {
                 object.SetFixedRotation(val);
             });
-            lua.registerMember<b2Body, const b2Vec2&>("position",
+            lua.registerMember<b2Body, b2Vec2>("position",
             [](const b2Body& body) {
                 return body.GetPosition();
             },
