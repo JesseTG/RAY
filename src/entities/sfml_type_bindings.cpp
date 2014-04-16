@@ -4,6 +4,8 @@
 #include <exception>
 #include <LuaContext.hpp>
 
+#include <SFML/Audio.hpp>
+
 namespace ray {
 namespace entities {
 using std::invalid_argument;
@@ -19,6 +21,9 @@ using sf::IntRect;
 using sf::FloatRect;
 using sf::RectangleShape;
 using sf::Sprite;
+using sf::Sound;
+using sf::Music;
+using sf::SoundSource;
 using sf::Text;
 using sf::Vector2;
 using sf::Vector2i;
@@ -84,6 +89,61 @@ void initCommonSFMLShapeBindings(const string& name, LuaContext& lua) {
     },
     [](SFShapeT& s, const float thickness) {
         s.setOutlineThickness(thickness);
+    });
+}
+
+template<class SFSoundSourceT>
+void initCommonSFMLSoundSourceBindings(const string& name, LuaContext& lua) {
+    lua.registerFunction("play", &SFSoundSourceT::play);
+    lua.registerFunction("pause", &SFSoundSourceT::pause);
+    lua.registerFunction("stop", &SFSoundSourceT::stop);
+
+    lua.registerMember<SFSoundSourceT, bool>("loop",
+    [](const SFSoundSourceT& sound) {
+        return sound.getLoop();
+    },
+    [](SFSoundSourceT& sound, const bool loop) {
+        sound.setLoop(loop);
+    });
+
+    lua.registerMember<SFSoundSourceT, bool>("relativeToListener",
+    [](const SFSoundSourceT& sound) {
+        return sound.isRelativeToListener();
+    },
+    [](SFSoundSourceT& sound, const bool relative) {
+        sound.setRelativeToListener(relative);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("pitch",
+    [](const SFSoundSourceT& sound) {
+        return sound.getPitch();
+    },
+    [](SFSoundSourceT& sound, const float pitch) {
+        sound.setPitch(pitch);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("attenuation",
+    [](const SFSoundSourceT& sound) {
+        return sound.getAttenuation();
+    },
+    [](SFSoundSourceT& sound, const float attenuation) {
+        sound.setAttenuation(attenuation);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("minDistance",
+    [](const SFSoundSourceT& sound) {
+        return sound.getMinDistance();
+    },
+    [](SFSoundSourceT& sound, const float min_distance) {
+        sound.setMinDistance(min_distance);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("volume",
+    [](const SFSoundSourceT& sound) {
+        return sound.getVolume();
+    },
+    [](SFSoundSourceT& sound, const float volume) {
+        sound.setVolume(constrain(volume, 0.f, 100.f));
     });
 }
 
@@ -210,10 +270,10 @@ void initSFMLTypeBindings(GameManager& game) {
         lua.writeVariable("SFML", "Text", LuaEmptyArray);
         {
             lua.writeFunction("SFML", "Text", "new", []
-                                (
-                                    const optional<string>& arg1,
-                                    const optional<Font&>& arg2,
-                                    const optional<int>& arg3
+                              (
+                                  const optional<string>& arg1,
+                                  const optional<Font&>& arg2,
+                                  const optional<int>& arg3
             ) {
                 if (arg1 && arg2 && arg3) {
                     // If the user specified text, a font, and a size...
@@ -287,6 +347,37 @@ void initSFMLTypeBindings(GameManager& game) {
                 text.setStyle(style);
             });
 
+        }
+
+        lua.writeVariable("SFML", "Audio", LuaEmptyArray);
+        {
+            lua.writeVariable("SFML", "Audio", "Status", LuaEmptyArray);
+            {
+                lua.writeVariable("SFML", "Audio", "Status", "Stopped", SoundSource::Stopped);
+                lua.writeVariable("SFML", "Audio", "Status", "Paused", SoundSource::Paused);
+                lua.writeVariable("SFML", "Audio", "Status", "Playing", SoundSource::Playing);
+            }
+
+            lua.writeVariable("SFML", "Audio", "Sound", LuaEmptyArray);
+            {
+                lua.writeFunction("SFML", "Audio", "Sound", "get", [&game](const string& id) {
+                    return game.getSoundManager()->getSound(id);
+                });
+
+                initCommonSFMLSoundSourceBindings<Sound>("Sound", lua);
+            }
+
+            lua.writeVariable("SFML", "Audio", "Music", LuaEmptyArray);
+            {
+                /*
+                lua.writeFunction("SFML", "Audio", "Music", "get", [&game](const string& id) {
+                    return game.getMusicManager()->getMusic(id);
+                });
+                */
+
+
+                initCommonSFMLSoundSourceBindings<Music>("Music", lua);
+            }
         }
 
     }

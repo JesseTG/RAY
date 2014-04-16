@@ -37,6 +37,8 @@ class GameManager
         shared_ptr<ImageManager> getImageManager() const;
         shared_ptr<ShapeManager> getShapeManager() const;
         shared_ptr<RenderWindow> getRenderWindow() const;
+        shared_ptr<SoundManager> getSoundManager() const;
+        shared_ptr<MusicManager> getMusicManager() const;
 
         void resetPhysicsWorld();
         void resetLuaContext();
@@ -50,6 +52,13 @@ class GameManager
         shared_ptr<ImageManager> _image_manager;
         shared_ptr<ShapeManager> _shape_manager;
         shared_ptr<RenderWindow> _render_window;
+        shared_ptr<SoundManager> _sound_manager;
+        shared_ptr<MusicManager> _music_manager;
+
+        static const string SCRIPT_PATH;
+        static const string SHAPE_PATH;
+        static const string SOUND_PATH;
+        static const string MUSIC_PATH;
 };
 }
 

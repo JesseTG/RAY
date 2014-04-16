@@ -1,13 +1,21 @@
 #include "GameManager.hpp"
 
 namespace ray {
+
+const string GameManager::SCRIPT_PATH = "data/script/scripts.json";
+const string GameManager::SHAPE_PATH = "data/shape/shapes.json";
+const string GameManager::SOUND_PATH = "data/sound/sounds.json";
+const string GameManager::MUSIC_PATH = "data/music/music.json";
+
 GameManager::GameManager() :
     _lua(new LuaContext),
     _physics_world(new b2World(b2Vec2_zero)),
     _world(new World),
-    _script_manager(new ScriptManager(_lua)),
+    _script_manager(new ScriptManager(_lua, SCRIPT_PATH)),
     _image_manager(new ImageManager),
-    _shape_manager(new ShapeManager)
+    _shape_manager(new ShapeManager(SHAPE_PATH)),
+    _sound_manager(new SoundManager(SOUND_PATH)),
+    _music_manager(new MusicManager(MUSIC_PATH))
 {
     this->_render_window = make_shared<RenderWindow>(
                                VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
@@ -49,6 +57,14 @@ shared_ptr<ShapeManager> GameManager::getShapeManager() const {
 
 shared_ptr<RenderWindow> GameManager::getRenderWindow() const {
     return this->_render_window;
+}
+
+shared_ptr<SoundManager> GameManager::getSoundManager() const {
+    return this->_sound_manager;
+}
+
+shared_ptr<MusicManager> GameManager::getMusicManager() const {
+    return this->_music_manager;
 }
 
 void GameManager::resetPhysicsWorld() {
