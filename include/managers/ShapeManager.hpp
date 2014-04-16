@@ -57,7 +57,7 @@ struct GameShape {
 class ShapeManager : public ResourceManager
 {
     public:
-        ShapeManager();
+        ShapeManager(const string& path);
         virtual ~ShapeManager();
 
         bool loadConfigFile(const string& path) override;

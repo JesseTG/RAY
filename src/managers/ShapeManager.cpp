@@ -123,9 +123,9 @@ const string ShapeManager::COLLIDABLE_CLASS = "collidable";
 const string ShapeManager::SOLID_CLASS = "solid";
 const string ShapeManager::HOLLOW_CLASS = "hollow";
 
-ShapeManager::ShapeManager()
+ShapeManager::ShapeManager(const string& path)
 {
-    //ctor
+    this->loadConfigFile(path);
 }
 
 ShapeManager::~ShapeManager()

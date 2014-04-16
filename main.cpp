@@ -51,8 +51,6 @@ int main()
     entities::initComponentLuaBindings(gm);
     ai::initAIBindings(gm);
 
-    gm.getScriptManager()->loadConfigFile("data/script/scripts.json");
-    gm.getShapeManager()->loadConfigFile("data/shape/shapes.json");
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;

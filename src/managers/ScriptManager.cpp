@@ -8,11 +8,11 @@
 #include "config.hpp"
 
 namespace ray {
-ScriptManager::ScriptManager(const shared_ptr<LuaContext> lua) :
+ScriptManager::ScriptManager(const shared_ptr<LuaContext> lua, const string& path) :
     ResourceManager(),
     _lua(lua)
 {
-
+    this->loadConfigFile(path);
 }
 
 ScriptManager::~ScriptManager()
