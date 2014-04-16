@@ -39,6 +39,7 @@ Makefile.include
 configure
 CMakeCache.txt
 *.cscope_file_list
+*.out
 
 # IDE files
 *.depend
