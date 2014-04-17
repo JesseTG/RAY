@@ -38,8 +38,6 @@ int main()
     using namespace util;
     using namespace ray;
 
-    sfg::SFGUI sfgui;
-
     TractorBeamRepellingListener tb_listener;
     GameManager gm;
     RenderWindow& window = *gm.getRenderWindow();
@@ -54,7 +52,7 @@ int main()
     gm.getPhysicsWorld()->SetContactListener(&tb_listener);
 
     FourWayControlSystem four_way_movement;
-    RenderSystem rendering(*gm.getRenderWindow().get());
+    RenderSystem rendering(gm);
     AISystem ai(*gm.getLuaContext());
     MovementSystem movement;
     MouseFollowControlSystem mouse_following(*gm.getRenderWindow().get());
@@ -66,6 +64,23 @@ int main()
     DebugSystem debug(gm);
 #endif // DEBUG
 
+    auto startMenu = sfg::Window::Create();
+    gm.getDesktop()->Add( startMenu );
+    auto startButton = sfg::Button::Create("Start Game");
+    startMenu->SetTitle( "Start Menu" );
+    startMenu->Add( startButton );
+    gm.getDesktop()->Add( startMenu );
+    sfg::Window::Ptr progressBar = sfg::Window::Create();
+    progressBar->SetTitle("Health");
+    sfg::ProgressBar::Ptr health = sfg::ProgressBar::Create();
+    health->SetRequisition( sf::Vector2f( 200.f, 20.f ) );
+    sfg::Box::Ptr healthBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
+    healthBox->Pack(health);
+    progressBar->Add(healthBox);
+    gm.getDesktop()->Add(progressBar);
+    health->SetFraction(0.5f);
+    progressBar->Show(false);
+
     auto gameEnter = [&](World& w) {
         gm.resetPhysicsWorld();
         gm.getPhysicsWorld()->SetContactListener(&tb_listener);
@@ -73,6 +88,7 @@ int main()
 
         Entity crosshair = entities::createEntity("MouseCircle", 8.0);
         Entity player = entities::createEntity("KeyboardCircle", crosshair, 16, 256, 256);
+        gm.setPlayer(player);
         Entity tractorbeam = entities::createEntity("TractorBeam", crosshair, player, 16, 0, 512, 1);
         GameShape s = gm.getShapeManager()->getShape("collide");
         for (int i = 0; i < s.graphics_shapes.size(); ++i) {
@@ -114,6 +130,8 @@ int main()
 #endif // DEBUG
         w.addSystem(rendering);
         w.refresh();
+        startMenu->Show(false);
+        progressBar->Show(true);
     };
 
     auto gameUpdate = [&](const vector<Event>& e) {
@@ -138,18 +156,19 @@ int main()
         // Can't call w.clear(), it causes a segfault if you go back to this
         // state later; a bug in Anax?
         gm.resetPhysicsWorld();
+        progressBar->Show(false);
     };
 
-    sfg::Desktop desktop;
-
-    auto startEnter = [](World& w) {};
+    auto startEnter = [&gm, &startMenu](World& w) {
+        startMenu->Show(true);
+    };
     auto startUpdate = [&](const vector<Event>& events) {
-        desktop.Update( 1.0f );
+        gm.getDesktop()->Update( 1.0f );
         window.clear(sf::Color::Magenta);
         for (auto& e : events) {
-            desktop.HandleEvent(e);
+            gm.getDesktop()->HandleEvent(e);
         }
-        sfgui.Display(*gm.getRenderWindow());
+        gm.getSfgui()->Display( window );
         window.display();
     };
     auto startExit = [](World& w) {};
@@ -164,16 +183,8 @@ int main()
         {make_pair("swap", "game"), "start"},
     });
 
-    // start menu gui
-    auto startButton = sfg::Button::Create("Start Game");
-    auto startButtonClicked = [&wsm]() {
-        wsm.transition("swap");
-    };
+    auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
     startButton->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
-    auto startMenu = sfg::Window::Create();
-    startMenu->SetTitle( "Start Menu" );
-    startMenu->Add( startButton );
-    desktop.Add( startMenu );
     window.resetGLStates();
 
     vector<Event> events;

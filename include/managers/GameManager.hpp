@@ -12,6 +12,7 @@
 #include "entities.hpp"
 #include "config.hpp"
 #include "managers.hpp"
+#include <SFGUI/SFGUI.hpp>
 
 namespace ray {
 
@@ -39,10 +40,14 @@ class GameManager
         shared_ptr<RenderWindow> getRenderWindow() const;
         shared_ptr<SoundManager> getSoundManager() const;
         shared_ptr<MusicManager> getMusicManager() const;
+        shared_ptr<sfg::SFGUI> getSfgui() const;
+        shared_ptr<sfg::Desktop> getDesktop() const;
+        anax::Entity getPlayer() const;
 
         void resetPhysicsWorld();
         void resetLuaContext();
         void resetWorld();
+        void setPlayer(anax::Entity);
     protected:
     private:
         shared_ptr<LuaContext> _lua;
@@ -54,6 +59,10 @@ class GameManager
         shared_ptr<RenderWindow> _render_window;
         shared_ptr<SoundManager> _sound_manager;
         shared_ptr<MusicManager> _music_manager;
+
+        shared_ptr<sfg::SFGUI> _sfgui;
+        shared_ptr<sfg::Desktop> _desktop;
+        anax::Entity _player_entity;
 
         static const string SCRIPT_PATH;
         static const string SHAPE_PATH;

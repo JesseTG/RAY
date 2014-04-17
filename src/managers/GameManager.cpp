@@ -15,7 +15,9 @@ GameManager::GameManager() :
     _image_manager(new ImageManager),
     _shape_manager(new ShapeManager(SHAPE_PATH)),
     _sound_manager(new SoundManager(SOUND_PATH)),
-    _music_manager(new MusicManager(MUSIC_PATH))
+    _music_manager(new MusicManager(MUSIC_PATH)),
+    _sfgui(new sfg::SFGUI),
+    _desktop(new sfg::Desktop)
 {
     this->_render_window = make_shared<RenderWindow>(
                                VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
@@ -67,6 +69,18 @@ shared_ptr<MusicManager> GameManager::getMusicManager() const {
     return this->_music_manager;
 }
 
+shared_ptr<sfg::SFGUI> GameManager::getSfgui() const {
+    return this->_sfgui;
+}
+
+shared_ptr<sfg::Desktop> GameManager::getDesktop() const {
+    return this->_desktop;
+}
+
+anax::Entity GameManager::getPlayer() const {
+    return this->_player_entity;
+}
+
 void GameManager::resetPhysicsWorld() {
     this->_physics_world.reset(new b2World(b2Vec2_zero));
 }
@@ -77,6 +91,10 @@ void GameManager::resetLuaContext() {
 
 void GameManager::resetWorld() {
     this->_world.reset(new World);
+}
+
+void GameManager::setPlayer(anax::Entity e) {
+    this->_player_entity = e;
 }
 
 }
