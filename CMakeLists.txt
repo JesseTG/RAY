@@ -21,8 +21,11 @@ set(SRC_FILES
     src/entities/sfml_type_bindings.cpp
     src/entities/anax_type_bindings.cpp
     src/entities/box2d_type_bindings.cpp
+    src/entities/manager_type_bindings.cpp
+    src/ai.cpp
     src/entities.cpp
     src/util.cpp
+    src/components/AIComponent.cpp
     src/components/EntityFollowComponent.cpp
     src/components/FaceEntityComponent.cpp
     src/components/FourWayControlComponent.cpp
@@ -38,9 +41,12 @@ set(SRC_FILES
     src/managers/color_table.cpp
     src/managers/GameManager.cpp
     src/managers/ImageManager.cpp
+    src/managers/MusicManager.cpp
     src/managers/ResourceManager.cpp
     src/managers/ScriptManager.cpp
     src/managers/ShapeManager.cpp
+    src/managers/SoundManager.cpp
+    src/systems/AISystem.cpp
     src/systems/DebugSystem.cpp
     src/systems/EntityFollowSystem.cpp
     src/systems/FaceEntitySystem.cpp
@@ -56,13 +62,16 @@ set(SRC_FILES
 )
 
 set(INCLUDE_FILES
+    include/ai.hpp
     include/config.hpp
     include/components.hpp
     include/entities.hpp
     include/fsm.hpp
     include/listeners.hpp
+    include/managers.hpp
     include/systems.hpp
     include/util.hpp
+    include/components/AIComponent.hpp
     include/components/EntityFollowComponent.hpp
     include/components/FaceEntityComponent.hpp
     include/components/FourWayControlComponent.hpp
@@ -82,10 +91,13 @@ set(INCLUDE_FILES
     include/managers/ResourceManager.hpp
     include/managers/GameManager.hpp
     include/managers/ImageManager.hpp
+    include/managers/MusicManager.hpp
     include/managers/ResourceManager.hpp
     include/managers/ScriptManager.hpp
     include/managers/ShapeManager.hpp
+    include/managers/SoundManager.hpp
     include/listeners/TractorBeamRepellingListener.hpp
+    include/systems/AISystem.hpp
     include/systems/DebugSystem.hpp
     include/systems/EntityFollowSystem.hpp
     include/systems/FaceEntitySystem.hpp
