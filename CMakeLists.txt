@@ -162,6 +162,10 @@ find_package(SFML 2 REQUIRED graphics window system audio)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 
+find_package(SFGUI REQUIRED)
+include_directories(${SFGUI_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${SFGUI_LIBRARY})
+
 find_package(Boost 1.55.0 REQUIRED regex)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(${EXECUTABLE_NAME} ${Boost_LIBRARIES})
