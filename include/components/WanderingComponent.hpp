@@ -11,14 +11,17 @@ struct WanderingComponent : public anax::Component<WanderingComponent>
     WanderingComponent() :
         timer(2),
         speed(0),
-        angle(0)
+        angle(0),
+        active(false)
     {}
 
     float timer;
     float speed;
     float angle;
+    bool active;
 
     static void luaInit(LuaContext& lua);
+    bool getActive();
 };
 }
 

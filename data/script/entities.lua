@@ -1,5 +1,4 @@
 function create_Entity_Drone(x, y, r)
-	print("something")
 	local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
@@ -7,7 +6,6 @@ function create_Entity_Drone(x, y, r)
     local shape = Box2D.Shape.Circle.new(r)
     local circle = SFML.CircleShape.new(r, 3)
 	
-	print("something")
 	circle.origin = SFML.Vector.new(r, r)
     circle.position =  SFML.Vector.new(position.x, position.y)
     circle.fillColor = SFML.Color.Red
@@ -19,7 +17,7 @@ function create_Entity_Drone(x, y, r)
 	bodydef.fixedRotation = false;
 	
 	fixturedef:setShape(shape)
-	print("something")
+	
 	local body = Box2D.Body.new(bodydef)
 	local fixture = body:CreateFixture(fixturedef)
 	
@@ -183,4 +181,17 @@ function create_Entity_Text(text, x, y)
     local e = Anax.Entity.new()
 
     return e
+end
+
+function create_Entity_wanderState()
+	local e = Anax.Entity.new()
+	local components = {}
+	components[0] = WanderingComponent.new();
+	return components; --[[ will be returned into lua code]]--
+end
+
+function create_Entity_idleState()
+	local e = Anax.Entity.new()
+	local components = {}
+	return components;
 end

@@ -14,6 +14,14 @@ WanderingSystem::WanderingSystem() : Base(FILTER)
     time.restart(sf::seconds(2));
 }
 
+bool setActive(bool _active){
+    active = _active;
+}
+
+bool getActive(){
+    return active;
+}
+
 void WanderingSystem::update(){
     //Get drone x
     //Get drone y
@@ -25,26 +33,27 @@ void WanderingSystem::update(){
     //repeat
 
     for (Entity& e : this->getEntities()) {
-        if(time.isExpired()){
-            PositionComponent& p = e.getComponent<PositionComponent>();
+        if(e.getComponent<WanderingComponent>().active = true){
+            if(time.isExpired()){
+                PositionComponent& p = e.getComponent<PositionComponent>();
 
-            x = p.position.x;
-            y = p.position.y;
+                x = p.position.x;
+                y = p.position.y;
 
-            randX = thor::random(x-64, x+64);
-            randY = thor::random(y-64, y+64);
+                randX = thor::random(x-64, x+64);
+                randY = thor::random(y-64, y+64);
 
-            time.restart(sf::seconds(2));
+                time.restart(sf::seconds(2));
 
+                float xDiff = x - randX;
+                float yDiff = y - randY;
+                theta = std::atan2(-yDiff, -xDiff);
+            }
 
-            float xDiff = x - randX;
-            float yDiff = y - randY;
-            theta = std::atan2(-yDiff, -xDiff);
+            PhysicsBodyComponent& pb = e.getComponent<PhysicsBodyComponent>();
+            b2Vec2 pos((x-randX)/100, (y-randY)/100);
+            pb.body->SetTransform(pb.body->GetPosition()+pos, theta);
         }
-
-        PhysicsBodyComponent& pb = e.getComponent<PhysicsBodyComponent>();
-        b2Vec2 pos((x-randX)/100, (y-randY)/100);
-        pb.body->SetTransform(pb.body->GetPosition()+pos, theta);
     }
 }
 }

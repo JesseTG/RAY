@@ -92,6 +92,7 @@ class EntityState
             return this->_components[T::GetTypeId()];
         }
     private:
+        vector<shared_ptr<EntityState>> nextStates;
         Entity _entity;
         ComponentTypeList _components;
         unordered_map<TypeId, std::shared_ptr<BaseComponent>> _cache;
