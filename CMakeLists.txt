@@ -158,7 +158,7 @@ find_package(anax REQUIRED)
 include_directories(${ANAX_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARIES})
 
-find_package(SFML 2 REQUIRED graphics window system)
+find_package(SFML 2 REQUIRED graphics window system audio)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 
