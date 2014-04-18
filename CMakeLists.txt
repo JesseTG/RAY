@@ -156,9 +156,13 @@ target_link_libraries(${EXECUTABLE_NAME} ${THOR_LIBRARY})
 
 find_package(anax REQUIRED)
 include_directories(${ANAX_INCLUDE_DIR})
-target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARIES})
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARY_DEBUG})
+else()
+    target_link_libraries(${EXECUTABLE_NAME} ${ANAX_LIBRARY_RELEASE})
+endif()
 
-find_package(SFML 2 REQUIRED graphics window audio system)
+find_package(SFML 2 REQUIRED COMPONENTS graphics window audio system)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 
