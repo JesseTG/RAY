@@ -154,6 +154,10 @@ find_package(Thor 2 REQUIRED)
 include_directories(${THOR_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${THOR_LIBRARY})
 
+find_package(SFGUI REQUIRED)
+include_directories(${SFGUI_INCLUDE_DIR})
+target_link_libraries(${EXECUTABLE_NAME} ${SFGUI_LIBRARY})
+
 find_package(anax REQUIRED)
 include_directories(${ANAX_INCLUDE_DIR})
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -165,10 +169,6 @@ endif()
 find_package(SFML 2 REQUIRED COMPONENTS graphics window audio system)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
-
-find_package(SFGUI REQUIRED)
-include_directories(${SFGUI_INCLUDE_DIR})
-target_link_libraries(${EXECUTABLE_NAME} ${SFGUI_LIBRARY})
 
 find_package(Boost 1.55.0 REQUIRED regex)
 include_directories(${Boost_INCLUDE_DIRS})
