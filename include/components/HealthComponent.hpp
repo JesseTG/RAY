@@ -27,13 +27,17 @@ struct HealthComponent : public Component<HealthComponent>
      * @tparam NumberType The numerical type (typically a @c float or an @c int)
      * that @c health uses. It must be implicitly convertible to a @c float.
      */
-    template<class NumberType>
-    HealthComponent(const NumberType hp) : health(hp) {}
+    HealthComponent(const int hp, const int a) : health(hp), armor(a) {}
 
     /**
-     * The actual @c NumberType representing the health
+     * The actual int representing the health
      */
-    float health;
+    int health;
+
+    /**
+     * The int representing armor
+     */
+    int armor;
 
     static void luaInit(LuaContext& lua);
 };

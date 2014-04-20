@@ -74,13 +74,13 @@ int main()
     gm.getDesktop()->Add( startMenu );
     sfg::Window::Ptr progressBar = sfg::Window::Create();
     progressBar->SetTitle("Health");
-    sfg::ProgressBar::Ptr health = sfg::ProgressBar::Create();
+    sfg::ProgressBar::Ptr health = gm.getHealthBar();
     health->SetRequisition( sf::Vector2f( 200.f, 20.f ) );
     sfg::Box::Ptr healthBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
     healthBox->Pack(health);
     progressBar->Add(healthBox);
     gm.getDesktop()->Add(progressBar);
-    health->SetFraction(0.5f);
+    health->SetFraction(1.0f);
     progressBar->Show(false);
 
     auto gameEnter = [&](World& w) {

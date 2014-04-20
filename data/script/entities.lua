@@ -84,6 +84,7 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local fec = FaceEntityComponent.new(target)
+	local hc = HealthComponent.new(6, 0)
 
     e:addRenderableComponent(rc)
     e:addPositionComponent(pc)
@@ -92,6 +93,7 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     e:addPhysicsBodyComponent(pbc)
     e:addPhysicsFixtureComponent(pfc)
     e:addFaceEntityComponent(fec)
+	e:addHealthComponent(hc)
 
     return e
 end

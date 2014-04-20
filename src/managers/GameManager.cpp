@@ -9,7 +9,8 @@ GameManager::GameManager() :
     _image_manager(new ImageManager),
     _shape_manager(new ShapeManager),
     _sfgui(new sfg::SFGUI),
-    _desktop(new sfg::Desktop)
+    _desktop(new sfg::Desktop),
+    _health_bar(sfg::ProgressBar::Create())
 {
     //ctor
 }
@@ -49,6 +50,10 @@ shared_ptr<sfg::SFGUI> GameManager::getSfgui() const {
 
 shared_ptr<sfg::Desktop> GameManager::getDesktop() const {
     return this->_desktop;
+}
+
+sfg::ProgressBar::Ptr GameManager::getHealthBar() const {
+    return this->_health_bar;
 }
 
 anax::Entity GameManager::getPlayer() const {

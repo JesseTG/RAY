@@ -34,6 +34,7 @@ class GameManager
         shared_ptr<ShapeManager> getShapeManager() const;
         shared_ptr<sfg::SFGUI> getSfgui() const;
         shared_ptr<sfg::Desktop> getDesktop() const;
+        sfg::ProgressBar::Ptr getHealthBar() const;
         anax::Entity getPlayer() const;
 
         void resetPhysicsWorld();
@@ -50,6 +51,7 @@ class GameManager
         shared_ptr<ShapeManager> _shape_manager;
         shared_ptr<sfg::SFGUI> _sfgui;
         shared_ptr<sfg::Desktop> _desktop;
+        sfg::ProgressBar::Ptr _health_bar;
         anax::Entity _player_entity;
 };
 }

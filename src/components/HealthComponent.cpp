@@ -3,12 +3,10 @@
 namespace ray {
 void HealthComponent::luaInit(LuaContext& lua) {
     lua.registerMember("health", &HealthComponent::health);
-    lua.registerMember<HealthComponent, float>("health",
-    [](const HealthComponent& h) {
-        return h.health;
-    },
-    [](HealthComponent& h, float val) {
-        h.health = val;
+    lua.registerMember("armor", &HealthComponent::armor);
+    lua.writeFunction("HealthComponent", "new",
+    [](const int initialHealth, const int initialArmor) {
+        return new HealthComponent(initialHealth, initialArmor);
     });
 }
 }
