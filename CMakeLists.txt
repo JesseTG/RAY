@@ -154,6 +154,10 @@ find_package(Thor 2 REQUIRED)
 include_directories(${THOR_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${THOR_LIBRARY})
 
+find_package(GLEW)
+include_directories(${GLEW_INCLUDE_PATH})
+target_link_libraries(${EXECUTABLE_NAME} ${GLEW_LIBRARY})
+
 find_package(SFGUI REQUIRED)
 include_directories(${SFGUI_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFGUI_LIBRARY})
