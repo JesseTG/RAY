@@ -85,6 +85,27 @@ int main()
     health->SetFraction(1.0f);
     progressBar->Show(false);
 
+    auto splashEnter = [](World& w) {};
+
+    sf::Texture ssTexture;
+    ssTexture.loadFromFile("splashscreen.png");
+    sf::Sprite ssSprite;
+    ssSprite.setTexture(ssTexture);
+    auto splashUpdate = [&](const vector<Event>& events) {
+        window.clear(sf::Color::Blue);
+        window.draw(ssSprite);
+        window.display();
+        for (auto& e : events) {
+            if ((e.type == sf::Event::KeyPressed) && (e.key.code == sf::Keyboard::Space)) {
+                 wsm.transition("swap");
+            }
+        }
+    };
+
+    auto splashExit = [](World& w) {
+
+    };
+
     auto gameEnter = [&](World& w) {
         gm.resetPhysicsWorld();
         entities::setPhysicsWorld(gm.getPhysicsWorld());
@@ -149,14 +170,16 @@ int main()
     };
     auto startExit = [](World& w) {};
 
-    WorldStateMachine<string, string, vector<Event>> wsm(*gm.getWorld(), "start",
+    WorldStateMachine<string, string, vector<Event>> wsm(*gm.getWorld(), "splashscreen",
     {
         {"start",  make_shared<CompositionWorldState<vector<Event>>>(startUpdate, startEnter, startExit)},
         {"game", make_shared<CompositionWorldState<vector<Event>>>(gameUpdate, gameEnter, gameExit)},
+        {"splashscreen", make_shared<CompositionWorldState<vector<Event>>>(splashUpdate, splashEnter, splashExit)},
     },
     {
         {make_pair("swap", "start"), "game"},
         {make_pair("swap", "game"), "start"},
+        {make_pair("swap", "splashscreen"), "start"}
     });
 
     auto startButtonClicked = [&wsm]() { wsm.transition("swap"); };
