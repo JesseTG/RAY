@@ -10,7 +10,7 @@ namespace ai {
 using anax::Entity;
 using anax::ComponentFilter;
 
-Entity follow(Entity e);
+Entity seek(Entity e);
 Entity wander(Entity e);
 void initAIBindings(GameManager& game);
 }
