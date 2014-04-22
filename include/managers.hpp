@@ -9,6 +9,7 @@ namespace ray {
     class SoundManager;
     class ImageManager;
     class MusicManager;
+    class LevelManager;
 }
 
 #include "ResourceManager.hpp"
@@ -18,5 +19,6 @@ namespace ray {
 #include "ImageManager.hpp"
 #include "SoundManager.hpp"
 #include "MusicManager.hpp"
+#include "LevelManager.hpp"
 
 #endif // MANAGERS_HPP_INCLUDED
