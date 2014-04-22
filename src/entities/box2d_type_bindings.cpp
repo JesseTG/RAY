@@ -115,7 +115,7 @@ void initBox2DTypeBindings(GameManager& game) {
             lua.registerMember("density", &b2FixtureDef::density);
             lua.registerMember("isSensor", &b2FixtureDef::isSensor);
             lua.registerMember("filter", &b2FixtureDef::filter);
-            typedef variant<b2CircleShape*, b2EdgeShape*, b2PolygonShape*, b2ChainShape*> shapevariant;
+            typedef variant<b2CircleShape*, b2EdgeShape*, b2PolygonShape*, b2ChainShape*, shared_ptr<b2Shape>> shapevariant;
             lua.registerFunction<b2FixtureDef, void(shapevariant)>("setShape",
                     // TODO: Turn this into a member
             [](b2FixtureDef& def, shapevariant shape) {
@@ -135,9 +135,8 @@ void initBox2DTypeBindings(GameManager& game) {
                         def.shape = *get<b2ChainShape*>(&shape);
                         break;
                     default:
-                        throw logic_error(
-                            "Unknown b2Shape type passed in to Box2D.FixtureDef"
-                        );
+                        def.shape = get<shared_ptr<b2Shape>>(shape).get();
+                        break;
                 }
             });
             lua.registerFunction<b2FixtureDef, const b2Shape*(void)>("getShape",
