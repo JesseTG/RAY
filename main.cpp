@@ -21,7 +21,7 @@
 #include "managers.hpp"
 #include "listeners.hpp"
 
-#include <SFGUI/SFGUI.hpp>
+#include "sfgui/sfgui.hpp"
 
 int main()
 {
@@ -34,6 +34,8 @@ int main()
     using sf::VideoMode;
     using namespace util;
     using namespace ray;
+
+    sfg::SFGUI sfgui;
 
     TractorBeamRepellingListener tb_listener;
     GameManager gm;

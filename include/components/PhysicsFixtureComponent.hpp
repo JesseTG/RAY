@@ -43,7 +43,7 @@ struct PhysicsFixtureComponent : public anax::Component<PhysicsFixtureComponent>
         /**
          * Destructor.
          */
-        ~PhysicsFixtureComponent();
+        virtual ~PhysicsFixtureComponent();
 
         /**
          * Pointer to a @c b2Fixture that was created by some @c b2Body.
