@@ -1,11 +1,15 @@
 #include "GameManager.hpp"
 
+#include "config.hpp"
+#include "states.hpp"
+
 namespace ray {
 
 const string GameManager::SCRIPT_PATH = "data/script/scripts.json";
 const string GameManager::SHAPE_PATH = "data/shape/shapes.json";
 const string GameManager::SOUND_PATH = "data/sound/sounds.json";
 const string GameManager::MUSIC_PATH = "data/music/music.json";
+const string GameManager::LEVEL_PATH = "data/level/levels.json";
 
 GameManager::GameManager() :
     _lua(new LuaContext),
@@ -16,6 +20,7 @@ GameManager::GameManager() :
     _shape_manager(new ShapeManager(SHAPE_PATH)),
     _sound_manager(new SoundManager(SOUND_PATH)),
     _music_manager(new MusicManager(MUSIC_PATH)),
+    _level_manager(new LevelManager(LEVEL_PATH)),
     _sfgui(new sfg::SFGUI),
     _desktop(new sfg::Desktop)
 {
@@ -26,6 +31,19 @@ GameManager::GameManager() :
                                ContextSettings(0, 0, 4)
                            );
     this->_render_window->setFramerateLimit(FPS);
+    this->_state_machine.reset(
+        new GSM(
+            *this->_world,
+            "start",
+    {
+        {"start",  make_shared<TitleScreenState>(*this)},
+        {"game", make_shared<InGameState>(*this)},
+    },
+    {
+        {make_pair("swap", "start"), "game"},
+        {make_pair("swap", "game"), "start"},
+        {make_pair("advance", "game"), "game"},
+    }));
 }
 
 GameManager::~GameManager()
@@ -75,6 +93,14 @@ shared_ptr<sfg::SFGUI> GameManager::getSfgui() const {
 
 shared_ptr<sfg::Desktop> GameManager::getDesktop() const {
     return this->_desktop;
+}
+
+shared_ptr<GameManager::GSM> GameManager::getStateMachine() const {
+    return this->_state_machine;
+}
+
+shared_ptr<LevelManager> GameManager::getLevelManager() const {
+    return this->_level_manager;
 }
 
 anax::Entity GameManager::getPlayer() const {
