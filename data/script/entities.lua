@@ -1,4 +1,4 @@
-function create_Entity_Enemy(x, y, r)
+function create_Entity_Enemy(target, x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
@@ -16,6 +16,7 @@ function create_Entity_Enemy(x, y, r)
     bodydef.position = position
 
     fixturedef:setShape(shape)
+    fixturedef.restitution = 2
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -25,7 +26,9 @@ function create_Entity_Enemy(x, y, r)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local tbrc = TractorBeamRepellableComponent.new()
-    local aic = AIComponent.new(AI.Wander)
+    local aic = AIComponent.new(AI.Seek)
+    local efc = EntityFollowComponent.new(target, 10)
+
 
     e:addPositionComponent(pc)
     e:addRenderableComponent(rc)
@@ -33,6 +36,7 @@ function create_Entity_Enemy(x, y, r)
     e:addTractorBeamRepellableComponent(tbrc)
     e:addPhysicsFixtureComponent(pfc)
     e:addAIComponent(aic)
+    e:addEntityFollowComponent(efc)
 
     return e
 end
@@ -58,13 +62,12 @@ end
 
 function create_Entity_KeyboardCircle(target, r, x, y)
     local e = Anax.Entity.new()
-    local circle = SFML.CircleShape.new(r, 8)
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
     local b2circle = Box2D.Shape.Circle.new()
 
     local shape = Resource.Shape.Get("ship")
-    local ship = shape.graphics_shapes[1]
+    local ship = shape.group
 
     bodydef.allowSleep = false
     bodydef.type = Box2D.BodyType.Dynamic
@@ -75,9 +78,6 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     fixturedef.density = 2
     b2circle.radius = r
     bodydef.position = Box2D.Vector.new(x, y)
-    circle.fillColor = SFML.Color.Red
-    circle.position = SFML.Vector.new(x, y)
-    circle.origin = SFML.Vector.new(r, r)
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)

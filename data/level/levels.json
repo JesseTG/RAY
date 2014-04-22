@@ -1,8 +1,14 @@
 {
     "config" : {
     },
-    "files" : {
-        "test" : "data/shape/rect.svg",
-        "concave" : "data/shape/polyline.svg"
+    "levels" : {
+        "intro": {
+            "id" : "collide",
+            "enter" : "",
+            "exit" : ""
+        },
+        "star" : {
+            "id" : "star"
+        }
     }
 }
