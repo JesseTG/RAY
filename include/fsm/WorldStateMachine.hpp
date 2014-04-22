@@ -12,6 +12,7 @@
 #include <anax/anax.hpp>
 
 #include "fsm.hpp"
+#include "LevelInfo.hpp"
 
 namespace util {
 using std::make_pair;
@@ -98,8 +99,9 @@ class WorldStateMachine
                         }
                     }
                 #endif //DEBUG
+                ray::LevelInfo a;
                 _current_state = this->_states.find(start);
-                _current_state->second->onEnter(*this->_world);
+                _current_state->second->onEnter(*this->_world, a);
         }
 
         /**
@@ -111,7 +113,7 @@ class WorldStateMachine
          * @throw @c std::logic_error for an undefined transition or a state
          * key without a corresponding state.
          */
-        const WorldState<UpdateArguments...>& transition(const TAction& symbol) {
+        const WorldState<UpdateArguments...>& transition(const TAction& symbol, GameStateArguments& arg) {
             pair<TAction, TStateKey> inputpair = make_pair(symbol, this->_current_state->first);
             if (this->_transitions.count(inputpair)) {
                 // If we have a transition defined given our current state and
@@ -119,9 +121,9 @@ class WorldStateMachine
                 const TStateKey& newkey = this->_transitions.find(inputpair)->second;
                 if (this->_states.count(newkey)) {
                     // If we have a state defined for the given state key...
-                    this->_current_state->second->onExit(*this->_world);
+                    this->_current_state->second->onExit(*this->_world, arg);
                     this->_current_state = this->_states.find(newkey);
-                    this->_current_state->second->onEnter(*this->_world);
+                    this->_current_state->second->onEnter(*this->_world, arg);
                     return *this->_states[this->_current_state->first];
                 }
                 else {

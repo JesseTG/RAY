@@ -33,10 +33,11 @@ class CompositionWorldState : public WorldState<UpdateArguments...>
 {
     public:
         typedef function<void(const UpdateArguments& ...)> UpdateFunction;
+        typedef function<void(World&, GameStateArguments&)> TransitionFunction;
         CompositionWorldState(
         const UpdateFunction& update=[](const UpdateArguments& ...) {},
-        const function<void(World&)>& onenter=[](World&) {},
-        const function<void(World&)>& onexit=[](World&) {}
+        const TransitionFunction& onenter=[](World&, GameStateArguments&) {},
+        const TransitionFunction& onexit=[](World&, GameStateArguments&) {}
         ) :
             _update(update),
             _on_enter(onenter),
@@ -49,20 +50,20 @@ class CompositionWorldState : public WorldState<UpdateArguments...>
             this->_update = f;
         }
 
-        void setOnEnterCallback(const function<void(World&)>& f) {
+        void setOnEnterCallback(const TransitionFunction& f) {
             this->_on_enter = f;
         }
 
-        void setOnExitCallback(const function<void(World&)>& f) {
+        void setOnExitCallback(const TransitionFunction& f) {
             this->_on_exit = f;
         }
     protected:
-        void onEnter(World& world) override {
-            this->_on_enter(world);
+        void onEnter(World& world, GameStateArguments& arg) override {
+            this->_on_enter(world, arg);
         }
 
-        void onExit(World& world) override {
-            this->_on_exit(world);
+        void onExit(World& world, GameStateArguments& arg) override {
+            this->_on_exit(world, arg);
         }
 
         void update(const UpdateArguments& ...args) override {
@@ -71,8 +72,8 @@ class CompositionWorldState : public WorldState<UpdateArguments...>
     private:
         template<class, class, typename...> friend class WorldStateMachine;
         UpdateFunction _update;
-        function<void(World&)> _on_enter;
-        function<void(World&)> _on_exit;
+        TransitionFunction _on_enter;
+        TransitionFunction _on_exit;
 };
 }
 
