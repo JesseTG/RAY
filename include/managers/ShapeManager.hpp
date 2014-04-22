@@ -15,6 +15,7 @@
 #include <Box2D/Box2D.h>
 
 #include "ResourceManager.hpp"
+#include "Group.hpp"
 
 namespace ray {
 using std::shared_ptr;
@@ -39,6 +40,7 @@ using sf::RectangleShape;
 using sf::ConvexShape;
 using sf::Vector2f;
 using sf::Transform;
+using sf::Group;
 using thor::ConcaveShape;
 using thor::Arrow;
 
@@ -49,6 +51,7 @@ using thor::Arrow;
 struct GameShape {
     vector<shared_ptr<Drawable>> graphics_shapes;
     vector<shared_ptr<b2Shape>> physics_shapes;
+    shared_ptr<Drawable> group;
 };
 
 /**

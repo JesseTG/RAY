@@ -19,6 +19,7 @@
 #include "util.hpp"
 #include "PolylineShape.hpp"
 #include "EllipseShape.hpp"
+#include "Group.hpp"
 
 namespace ray {
 using std::array;
@@ -38,6 +39,7 @@ using boost::smatch;
 
 using sf::PolylineShape;
 using sf::EllipseShape;
+using sf::Group;
 
 const string ShapeManager::HEX_COLOR_STRING =
     "(?:#)([0-9a-fA-f]{6})|(?:#)([0-9a-fA-f]{3})";
@@ -184,6 +186,7 @@ GameShape ShapeManager::_parse_shape(const string& name, const ptree& xml) {
         }
     }
 
+    shape.group = make_shared<Group>(shape.graphics_shapes);
     return shape;
 }
 
@@ -257,11 +260,19 @@ ShapeManager::ShapePair ShapeManager::_parse_circle(const ptree& xml) {
             style.classes = _parse_class(*xml_class);
         }
 
+        Vector2f origin(cx - r, cy - r);
+
+        const auto& xml_transform = circle->get_child_optional("transform");
+        if (xml_transform) {
+            style.transform = _parse_transform(*xml_transform);
+            origin = style.transform.transformPoint(origin);
+        }
+
         shared_ptr<CircleShape> shape = make_shared<CircleShape>(r);
         shape->setFillColor(style.fill);
         shape->setOutlineColor(style.stroke);
         shape->setOutlineThickness(style.stroke_width);
-        shape->setPosition(cx - r, cy - r);
+        shape->setPosition(origin);
 
         shared_ptr<b2CircleShape> b2shape;
         if (find(style.classes.begin(), style.classes.end(), COLLIDABLE_CLASS) != style.classes.end()) {
@@ -426,13 +437,20 @@ ShapeManager::ShapePair ShapeManager::_parse_line(const ptree& xml) {
             style.classes = _parse_class(*xml_class);
         }
 
+        const auto& xml_transform = line->get_child_optional("transform");
+        if (xml_transform) {
+            style.transform = _parse_transform(*xml_transform);
+            v1 = style.transform.transformPoint(v1);
+            v2 = style.transform.transformPoint(v2);
+        }
+
         shape = make_shared<Arrow>(v1, v2 - v1, style.stroke, style.stroke_width);
 
         const vector<string>& classes = style.classes;
         if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
             // If this <line> is collidable...
             b2shape = make_shared<b2EdgeShape>();
-            b2shape->Set(sfVecToB2Vec(v1), sfVecToB2Vec(v1-v2));
+            b2shape->Set(sfVecToB2Vec(v2), sfVecToB2Vec(v1));
         }
     }
 
@@ -778,7 +796,7 @@ Transform ShapeManager::_parse_transform(const ptree& xml) {
             xform.translate(it->second[0], (nums.size() >= 2) ? it->second[1] : 0.0);
         }
         else if (it->first == "scale") {
-            xform.scale(it->second[0], (nums.size() >= 2) ? it->second[1] : 0.0);
+            xform.scale(it->second[0], it->second[(nums.size() >= 2) ? 1 : 0]);
         }
         else if (it->first == "rotate") {
             if (nums.size() >= 3) {
