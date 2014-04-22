@@ -46,8 +46,9 @@ class DebugSystem : public anax::System<DebugSystem>
         ~DebugSystem();
 
         void update(const vector<Event>& events);
+        void _change_level(const int);
     private:
-        GameManager* _gm;
+        GameManager* _game;
 };
 }
 
