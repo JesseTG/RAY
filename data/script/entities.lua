@@ -14,9 +14,11 @@ function create_Entity_Enemy(target, x, y, r)
     bodydef.allowSleep = false
     bodydef.type = Box2D.BodyType.Dynamic
     bodydef.position = position
+    bodydef.fixedRotation = true
 
     fixturedef:setShape(shape)
-    fixturedef.restitution = 2
+    fixturedef.restitution = .3
+    fixturedef.density = 5
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -27,7 +29,7 @@ function create_Entity_Enemy(target, x, y, r)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local tbrc = TractorBeamRepellableComponent.new()
     local aic = AIComponent.new(AI.Seek)
-    local efc = EntityFollowComponent.new(target, 10)
+    local efc = EntityFollowComponent.new(target, 100000)
 
 
     e:addPositionComponent(pc)
@@ -73,6 +75,7 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     bodydef.type = Box2D.BodyType.Dynamic
     bodydef.active = true
     bodydef.fixedRotation = true
+    bodydef.linearDamping = 1.5
 
     fixturedef:setShape(b2circle)
     fixturedef.density = 2
