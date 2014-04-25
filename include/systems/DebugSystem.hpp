@@ -42,13 +42,13 @@ class DebugSystem : public anax::System<DebugSystem>
          * Constructor. Initializes this DebugSystem with a @c sf::RenderWindow,
          * a @c b2World, and a LuaContext.
          */
-        DebugSystem(RenderWindow&, GameManager&);
+        DebugSystem(GameManager&);
         ~DebugSystem();
 
         void update(const vector<Event>& events);
+        void _change_level(const int);
     private:
-        RenderWindow* _window;
-        GameManager* _gm;
+        GameManager* _game;
 };
 }
 

@@ -15,6 +15,7 @@
 #include <Box2D/Box2D.h>
 
 #include "ResourceManager.hpp"
+#include "Group.hpp"
 
 namespace ray {
 using std::shared_ptr;
@@ -38,6 +39,8 @@ using sf::CircleShape;
 using sf::RectangleShape;
 using sf::ConvexShape;
 using sf::Vector2f;
+using sf::Transform;
+using sf::Group;
 using thor::ConcaveShape;
 using thor::Arrow;
 
@@ -48,6 +51,7 @@ using thor::Arrow;
 struct GameShape {
     vector<shared_ptr<Drawable>> graphics_shapes;
     vector<shared_ptr<b2Shape>> physics_shapes;
+    shared_ptr<Drawable> group;
 };
 
 /**
@@ -56,11 +60,11 @@ struct GameShape {
 class ShapeManager : public ResourceManager
 {
     public:
-        ShapeManager();
+        ShapeManager(const string& path);
         virtual ~ShapeManager();
 
         bool loadConfigFile(const string& path) override;
-        GameShape makeShape(const string& id) {
+        GameShape getShape(const string& id) {
             if (this->_shapes[id].second.graphics_shapes.empty()) {
                 this->_shapes[id].second = this->_parse_shape(id, this->_shapes[id].first.get_child("svg"));
             }
@@ -76,7 +80,6 @@ class ShapeManager : public ResourceManager
                 const Color& stroke,
                 const float stroke_width,
                 const Color& fill,
-                const vector<string>& classes,
                 const bool visibility=true
             ) :
                 stroke(stroke),
@@ -115,6 +118,8 @@ class ShapeManager : public ResourceManager
              * Corresponds to the @c class attribute.
              */
             vector<string> classes;
+
+            Transform transform;
         };
 
         typedef pair<shared_ptr<Drawable>, shared_ptr<b2Shape>> ShapePair;
@@ -131,8 +136,9 @@ class ShapeManager : public ResourceManager
         ShapePair _parse_polygon(const ptree& xml);
         ShapePair _parse_polyline(const ptree& xml);
         ShapePair _parse_rect(const ptree& xml);
-        vector<Vector2f> _parse_points(const ptree& xml);
-        vector<string> _parse_class(const string& text);
+        vector<Vector2f> _parse_points(const ptree& xml, const Transform& xform=Transform::Identity);
+        vector<string> _parse_class(const ptree& xml);
+        Transform _parse_transform(const ptree& xml);
 
         /**
          * Given a string representing a CSS color, figure out exactly what
@@ -150,6 +156,7 @@ class ShapeManager : public ResourceManager
         static const string WORD_COLOR_STRING;
         static const string UNIT_STRING;
         static const string DECIMAL_STRING;
+        static const string SIGNED_DECIMAL_STRING;
         static const string FILL_STRING;
         static const string FILL_OPACITY_STRING;
         static const string STROKE_STRING;
@@ -159,6 +166,8 @@ class ShapeManager : public ResourceManager
         static const string VISIBILITY_STRING;
         static const string NAME_STRING;
         static const string NAME_LIST_STRING;
+        static const string TRANSFORM_STRING;
+        static const string TRANSFORM_TYPE_STRING;
 
         static const regex HEX_COLOR_REGEX;
         static const regex RGB_COLOR_REGEX;
@@ -166,6 +175,7 @@ class ShapeManager : public ResourceManager
         static const regex WORD_COLOR_REGEX;
         static const regex UNIT_REGEX;
         static const regex DECIMAL_REGEX;
+        static const regex SIGNED_DECIMAL_REGEX;
         static const regex COLOR_REGEX;
         static const regex FILL_REGEX;
         static const regex FILL_OPACITY_REGEX;
@@ -176,12 +186,12 @@ class ShapeManager : public ResourceManager
         static const regex VISIBILITY_REGEX;
         static const regex NAME_REGEX;
         static const regex NAME_LIST_REGEX;
+        static const regex TRANSFORM_REGEX;
+        static const regex TRANSFORM_TYPE_REGEX;
 
         static const string COLLIDABLE_CLASS;
-        static const string POLYGON_CLASS;
-        static const string EDGE_CLASS;
-        static const string CHAIN_CLASS;
-
+        static const string SOLID_CLASS;
+        static const string HOLLOW_CLASS;
 };
 
 

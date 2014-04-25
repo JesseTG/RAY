@@ -19,6 +19,7 @@
 #include <LuaContext.hpp>
 
 #include "util.hpp"
+#include "managers.hpp"
 
 namespace ray {
 namespace entities {
@@ -40,36 +41,7 @@ using sf::Vector2i;
 using sf::Vector2f;
 using sf::Vector2u;
 
-extern RenderWindow* _window;
-extern shared_ptr<World> _world;
-extern shared_ptr<b2World> _physics_world;
 extern shared_ptr<LuaContext> _lua;
-
-/**
- * Sets the @c World that will create the @c Entities (so you don't have to
- * keep passing in the @c World as a parameter to each factory function).
- *
- * @param world The @c World that created @c Entities will belong to
- */
-void setWorld(World&) noexcept;
-
-void setWorld(shared_ptr<World>) noexcept;
-
-/**
- * Sets the @c RenderWindow that will ultimately be rendered to so we don't
- * have to keep passing it into certain factory functions, as sometimes
- * information provided by a @c RenderWindow, e.g. mouse position or a @c View
- * offset, may be necessary.
- *
- * @param window The @c RenderWindow used for this game.
- */
-void setRenderWindow(RenderWindow&) noexcept;
-
-void setPhysicsWorld(b2World&) noexcept;
-
-void setPhysicsWorld(b2World*) noexcept;
-
-void setPhysicsWorld(shared_ptr<b2World>) noexcept;
 
 void setLuaState(LuaContext&) noexcept;
 
@@ -98,11 +70,12 @@ Entity createEntity(const string& type, Types...args) {
     return f(args...);
 }
 
-void initBaseTypes();
-void initSFMLTypeBindings();
-void initAnaxTypeBindings();
-void initBox2DTypeBindings();
-void initComponentLuaBindings();
+void initBaseTypes(GameManager& game);
+void initSFMLTypeBindings(GameManager& game);
+void initAnaxTypeBindings(GameManager& game);
+void initBox2DTypeBindings(GameManager& game);
+void initComponentLuaBindings(GameManager& game);
+void initManagerTypeBindings(GameManager& game);
 
 }
 

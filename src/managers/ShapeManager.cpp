@@ -19,6 +19,7 @@
 #include "util.hpp"
 #include "PolylineShape.hpp"
 #include "EllipseShape.hpp"
+#include "Group.hpp"
 
 namespace ray {
 using std::array;
@@ -27,6 +28,7 @@ using std::stof;
 using std::max;
 using std::find;
 using std::static_pointer_cast;
+using std::tan;
 
 using boost::trim_copy;
 using boost::to_lower_copy;
@@ -37,6 +39,7 @@ using boost::smatch;
 
 using sf::PolylineShape;
 using sf::EllipseShape;
+using sf::Group;
 
 const string ShapeManager::HEX_COLOR_STRING =
     "(?:#)([0-9a-fA-f]{6})|(?:#)([0-9a-fA-f]{3})";
@@ -55,6 +58,9 @@ const string ShapeManager::UNIT_STRING =
 
 const string ShapeManager::DECIMAL_STRING =
     "\\d*\\.\\d+|\\d+(\\.\\d*)?";
+
+const string ShapeManager::SIGNED_DECIMAL_STRING =
+    "([\\-\\+]?(" + DECIMAL_STRING + "))";
 
 const string ShapeManager::COLOR_STRING =
     ShapeManager::HEX_COLOR_STRING + "|"
@@ -89,12 +95,19 @@ const string ShapeManager::NAME_STRING =
 const string ShapeManager::NAME_LIST_STRING =
     "(" + NAME_STRING + OPTIONAL_COMMA_STRING + ")*" + NAME_STRING;
 
+const string ShapeManager::TRANSFORM_STRING =
+    "(\\w+)\\s*\\(\\s*(\\-?\\s*\\d+\\.?\\d*\\s*,?\\s*)+\\)";
+
+const string ShapeManager::TRANSFORM_TYPE_STRING =
+    "[\\w\\.\\-]+";
+
 const regex ShapeManager::HEX_COLOR_REGEX(ShapeManager::HEX_COLOR_STRING);
 const regex ShapeManager::RGB_COLOR_REGEX(ShapeManager::RGB_COLOR_STRING);
 const regex ShapeManager::RGB_PERCENT_COLOR_REGEX(ShapeManager::RGB_PERCENT_COLOR_STRING);
 const regex ShapeManager::WORD_COLOR_REGEX(ShapeManager::WORD_COLOR_STRING);
 const regex ShapeManager::UNIT_REGEX(ShapeManager::UNIT_STRING);
 const regex ShapeManager::DECIMAL_REGEX(ShapeManager::DECIMAL_STRING);
+const regex ShapeManager::SIGNED_DECIMAL_REGEX(ShapeManager::SIGNED_DECIMAL_STRING);
 const regex ShapeManager::COLOR_REGEX(ShapeManager::COLOR_STRING);
 const regex ShapeManager::FILL_REGEX(ShapeManager::FILL_STRING);
 const regex ShapeManager::FILL_OPACITY_REGEX(ShapeManager::FILL_OPACITY_STRING);
@@ -105,16 +118,16 @@ const regex ShapeManager::OPTIONAL_COMMA_REGEX(ShapeManager::OPTIONAL_COMMA_STRI
 const regex ShapeManager::VISIBILITY_REGEX(ShapeManager::VISIBILITY_STRING);
 const regex ShapeManager::NAME_REGEX(ShapeManager::NAME_STRING);
 const regex ShapeManager::NAME_LIST_REGEX(ShapeManager::NAME_LIST_STRING);
+const regex ShapeManager::TRANSFORM_REGEX(ShapeManager::TRANSFORM_STRING);
+const regex ShapeManager::TRANSFORM_TYPE_REGEX(ShapeManager::TRANSFORM_TYPE_STRING);
 
 const string ShapeManager::COLLIDABLE_CLASS = "collidable";
-const string ShapeManager::POLYGON_CLASS = "polygon";
-const string ShapeManager::EDGE_CLASS = "edge";
-const string ShapeManager::CHAIN_CLASS = "chain";
+const string ShapeManager::SOLID_CLASS = "solid";
+const string ShapeManager::HOLLOW_CLASS = "hollow";
 
-
-ShapeManager::ShapeManager()
+ShapeManager::ShapeManager(const string& path)
 {
-    //ctor
+    this->loadConfigFile(path);
 }
 
 ShapeManager::~ShapeManager()
@@ -140,7 +153,6 @@ bool ShapeManager::loadConfigFile(const string& path) {
 GameShape ShapeManager::_parse_shape(const string& name, const ptree& xml) {
     GameShape shape;
     for (const auto& i : xml) {
-        std::cout << i.first << " " << i.second.data() << std::endl;
         pair<shared_ptr<Drawable>, shared_ptr<b2Shape>> shape_pair;
         if (i.first == "circle") {
             // If this is a circle...
@@ -167,13 +179,14 @@ GameShape ShapeManager::_parse_shape(const string& name, const ptree& xml) {
             shape_pair = _parse_ellipse(i.second);
         }
 
-        if (shape_pair.first) {
+        if (shape_pair.first != nullptr) {
             // If we managed to load and parse a SVG element...
             shape.graphics_shapes.push_back(shape_pair.first);
             shape.physics_shapes.push_back(shape_pair.second);
         }
     }
 
+    shape.group = make_shared<Group>(shape.graphics_shapes);
     return shape;
 }
 
@@ -188,7 +201,7 @@ ShapeManager::Style ShapeManager::_parse_style(const ptree& xml) {
     smatch attribute;
     Color fill = regex_search(xml.data(), attribute, FILL_REGEX) ?
                  _parse_color(first_match(attribute)) :
-                 Color::Black; // Unspecified color means black
+                 Color::Transparent; // Unspecified color means black
 
     float fill_opacity = regex_search(xml.data(), attribute, FILL_OPACITY_REGEX) ?
                          constrain(stof(first_match(attribute)), 0.f, 1.f) :
@@ -210,13 +223,9 @@ ShapeManager::Style ShapeManager::_parse_style(const ptree& xml) {
                       first_match(attribute) == "visibility" :
                       true; // Unspecified visibility defaults to visibility
 
-    vector<string> classes = regex_search(xml.data(), attribute, NAME_LIST_REGEX) ?
-                             _parse_class(attribute.str()) :
-                             vector<string>();
-
     fill.a = constrain(int(fill_opacity * 255.f), 0, 255);
     stroke.a = constrain(int(stroke_opacity * 255.f), 0, 255);
-    return Style(stroke, stroke_width, fill, classes, visibility);
+    return Style(stroke, stroke_width, fill, visibility);
 }
 
 ShapeManager::ShapePair ShapeManager::_parse_circle(const ptree& xml) {
@@ -246,12 +255,24 @@ ShapeManager::ShapePair ShapeManager::_parse_circle(const ptree& xml) {
         // Unspecified y-center means 0
 
         Style style = _parse_style(circle->get_child("style"));
+        const auto& xml_class = circle->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
+
+        Vector2f origin(cx - r, cy - r);
+
+        const auto& xml_transform = circle->get_child_optional("transform");
+        if (xml_transform) {
+            style.transform = _parse_transform(*xml_transform);
+            origin = style.transform.transformPoint(origin);
+        }
 
         shared_ptr<CircleShape> shape = make_shared<CircleShape>(r);
         shape->setFillColor(style.fill);
         shape->setOutlineColor(style.stroke);
         shape->setOutlineThickness(style.stroke_width);
-        shape->setPosition(cx - r, cy - r);
+        shape->setPosition(origin);
 
         shared_ptr<b2CircleShape> b2shape;
         if (find(style.classes.begin(), style.classes.end(), COLLIDABLE_CLASS) != style.classes.end()) {
@@ -288,6 +309,10 @@ ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
         // Unspecified coordinates default to zero
 
         Style style = _parse_style(rect->get_child("style"));
+        const auto& xml_class = rect->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
 
         shared_ptr<Shape> shape;
         int average = int(radius.x + radius.y) / 2;
@@ -312,17 +337,17 @@ ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
         const vector<string>& classes = style.classes;
         if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
             // If this <rect> is collidable...
-            if (find(classes.begin(), classes.end(), POLYGON_CLASS) != classes.end()) {
+            if (find(classes.begin(), classes.end(), SOLID_CLASS) != classes.end()) {
                 // If this <rect> should be a solid polygon...
                 ptr = make_shared<b2PolygonShape>();
                 static_pointer_cast<b2PolygonShape>(ptr)->SetAsBox(
                     size.x / 2,
                     size.y / 2,
-                    b2Vec2(size.x / 2, size.y / 2),
+                    b2Vec2_zero,
                     0.0
                 );
             }
-            else if (find(classes.begin(), classes.end(), CHAIN_CLASS) != classes.end()) {
+            else if (find(classes.begin(), classes.end(), HOLLOW_CLASS) != classes.end()) {
                 // Else if this <rect> should be a chain...
                 ptr = make_shared<b2ChainShape>();
                 array<b2Vec2, 4> vecs = {
@@ -331,7 +356,7 @@ ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
                     b2Vec2(pos.x + size.x, pos.y + size.y), // SE corner
                     b2Vec2(pos.x, pos.y + size.y) // SW corner
                 };
-                static_pointer_cast<b2ChainShape>(ptr)->CreateLoop(vecs.data(),vecs.size());
+                static_pointer_cast<b2ChainShape>(ptr)->CreateLoop(vecs.data(), vecs.size());
             }
             // Not a valid collision class, let's not make this shape collidable
         }
@@ -372,6 +397,10 @@ ShapeManager::ShapePair ShapeManager::_parse_ellipse(const ptree& xml) {
         // Unspecified y-center means 0
 
         Style style = _parse_style(ellipse->get_child("style"));
+        const auto& xml_class = ellipse->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
 
         shared_ptr<EllipseShape> shape = make_shared<EllipseShape>(rx, ry);
         shape->setFillColor(style.fill);
@@ -392,7 +421,7 @@ ShapeManager::ShapePair ShapeManager::_parse_line(const ptree& xml) {
 
     const auto& line = xml.get_child_optional("<xmlattr>");
     shared_ptr<Arrow> shape;
-    shared_ptr<b2Shape> b2shape;
+    shared_ptr<b2EdgeShape> b2shape;
     if (!line) {
         // If we see a blank <line/> element without attributes...
         shape = make_shared<Arrow>(Vector2f(), Vector2f(), Color::White, 0.0);
@@ -403,30 +432,29 @@ ShapeManager::ShapePair ShapeManager::_parse_line(const ptree& xml) {
         // Unspecified coordinates default to zero
 
         Style style = _parse_style(line->get_child("style"));
+        const auto& xml_class = line->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
+
+        const auto& xml_transform = line->get_child_optional("transform");
+        if (xml_transform) {
+            style.transform = _parse_transform(*xml_transform);
+            v1 = style.transform.transformPoint(v1);
+            v2 = style.transform.transformPoint(v2);
+        }
+
         shape = make_shared<Arrow>(v1, v2 - v1, style.stroke, style.stroke_width);
 
         const vector<string>& classes = style.classes;
         if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
             // If this <line> is collidable...
-            if (find(classes.begin(), classes.end(), EDGE_CLASS) != classes.end()) {
-                // If this <line> should be a solid polygon...
-                b2shape = make_shared<b2EdgeShape>();
-                static_pointer_cast<b2EdgeShape>(b2shape)->Set(sfVecToB2Vec(v1), sfVecToB2Vec(v2 - v1));
-            }
-            else if (find(classes.begin(), classes.end(), CHAIN_CLASS) != classes.end()) {
-                // Else if this <rect> should be a chain...
-                b2shape = make_shared<b2ChainShape>();
-                array<b2Vec2, 2> vecs = {
-                    sfVecToB2Vec(v1),
-                    sfVecToB2Vec(v2 - v1)
-                };
-                static_pointer_cast<b2ChainShape>(b2shape)->CreateChain(vecs.data(), vecs.size());
-            }
-            // Not a valid collision type, let's not make this shape collidable
+            b2shape = make_shared<b2EdgeShape>();
+            b2shape->Set(sfVecToB2Vec(v2), sfVecToB2Vec(v1));
         }
     }
 
-    shape->setStyle(Arrow::Style::Line);
+    //shape->setStyle(Arrow::Style::Line);
 
     return make_pair(shape, b2shape);
 }
@@ -456,7 +484,21 @@ ShapeManager::ShapePair ShapeManager::_parse_polygon(const ptree& xml) {
     }
     else {
         Style style = _parse_style(polygon->get_child("style"));
-        vector<Vector2f> points = _parse_points(polygon->get_child("points"));
+        if (style.fill == Color::Black) {
+            // TODO: Remove this hack
+            style.fill = Color::Transparent;
+        }
+        const auto& xml_class = polygon->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
+        const auto& xml_transform = polygon->get_child_optional("transform");
+        if (xml_transform) {
+            style.transform = _parse_transform(*xml_transform);
+        }
+
+        vector<Vector2f> points = _parse_points(polygon->get_child("points"), style.transform);
+        shared_ptr<b2Shape> b2shape;
 
         bool convex = true;
         float startsign = sign(thor::crossProduct(points[0] - points[1], points[1] - points[2]).z);
@@ -489,7 +531,36 @@ ShapeManager::ShapePair ShapeManager::_parse_polygon(const ptree& xml) {
             shape->setOutlineColor(style.stroke);
             shape->setOutlineThickness(style.stroke_width);
 
-            return make_pair(shape, nullptr);
+            const vector<string>& classes = style.classes;
+            if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
+                // If this polygon should be collidable...
+
+                vector<b2Vec2> b2vecs = sfVecsToB2Vecs(points);
+                if (find(classes.begin(), classes.end(), HOLLOW_CLASS) != classes.end()) {
+                    // If this polygon should be hollow...
+                    if (b2vecs.size() < 3) {
+                        // If we have too many or too few vertices...
+                        std::ostringstream err;
+                        err << "Expected at least 3 vertices, got " << b2vecs.size();
+                        throw std::invalid_argument(err.str());
+                    }
+                    b2shape = make_shared<b2ChainShape>();
+                    static_pointer_cast<b2ChainShape>(b2shape)->CreateLoop(b2vecs.data(), b2vecs.size());
+                }
+                else {
+                    if (b2vecs.size() < 3 || b2vecs.size() > b2_maxPolygonVertices) {
+                        // If we have too many or too few vertices...
+                        std::ostringstream err;
+                        err << "Expected between 3 and " << b2_maxPolygonVertices
+                            << " polygon vertices, got " << b2vecs.size();
+                        throw std::invalid_argument(err.str());
+                    }
+                    b2shape = make_shared<b2PolygonShape>();
+                    static_pointer_cast<b2PolygonShape>(b2shape)->Set(b2vecs.data(), b2vecs.size());
+                }
+            }
+
+            return make_pair(shape, b2shape);
         }
         else {
             shared_ptr<ConcaveShape> shape = make_shared<ConcaveShape>();
@@ -503,7 +574,40 @@ ShapeManager::ShapePair ShapeManager::_parse_polygon(const ptree& xml) {
             shape->setOutlineColor(style.stroke);
             shape->setOutlineThickness(style.stroke_width);
 
-            return make_pair(shape, nullptr);
+            const vector<string>& classes = style.classes;
+            if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
+                // If this polygon should be collidable...
+
+                vector<b2Vec2> b2vecs = sfVecsToB2Vecs(points);
+                if (find(classes.begin(), classes.end(), HOLLOW_CLASS) != classes.end()) {
+                    // If this polygon should be hollow...
+                    if (b2vecs.size() < 3) {
+                        // If we have too many or too few vertices...
+                        std::ostringstream err;
+                        err << "Expected at least 3 vertices, got " << b2vecs.size();
+                        throw std::invalid_argument(err.str());
+                    }
+                    b2shape = make_shared<b2ChainShape>();
+                    static_pointer_cast<b2ChainShape>(b2shape)->CreateLoop(b2vecs.data(), b2vecs.size());
+                }
+                else {
+                    b2shape = make_shared<b2PolygonShape>();
+                    static_pointer_cast<b2PolygonShape>(b2shape)->Set(b2vecs.data(), b2vecs.size());
+                    if (b2vecs.size() < 3 || b2vecs.size() > b2_maxPolygonVertices) {
+                        // If we have too many or too few vertices...
+                        std::ostringstream err;
+                        err << "Expected between 3 and " << b2_maxPolygonVertices
+                            << " polygon vertices, got " << b2vecs.size();
+                        throw std::invalid_argument(err.str());
+                    }
+                    else if (!static_pointer_cast<b2PolygonShape>(b2shape)->Validate()) {
+                        std::ostringstream err;
+                        err << "Solid polygons must be convex, but this one is concave";
+                        throw std::invalid_argument(err.str());
+                    }
+                }
+            }
+            return make_pair(shape, b2shape);
         }
     }
 }
@@ -526,6 +630,10 @@ ShapeManager::ShapePair ShapeManager::_parse_polyline(const ptree& xml) {
     }
     else {
         Style style = _parse_style(polyline->get_child("style"));
+        const auto& xml_class = polyline->get_child_optional("class");
+        if (xml_class) {
+            style.classes = _parse_class(*xml_class);
+        }
         if (style.fill == Color::Black) {
             // TODO: Remove this hack
             style.fill = Color::Transparent;
@@ -533,11 +641,20 @@ ShapeManager::ShapePair ShapeManager::_parse_polyline(const ptree& xml) {
         vector<Vector2f> points = _parse_points(polyline->get_child("points"));
 
         shared_ptr<PolylineShape> shape = make_shared<PolylineShape>(points);
+        shared_ptr<b2ChainShape> b2shape;
         shape->setFillColor(style.fill);
         shape->setOutlineColor(style.stroke);
         shape->setOutlineThickness(style.stroke_width);
 
-        return make_pair(shape, nullptr);
+        const vector<string>& classes = style.classes;
+        if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
+            // If this polyline should be collidable...
+            b2shape = make_shared<b2ChainShape>();
+            vector<b2Vec2> b2points = sfVecsToB2Vecs(points);
+            b2shape->CreateChain(b2points.data(), b2points.size());
+        }
+
+        return make_pair(shape, b2shape);
     }
 }
 
@@ -609,7 +726,7 @@ const Color ShapeManager::_parse_color(const string& text) {
     return Color::Black;
 }
 
-vector<Vector2f> ShapeManager::_parse_points(const ptree& xml) {
+vector<Vector2f> ShapeManager::_parse_points(const ptree& xml, const Transform& xform) {
     vector<Vector2f> points;
     vector<string> points_str;
     boost::algorithm::split_regex(points_str, xml.data(), OPTIONAL_COMMA_REGEX);
@@ -623,15 +740,15 @@ vector<Vector2f> ShapeManager::_parse_points(const ptree& xml) {
 
     points.reserve(points_str.size());
     for (int i = 0; i < points_str.size(); i += 2) {
-        points.push_back(Vector2f(stof(points_str[i]), stof(points_str[i+1])));
+        points.push_back(xform.transformPoint(stof(points_str[i]), stof(points_str[i+1])));
     }
     return points;
 }
 
-vector<string> ShapeManager::_parse_class(const string& text) {
+vector<string> ShapeManager::_parse_class(const ptree& xml) {
     smatch match;
 
-    const string classtext = to_lower_copy(trim_copy(text));
+    const string classtext = to_lower_copy(trim_copy(xml.data()));
     vector<string> classes;
 
     boost::algorithm::split_regex(classes, classtext, OPTIONAL_COMMA_REGEX);
@@ -643,6 +760,67 @@ vector<string> ShapeManager::_parse_class(const string& text) {
 
     return classes;
 
+}
+
+Transform ShapeManager::_parse_transform(const ptree& xml) {
+    vector<pair<string, vector<float>>> transforms;
+    string data = xml.data();
+
+    boost::sregex_iterator end;
+    boost::sregex_iterator trans_it(data.begin(), data.end(), TRANSFORM_REGEX);
+    for (; trans_it != end; ++trans_it) {
+        // For each transformation declaration...
+
+        string trans_str = (*trans_it)[0];
+        string trans_name = (*trans_it)[1];
+        std::cout << trans_str << std::endl;
+        boost::sregex_iterator num_it(trans_str.begin(), trans_str.end(), SIGNED_DECIMAL_REGEX);
+        vector<float> numbers;
+
+        for (; num_it != end; ++num_it) {
+            // And for each number within that transform's arguments...
+            std::cout << num_it->str() << std::endl;
+            numbers.emplace_back(stof(num_it->str()));
+        }
+        transforms.emplace_back(trans_name, numbers);
+    }
+
+    auto rend = transforms.rend();
+    Transform xform;
+    for (auto it = transforms.rbegin(); it != rend; ++it) {
+        // For each transform from the last to the first...
+        // (SVG specifies that translations are done from right to left)
+        const vector<float>& nums = it->second;
+
+        if (it->first == "translate") {
+            xform.translate(it->second[0], (nums.size() >= 2) ? it->second[1] : 0.0);
+        }
+        else if (it->first == "scale") {
+            xform.scale(it->second[0], it->second[(nums.size() >= 2) ? 1 : 0]);
+        }
+        else if (it->first == "rotate") {
+            if (nums.size() >= 3) {
+                xform.rotate(nums[0], nums[1], nums[2]);
+            }
+            else {
+                xform.rotate(nums[0]);
+            }
+        }
+        else if (it->first == "skewX") {
+            Transform x2(1.0f, tan(toDegrees(nums[0])), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+            xform.combine(x2);
+        }
+        else if (it->first == "skewY") {
+            Transform x2(1.0f, 0.0f, 0.0f, tan(toDegrees(nums[0])), 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+            xform.combine(x2);
+        }
+        else if (it->first == "matrix") {
+            Transform x2(nums[0], nums[1], nums[2], nums[3], nums[4], nums[5], 0.0f, 0.0f, 0.0f);
+            xform.combine(x2);
+        }
+    }
+
+    return xform;
 }
 
 // TODO: Make this work

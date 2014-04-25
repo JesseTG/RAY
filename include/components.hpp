@@ -2,6 +2,7 @@
 #define COMPONENTS_HPP
 
 namespace ray {
+    struct AIComponent;
     struct EntityFollowComponent;
     struct FaceEntityComponent;
     struct FourWayControlComponent;
@@ -16,6 +17,7 @@ namespace ray {
     struct HealthComponent;
 }
 
+#include "AIComponent.hpp"
 #include "EntityFollowComponent.hpp"
 #include "FaceEntityComponent.hpp"
 #include "FourWayControlComponent.hpp"

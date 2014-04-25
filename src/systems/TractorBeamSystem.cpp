@@ -2,8 +2,10 @@
 
 #include "components.hpp"
 #include <iostream>
+#include <cmath>
 
 namespace ray {
+    using std::exp;
 const ComponentFilter TractorBeamSystem::FILTER = ComponentFilter()
         .requires<PositionComponent, TractorBeamComponent>();
 
@@ -49,6 +51,9 @@ void TractorBeamSystem::update() {
             b2Body* targetbody = i.second->GetBody();
 
             b2Vec2 diff = targetbody->GetPosition() - beambody->GetPosition();
+            //diff.Normalize();
+            //diff *= exp(diff.Length());
+            std::cout << diff.x << " " << diff.y << std::endl;
 
             targetbody->ApplyForceToCenter(tbc.force * diff, true);
         }

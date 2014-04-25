@@ -6,31 +6,34 @@
 namespace ray {
 using boost::optional;
 void RenderableComponent::luaInit(LuaContext& lua) {
-    typedef variant<CircleShape*, RectangleShape*, ConvexShape*, Sprite*, Text*, VertexArray*> drawtypes;
+    typedef variant<CircleShape*, RectangleShape*, ConvexShape*, Sprite*, Text*, VertexArray*, shared_ptr<Drawable>> drawtypes;
     lua.writeFunction(
         "RenderableComponent",
         "new",
     [](const drawtypes& types, optional<int> l) {
 
-        Drawable* drawptr;
+        shared_ptr<Drawable> drawptr;
         switch (types.which()) {
             case 0:
-                drawptr = get<CircleShape*>(types);
+                drawptr.reset(get<CircleShape*>(types));
                 break;
             case 1:
-                drawptr = get<RectangleShape*>(types);
+                drawptr.reset(get<RectangleShape*>(types));
                 break;
             case 2:
-                drawptr = get<ConvexShape*>(types);
+                drawptr.reset(get<ConvexShape*>(types));
                 break;
             case 3:
-                drawptr = get<Sprite*>(types);
+                drawptr.reset(get<Sprite*>(types));
                 break;
             case 4:
-                drawptr = get<Text*>(types);
+                drawptr.reset(get<Text*>(types));
                 break;
             case 5:
-                drawptr = get<VertexArray*>(types);
+                drawptr.reset(get<VertexArray*>(types));
+                break;
+            default:
+                drawptr = get<shared_ptr<Drawable>>(types);
                 break;
         }
 

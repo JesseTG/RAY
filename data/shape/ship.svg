@@ -1,0 +1,12 @@
+<svg viewBox="0 0 128 128" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Untitled 0</title>
+    <desc/>
+    <polygon points="16 0 0 32 16 20 32 32" style="fill: #ffffff; fill-opacity: 0.48; stroke: #ffffff; stroke-opacity: 1; stroke-width: 1px; stroke-miterlimit: 4; stroke-dashoffset: 0px; visibility: visible;" transform="rotate(90, 16, 0)">
+        <title>polygon1</title>
+        <desc/>
+    </polygon>
+    <circle class="collidable solid" cx="16" cy="16" r="16" style="fill-opacity: 0; stroke-opacity: 1; stroke-width: 1px; stroke-dashoffset: 0px; visibility: visible; fill: none; stroke: #ff0000;" transform="translate(-16, -16)">
+        <title>circle1</title>
+        <desc/>
+    </circle>
+</svg>

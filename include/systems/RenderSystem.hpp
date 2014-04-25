@@ -20,13 +20,12 @@ using sf::Transformable;
 class RenderSystem : public System<RenderSystem>
 {
     public:
-        RenderSystem(RenderWindow&, GameManager&);
+        RenderSystem(GameManager&);
 
         void update();
     private:
-		RenderWindow* _window;
 		GameManager* _gm;
-        sf::View* _view;
+        sf::View _view;
 
 		static bool _sort_entities(const Entity&, const Entity&) noexcept;
 		const static ComponentFilter FILTER;

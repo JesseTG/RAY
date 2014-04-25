@@ -4,6 +4,8 @@
 #include <exception>
 #include <LuaContext.hpp>
 
+#include <SFML/Audio.hpp>
+
 namespace ray {
 namespace entities {
 using std::invalid_argument;
@@ -19,66 +21,69 @@ using sf::IntRect;
 using sf::FloatRect;
 using sf::RectangleShape;
 using sf::Sprite;
+using sf::Sound;
+using sf::Music;
+using sf::SoundSource;
 using sf::Text;
 using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2f;
 
 template<class SFDrawableT>
-void initCommonSFMLDrawableBindings(const string& name) {
+void initCommonSFMLDrawableBindings(const string& name, LuaContext& lua) {
 
-    _lua->registerMember<SFDrawableT, Vector2f>("position",
+    lua.registerMember<SFDrawableT, Vector2f>("position",
     [](const SFDrawableT& s) {
         return s.getPosition();
     },
     [](SFDrawableT& s, const Vector2f& position) {
         s.setPosition(position);
     });
-    _lua->registerMember<SFDrawableT, float>("rotation",
+    lua.registerMember<SFDrawableT, float>("rotation",
     [](const SFDrawableT& s) {
         return s.getRotation();
     },
     [](SFDrawableT& s, const float rotation) {
         s.setRotation(rotation);
     });
-    _lua->registerMember<SFDrawableT, Vector2f>("origin",
+    lua.registerMember<SFDrawableT, Vector2f>("origin",
     [](const SFDrawableT& s) {
         return s.getOrigin();
     },
     [](SFDrawableT& s, const Vector2f& origin) {
         s.setOrigin(origin);
     });
-    _lua->registerMember<SFDrawableT, Vector2f>("scale",
+    lua.registerMember<SFDrawableT, Vector2f>("scale",
     [](const SFDrawableT& s) {
         return s.getScale();
     },
     [](SFDrawableT& s, const Vector2f& scale) {
         s.setScale(scale);
     });
-    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("move", &SFDrawableT::move);
-    _lua->registerFunction<void(SFDrawableT::*)(const Vector2f&)>("scale", &SFDrawableT::scale);
+    lua.registerFunction<void(SFDrawableT::*)(const Vector2f&)>("move", &SFDrawableT::move);
+    lua.registerFunction<void(SFDrawableT::*)(const Vector2f&)>("scale", &SFDrawableT::scale);
     // TODO: Allow SFML vectors *and* floats
-    _lua->registerFunction("rotate", &SFDrawableT::rotate);
+    lua.registerFunction("rotate", &SFDrawableT::rotate);
 }
 
 template<class SFShapeT>
-void initCommonSFMLShapeBindings(const string& name) {
+void initCommonSFMLShapeBindings(const string& name, LuaContext& lua) {
 
-    _lua->registerMember<SFShapeT, Color>("fillColor",
+    lua.registerMember<SFShapeT, Color>("fillColor",
     [](const SFShapeT& s) {
         return s.getFillColor();
     },
     [](SFShapeT& s, const Color& color) {
         s.setFillColor(color);
     });
-    _lua->registerMember<SFShapeT, Color>("outlineColor",
+    lua.registerMember<SFShapeT, Color>("outlineColor",
     [](const SFShapeT& s) {
         return s.getOutlineColor();
     },
     [](SFShapeT& s, const Color& color) {
         s.setOutlineColor(color);
     });
-    _lua->registerMember<SFShapeT, float>("outlineThickness",
+    lua.registerMember<SFShapeT, float>("outlineThickness",
     [](const SFShapeT& s) {
         return s.getOutlineThickness();
     },
@@ -87,12 +92,69 @@ void initCommonSFMLShapeBindings(const string& name) {
     });
 }
 
-void initSFMLTypeBindings() {
-    _lua->writeVariable("SFML", LuaEmptyArray);
+template<class SFSoundSourceT>
+void initCommonSFMLSoundSourceBindings(const string& name, LuaContext& lua) {
+    lua.registerFunction("play", &SFSoundSourceT::play);
+    lua.registerFunction("pause", &SFSoundSourceT::pause);
+    lua.registerFunction("stop", &SFSoundSourceT::stop);
+
+    lua.registerMember<SFSoundSourceT, bool>("loop",
+    [](const SFSoundSourceT& sound) {
+        return sound.getLoop();
+    },
+    [](SFSoundSourceT& sound, const bool loop) {
+        sound.setLoop(loop);
+    });
+
+    lua.registerMember<SFSoundSourceT, bool>("relativeToListener",
+    [](const SFSoundSourceT& sound) {
+        return sound.isRelativeToListener();
+    },
+    [](SFSoundSourceT& sound, const bool relative) {
+        sound.setRelativeToListener(relative);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("pitch",
+    [](const SFSoundSourceT& sound) {
+        return sound.getPitch();
+    },
+    [](SFSoundSourceT& sound, const float pitch) {
+        sound.setPitch(pitch);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("attenuation",
+    [](const SFSoundSourceT& sound) {
+        return sound.getAttenuation();
+    },
+    [](SFSoundSourceT& sound, const float attenuation) {
+        sound.setAttenuation(attenuation);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("minDistance",
+    [](const SFSoundSourceT& sound) {
+        return sound.getMinDistance();
+    },
+    [](SFSoundSourceT& sound, const float min_distance) {
+        sound.setMinDistance(min_distance);
+    });
+
+    lua.registerMember<SFSoundSourceT, float>("volume",
+    [](const SFSoundSourceT& sound) {
+        return sound.getVolume();
+    },
+    [](SFSoundSourceT& sound, const float volume) {
+        sound.setVolume(constrain(volume, 0.f, 100.f));
+    });
+}
+
+void initSFMLTypeBindings(GameManager& game) {
+    LuaContext& lua = *game.getLuaContext();
+
+    lua.writeVariable("SFML", LuaEmptyArray);
     {
-        _lua->writeVariable("SFML", "Vector", LuaEmptyArray);
+        lua.writeVariable("SFML", "Vector", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Vector", "new",
+            lua.writeFunction("SFML", "Vector", "new",
             [](const optional<float>& arg1, const optional<float>& arg2) {
                 if (arg1 && arg2) {
                     // If the scripter passed in two arguments...
@@ -108,49 +170,49 @@ void initSFMLTypeBindings() {
                     );
                 }
             });
-            _lua->registerMember("x", &Vector2f::x);
-            _lua->registerMember("y", &Vector2f::y);
+            lua.registerMember("x", &Vector2f::x);
+            lua.registerMember("y", &Vector2f::y);
         }
 
-        _lua->writeVariable("SFML", "Color", LuaEmptyArray);
+        lua.writeVariable("SFML", "Color", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Color", "new", getDefaultConstructorLambda<Color>());
-            _lua->registerMember("r", &Color::r);
-            _lua->registerMember("g", &Color::g);
-            _lua->registerMember("b", &Color::b);
-            _lua->registerMember("a", &Color::a);
+            lua.writeFunction("SFML", "Color", "new", getDefaultConstructorLambda<Color>());
+            lua.registerMember("r", &Color::r);
+            lua.registerMember("g", &Color::g);
+            lua.registerMember("b", &Color::b);
+            lua.registerMember("a", &Color::a);
 
-            _lua->writeVariable("SFML", "Color", "Black", Color::Black);
-            _lua->writeVariable("SFML", "Color", "White", Color::White);
-            _lua->writeVariable("SFML", "Color", "Red", Color::Red);
-            _lua->writeVariable("SFML", "Color", "Green", Color::Green);
-            _lua->writeVariable("SFML", "Color", "Blue", Color::Blue);
-            _lua->writeVariable("SFML", "Color", "Yellow", Color::Yellow);
-            _lua->writeVariable("SFML", "Color", "Magenta", Color::Magenta);
-            _lua->writeVariable("SFML", "Color", "Cyan", Color::Cyan);
-            _lua->writeVariable("SFML", "Color", "Transparent", Color::Transparent);
+            lua.writeVariable("SFML", "Color", "Black", Color::Black);
+            lua.writeVariable("SFML", "Color", "White", Color::White);
+            lua.writeVariable("SFML", "Color", "Red", Color::Red);
+            lua.writeVariable("SFML", "Color", "Green", Color::Green);
+            lua.writeVariable("SFML", "Color", "Blue", Color::Blue);
+            lua.writeVariable("SFML", "Color", "Yellow", Color::Yellow);
+            lua.writeVariable("SFML", "Color", "Magenta", Color::Magenta);
+            lua.writeVariable("SFML", "Color", "Cyan", Color::Cyan);
+            lua.writeVariable("SFML", "Color", "Transparent", Color::Transparent);
         }
 
-        _lua->writeVariable("SFML", "Rect", LuaEmptyArray);
+        lua.writeVariable("SFML", "Rect", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Rect", "new", getDefaultConstructorLambda<FloatRect>());
-            _lua->registerMember("left", &FloatRect::left);
-            _lua->registerMember("x", &FloatRect::left);
-            _lua->registerMember("top", &FloatRect::top);
-            _lua->registerMember("y", &FloatRect::top);
-            _lua->registerMember("width", &FloatRect::width);
-            _lua->registerMember("height", &FloatRect::height);
+            lua.writeFunction("SFML", "Rect", "new", getDefaultConstructorLambda<FloatRect>());
+            lua.registerMember("left", &FloatRect::left);
+            lua.registerMember("x", &FloatRect::left);
+            lua.registerMember("top", &FloatRect::top);
+            lua.registerMember("y", &FloatRect::top);
+            lua.registerMember("width", &FloatRect::width);
+            lua.registerMember("height", &FloatRect::height);
         }
 
-        _lua->writeVariable("SFML", "Sprite", LuaEmptyArray);
+        lua.writeVariable("SFML", "Sprite", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Sprite", "new", getDefaultConstructorLambda<Sprite>());
-            initCommonSFMLDrawableBindings<Sprite>("Sprite");
+            lua.writeFunction("SFML", "Sprite", "new", getDefaultConstructorLambda<Sprite>());
+            initCommonSFMLDrawableBindings<Sprite>("Sprite", lua);
         }
 
-        _lua->writeVariable("SFML", "CircleShape", LuaEmptyArray);
+        lua.writeVariable("SFML", "CircleShape", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "CircleShape", "new",
+            lua.writeFunction("SFML", "CircleShape", "new",
             [](const optional<float> radius, const optional<int> points) {
                 if (radius && points) {
                     // If the user specified both the radius of the circle
@@ -165,9 +227,9 @@ void initSFMLTypeBindings() {
                     return new CircleShape;
                 }
             });
-            initCommonSFMLDrawableBindings<CircleShape>("CircleShape");
-            initCommonSFMLShapeBindings<CircleShape>("CircleShape");
-            _lua->registerMember<CircleShape, float>("radius",
+            initCommonSFMLDrawableBindings<CircleShape>("CircleShape", lua);
+            initCommonSFMLShapeBindings<CircleShape>("CircleShape", lua);
+            lua.registerMember<CircleShape, float>("radius",
             [](const CircleShape& circle) {
                 return circle.getRadius();
             },
@@ -176,9 +238,9 @@ void initSFMLTypeBindings() {
             });
         }
 
-        _lua->writeVariable("SFML", "RectangleShape", LuaEmptyArray);
+        lua.writeVariable("SFML", "RectangleShape", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "RectangleShape", "new",
+            lua.writeFunction("SFML", "RectangleShape", "new",
             [](const optional<float>& arg1, const optional<float>& arg2) {
                 if (arg1 && arg2) {
                     // If the scripter passed in two arguments...
@@ -194,24 +256,24 @@ void initSFMLTypeBindings() {
                     );
                 }
             });
-            _lua->registerMember<RectangleShape, Vector2f>("size",
+            lua.registerMember<RectangleShape, Vector2f>("size",
             [](const RectangleShape& rect) {
                 return rect.getSize();
             },
             [](RectangleShape& rect, const Vector2f& vec) {
                 rect.setSize(vec);
             });
-            initCommonSFMLDrawableBindings<RectangleShape>("RectangleShape");
-            initCommonSFMLShapeBindings<RectangleShape>("RectangleShape");
+            initCommonSFMLDrawableBindings<RectangleShape>("RectangleShape", lua);
+            initCommonSFMLShapeBindings<RectangleShape>("RectangleShape", lua);
         }
 
-        _lua->writeVariable("SFML", "Text", LuaEmptyArray);
+        lua.writeVariable("SFML", "Text", LuaEmptyArray);
         {
-            _lua->writeFunction("SFML", "Text", "new", []
-                                (
-                                    const optional<string>& arg1,
-                                    const optional<Font&>& arg2,
-                                    const optional<int>& arg3
+            lua.writeFunction("SFML", "Text", "new", []
+                              (
+                                  const optional<string>& arg1,
+                                  const optional<Font&>& arg2,
+                                  const optional<int>& arg3
             ) {
                 if (arg1 && arg2 && arg3) {
                     // If the user specified text, a font, and a size...
@@ -231,30 +293,30 @@ void initSFMLTypeBindings() {
                     return new Text;
                 }
             });
-            initCommonSFMLDrawableBindings<Text>("Text");
+            initCommonSFMLDrawableBindings<Text>("Text", lua);
 
-            _lua->registerMember<Text, string>("text",
+            lua.registerMember<Text, string>("text",
             [](const Text& text) {
                 return text.getString();
             },
             [](Text& text, const string& s) {
                 text.setString(s);
             });
-            _lua->registerMember<Text, int>("characterSize",
+            lua.registerMember<Text, int>("characterSize",
             [](const Text& text) {
                 return text.getCharacterSize();
             },
             [](Text& text, const int s) {
                 text.setCharacterSize(s);
             });
-            _lua->registerMember<Text, Color>("color",
+            lua.registerMember<Text, Color>("color",
             [](const Text& text) {
                 return text.getColor();
             },
             [](Text& text, const Color& c) {
                 text.setColor(c);
             });
-            _lua->registerMember<Text, bool>("bold",
+            lua.registerMember<Text, bool>("bold",
             [](const Text& text) {
                 return text.getStyle() & Text::Style::Bold;
             },
@@ -264,7 +326,7 @@ void initSFMLTypeBindings() {
                             text.getStyle() & ~Text::Style::Bold;
                 text.setStyle(style);
             });
-            _lua->registerMember<Text, bool>("italic",
+            lua.registerMember<Text, bool>("italic",
             [](const Text& text) {
                 return text.getStyle() & Text::Style::Italic;
             },
@@ -274,7 +336,7 @@ void initSFMLTypeBindings() {
                             text.getStyle() & ~Text::Style::Italic;
                 text.setStyle(style);
             });
-            _lua->registerMember<Text, bool>("underlined",
+            lua.registerMember<Text, bool>("underlined",
             [](const Text& text) {
                 return text.getStyle() & Text::Style::Underlined;
             },
@@ -285,6 +347,37 @@ void initSFMLTypeBindings() {
                 text.setStyle(style);
             });
 
+        }
+
+        lua.writeVariable("SFML", "Audio", LuaEmptyArray);
+        {
+            lua.writeVariable("SFML", "Audio", "Status", LuaEmptyArray);
+            {
+                lua.writeVariable("SFML", "Audio", "Status", "Stopped", SoundSource::Stopped);
+                lua.writeVariable("SFML", "Audio", "Status", "Paused", SoundSource::Paused);
+                lua.writeVariable("SFML", "Audio", "Status", "Playing", SoundSource::Playing);
+            }
+
+            lua.writeVariable("SFML", "Audio", "Sound", LuaEmptyArray);
+            {
+                lua.writeFunction("SFML", "Audio", "Sound", "get", [&game](const string& id) {
+                    return game.getSoundManager()->getSound(id);
+                });
+
+                initCommonSFMLSoundSourceBindings<Sound>("Sound", lua);
+            }
+
+            lua.writeVariable("SFML", "Audio", "Music", LuaEmptyArray);
+            {
+                /*
+                lua.writeFunction("SFML", "Audio", "Music", "get", [&game](const string& id) {
+                    return game.getMusicManager()->getMusic(id);
+                });
+                */
+
+
+                initCommonSFMLSoundSourceBindings<Music>("Music", lua);
+            }
         }
 
     }

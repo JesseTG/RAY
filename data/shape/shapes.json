@@ -3,6 +3,9 @@
     },
     "files" : {
         "test" : "data/shape/rect.svg",
-        "concave" : "data/shape/polyline.svg"
+        "concave" : "data/shape/polyline.svg",
+        "collide":"data/shape/collide.svg",
+        "star" : "data/shape/star.svg",
+        "ship" : "data/shape/ship.svg"
     }
 }

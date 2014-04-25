@@ -21,7 +21,7 @@ using std::weak_ptr;
 class ScriptManager : public ResourceManager
 {
     public:
-        ScriptManager(const shared_ptr<LuaContext> lua);
+        ScriptManager(const shared_ptr<LuaContext> lua, const string& path);
         virtual ~ScriptManager();
 
         bool loadConfigFile(const string& path) override;

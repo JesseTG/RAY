@@ -2,12 +2,15 @@
 #define WORLDSTATE_HPP
 
 #include <anax/anax.hpp>
+#include <boost/any.hpp>
 
 #include "fsm.hpp"
+#include "GameStates.hpp"
+#include "GameStateArguments.hpp"
 
 namespace util {
-
 using anax::World;
+using boost::any;
 
 /**
  * Represents a state (a screen, basically) the game can be  in (pause menu,
@@ -30,7 +33,7 @@ class WorldState
          *
          * @param w The @c anax::World governed by @c *this.
          */
-        virtual void onEnter(World& w) {}
+        virtual void onEnter(World& w, GameStateArguments&) {}
 
         /**
          * Called when @c *this transitions to another WorldState. By default,
@@ -41,7 +44,7 @@ class WorldState
          *
          * @param w The @c anax::World governed by @c *this.
          */
-        virtual void onExit(World& w) {}
+        virtual void onExit(World& w, GameStateArguments&) {}
 
         /**
          * Updates any pertinent world state (@c Systems, @c Entities, etc.).

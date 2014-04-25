@@ -1,6 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <string>
 #include <SFML/System.hpp>
 
 namespace ray {
