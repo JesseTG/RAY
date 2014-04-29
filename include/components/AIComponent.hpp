@@ -40,6 +40,11 @@ struct AIComponent : public anax::Component<AIComponent> {
     // Give the component a reference to one of them
     // Call it each frame
 
+    bool isMovingRight;
+    bool isMovingDown;
+    int moveStepsX;
+    int moveStepsY;
+    bool isStationary;
 
     static void luaInit(LuaContext& lua);
 };

@@ -39,7 +39,7 @@ void EntityFollowSystem::update() {
             direction.Normalize();
             direction *= ef.maxSpeed;
 
-             pbc.body->SetLinearVelocity(direction);
+             //pbc.body->SetLinearVelocity(direction);
         }
     }
 }

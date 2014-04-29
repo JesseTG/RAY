@@ -6,7 +6,11 @@ AIComponent::AIComponent(
 ) :
     update(ai)
 {
-    //ctor
+    isMovingRight = false;
+    isMovingDown = false;
+    moveStepsX = 0;
+    moveStepsY = 0;
+    isStationary = true;
 }
 
 void AIComponent::luaInit(LuaContext& lua) {

@@ -26,7 +26,7 @@ function create_Entity_Enemy(target, x, y, r)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local tbrc = TractorBeamRepellableComponent.new()
-    local aic = AIComponent.new(AI.Seek)
+    local aic = AIComponent.new(AI.Wander)
     local efc = EntityFollowComponent.new(target, 10)
 
 
