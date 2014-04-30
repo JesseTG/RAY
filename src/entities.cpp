@@ -88,6 +88,7 @@ void initBaseTypes(GameManager& game) {
     initAnaxTypeBindings(game);
     initSFMLTypeBindings(game);
     initBox2DTypeBindings(game);
+    initThorTypeBindings(game);
 }
 
 void initComponentLuaBindings(GameManager& game) {
@@ -97,6 +98,7 @@ void initComponentLuaBindings(GameManager& game) {
     REGISTER_COMPONENT(EntityFollowComponent);
     REGISTER_COMPONENT(FaceEntityComponent);
     REGISTER_COMPONENT(FourWayControlComponent);
+    REGISTER_COMPONENT(HealthComponent);
     REGISTER_COMPONENT(MouseFollowControlComponent);
     REGISTER_COMPONENT(PhysicsBodyComponent);
     REGISTER_COMPONENT(PhysicsFixtureComponent);
@@ -104,8 +106,8 @@ void initComponentLuaBindings(GameManager& game) {
     REGISTER_COMPONENT(RenderableComponent);
     REGISTER_COMPONENT(TractorBeamComponent);
     REGISTER_COMPONENT(TractorBeamRepellableComponent);
+    REGISTER_COMPONENT(TimerComponent);
     REGISTER_COMPONENT(VelocityComponent);
-    REGISTER_COMPONENT(HealthComponent);
 }
 }
 }

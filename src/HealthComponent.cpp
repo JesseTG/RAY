@@ -1,11 +1,14 @@
-#include "HealthComponent.h"
+#include "HealthComponent.hpp"
 
-HealthComponent::HealthComponent()
-{
-    //ctor
-}
+namespace ray {
+    HealthComponent::HealthComponent()
+    {
+        //ctor
+    }
 
-HealthComponent::~HealthComponent()
-{
-    //dtor
+    HealthComponent::~HealthComponent()
+    {
+        //dtor
+    }
+
 }
