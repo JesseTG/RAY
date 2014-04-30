@@ -7,6 +7,7 @@ namespace ray {
     #endif //DEBUG
 
     class AISystem;
+    class AnimationSystem;
     class EntityFollowSystem;
     class FaceEntitySystem;
     class FourWayControlSystem;
@@ -14,6 +15,7 @@ namespace ray {
     class MovementSystem;
     class PhysicsSystem;
     class RenderSystem;
+    class TimerSystem;
     class TractorBeamSystem;
 }
 
@@ -22,6 +24,7 @@ namespace ray {
 #endif //DEBUG
 
 #include "AISystem.hpp"
+#include "AnimationSystem.hpp"
 #include "EntityFollowSystem.hpp"
 #include "FaceEntitySystem.hpp"
 #include "FourWayControlSystem.hpp"
@@ -29,6 +32,7 @@ namespace ray {
 #include "MouseFollowControlSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
+#include "TimerSystem.hpp"
 #include "TractorBeamSystem.hpp"
 
 #endif // SYSTEMS_HPP
