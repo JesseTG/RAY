@@ -38,6 +38,9 @@ class TitleScreenState : public util::WorldState<vector<Event>>
         GameManager* _game;
         sfg::Window::Ptr _start_menu;
         sfg::Button::Ptr _start_button;
+        sfg::Image::Ptr _splash_widget;
+        sf::Image _splashScreenImg;
+        bool showMainMenu;
 };
 
 }

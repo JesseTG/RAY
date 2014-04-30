@@ -100,8 +100,8 @@ class WorldStateMachine
                     }
                 #endif //DEBUG
                 ray::LevelInfo a;
-                _current_state = this->_states.find(start);
-                _current_state->second->onEnter(*this->_world, a);
+                _current_state = start;
+                _states[_current_state]->onEnter(*this->_world, a);
         }
 
         /**
@@ -114,17 +114,17 @@ class WorldStateMachine
          * key without a corresponding state.
          */
         const WorldState<UpdateArguments...>& transition(const TAction& symbol, GameStateArguments& arg) {
-            pair<TAction, TStateKey> inputpair = make_pair(symbol, this->_current_state->first);
+            pair<TAction, TStateKey> inputpair = make_pair(symbol, this->_current_state);
             if (this->_transitions.count(inputpair)) {
                 // If we have a transition defined given our current state and
                 // and input symbol...
                 const TStateKey& newkey = this->_transitions.find(inputpair)->second;
                 if (this->_states.count(newkey)) {
                     // If we have a state defined for the given state key...
-                    this->_current_state->second->onExit(*this->_world, arg);
-                    this->_current_state = this->_states.find(newkey);
-                    this->_current_state->second->onEnter(*this->_world, arg);
-                    return *this->_states[this->_current_state->first];
+                    this->_states[_current_state]->onExit(*this->_world, arg);
+                    this->_current_state = newkey;
+                    this->_states[_current_state]->onEnter(*this->_world, arg);
+                    return *this->_states[this->_current_state];
                 }
                 else {
                     std::ostringstream err;
@@ -146,7 +146,7 @@ class WorldStateMachine
          * Returns the current @c WorldState.
          */
         const WorldState<UpdateArguments...>& currentState() const {
-            return this->_states[this->_current_state->second];
+            return this->_states[this->_states[_current_state]];
         }
 
         /**
@@ -157,14 +157,14 @@ class WorldStateMachine
          * template parameter
          */
         void update(const UpdateArguments&...args) {
-            this->_current_state->second->update(args...);
+            this->_states[_current_state]->update(args...);
         }
     private:
         World* _world;
         unordered_map<TStateKey, shared_ptr<WorldState<UpdateArguments...>>> _states;
         map<pair<TAction, TStateKey>, TStateKey> _transitions;
         // ^ TODO: Make this an unordered_map
-        typename decltype(_states)::iterator _current_state;
+        TStateKey _current_state;
 };
 }
 

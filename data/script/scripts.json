@@ -3,6 +3,7 @@
     },
     "files" : {
         "entities" : "data/script/entities.lua",
-        "levels" : "data/script/levels.lua"
+        "levels" : "data/script/levels.lua",
+		"constants" : "data/script/constants.lua"
     }
 }

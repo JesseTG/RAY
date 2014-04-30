@@ -1,6 +1,7 @@
 function create_Entity_Enemy(target, x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
+
     local fixturedef = Box2D.FixtureDef.new()
     local position = Box2D.Vector.new(x, y)
     local shape = Box2D.Shape.Circle.new(r)
@@ -17,8 +18,7 @@ function create_Entity_Enemy(target, x, y, r)
     bodydef.fixedRotation = true
 
     fixturedef:setShape(shape)
-    fixturedef.restitution = .3
-    fixturedef.density = 1
+    fixturedef.restitution = .9
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -28,9 +28,9 @@ function create_Entity_Enemy(target, x, y, r)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local tbrc = TractorBeamRepellableComponent.new()
-    local aic = AIComponent.new(AI.Seek)
-    local efc = EntityFollowComponent.new(target, 10000)
     local hc = HealthComponent.new(20)
+    local aic = AIComponent.new(AI.Wander)
+    local efc = EntityFollowComponent.new(target, 10)
 
 
     e:addPositionComponent(pc)
@@ -96,10 +96,9 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local fec = FaceEntityComponent.new(target)
-	local hc = HealthComponent.new(100)
 	local tc = TimerComponent.new(2)
+	local hc = HealthComponent.new(PLAYER_MAX_HEALTH)
 	tc.timer:connect(p)
-
     fwcc.targetSpeed = 1
 
     e:addRenderableComponent(rc)

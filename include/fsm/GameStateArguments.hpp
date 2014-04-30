@@ -6,6 +6,8 @@
 namespace util {
 struct GameStateArguments
 {
+public:
+    GameStateArguments(){};
     virtual ~GameStateArguments() {}
 
     //ray::GameState previous;

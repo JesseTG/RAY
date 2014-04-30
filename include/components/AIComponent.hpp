@@ -36,6 +36,14 @@ struct AIComponent : public anax::Component<AIComponent> {
      */
     AIUpdateFunction update;
 
+    bool isMovingRight;
+    bool isMovingDown;
+    int moveStepsX;
+    int moveStepsY;
+    bool isStationary;
+    bool cancelX;
+    bool cancelY;
+
     static void luaInit(LuaContext& lua);
 };
 

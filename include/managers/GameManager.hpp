@@ -98,9 +98,9 @@ class GameManager
 
         sfg::ProgressBar::Ptr _health_bar;
         anax::Entity _player_entity;
-        #ifdef DEBUG
-            DebugDrawing _debug_draw;
-        #endif // DEBUG
+#ifdef DEBUG
+        DebugDrawing _debug_draw;
+#endif // DEBUG
 
         static const string SCRIPT_PATH;
         static const string SHAPE_PATH;
