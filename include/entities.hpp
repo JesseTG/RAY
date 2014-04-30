@@ -76,10 +76,9 @@ void initAnaxTypeBindings(GameManager& game);
 void initBox2DTypeBindings(GameManager& game);
 void initComponentLuaBindings(GameManager& game);
 void initManagerTypeBindings(GameManager& game);
+void initThorTypeBindings(GameManager& game);
 
 }
 
 }
-
-
 #endif // ENTITIES_HPP
