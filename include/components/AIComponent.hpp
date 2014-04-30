@@ -45,6 +45,8 @@ struct AIComponent : public anax::Component<AIComponent> {
     int moveStepsX;
     int moveStepsY;
     bool isStationary;
+    bool cancelX;
+    bool cancelY;
 
     static void luaInit(LuaContext& lua);
 };

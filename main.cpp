@@ -19,6 +19,7 @@
 #include "listeners.hpp"
 #include "managers.hpp"
 #include "ai.hpp"
+#include "Constants.hpp"
 
 int main()
 {
@@ -35,6 +36,7 @@ int main()
     using namespace ray;
 
     GameManager gm;
+    Constants::loadConstants(*(gm.getLuaContext()));
     RenderWindow& window = *gm.getRenderWindow();
     // Create the main window
     entities::setLuaState(gm.getLuaContext());

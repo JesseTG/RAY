@@ -4,6 +4,7 @@
 #include <LuaContext.hpp>
 
 #include <iostream>
+#include <constants.hpp>
 
 namespace ray {
 
@@ -20,7 +21,7 @@ Entity seek(Entity e) {
         b2Vec2 ep = pbc.body->GetPosition();
         b2Vec2 direction = targetp - ep;
 
-        if (direction.Length() > 100.f) {
+        if (direction.Length() > Constants::SEEK_THRESHOLD) {
             e.getComponent<AIComponent>().update = &wander;
             return e;
         }
@@ -47,7 +48,7 @@ Entity wander(Entity e) {
         b2Vec2 direction = targetp - ep;
 
         AIComponent& aic = e.getComponent<AIComponent>();
-        if (direction.Length() <= 100.f) {
+        if (direction.Length() <= Constants::SEEK_THRESHOLD) {
             aic.update = &seek;
             return e;
         }
@@ -56,21 +57,21 @@ Entity wander(Entity e) {
         float vecY = pbc.body->GetLinearVelocity().y;
         if (!aic.isStationary && aic.moveStepsX == 0 && aic.moveStepsY == 0 && (vecX != 0 || vecY != 0)) {
             if (vecX > 0) {
-                vecX = -10;
+                vecX = -1 * Constants::ENEMY_STOPPING_FORCE;
             } else if (vecX < 0) {
-                vecX = 10;
+                vecX = Constants::ENEMY_STOPPING_FORCE;
             } else {
                 vecX = 0;
             }
             if (vecY > 0) {
-                vecY = -10;
+                vecY = -1 * Constants::ENEMY_STOPPING_FORCE;
             } else if (vecY < 0) {
-                vecY = 10;
+                vecY = Constants::ENEMY_STOPPING_FORCE;
             } else {
                 vecY = 0;
             }
             pbc.body->ApplyForceToCenter(b2Vec2(vecX, vecY), true);
-            if (std::abs(pbc.body->GetLinearVelocity().x) < 1 && std::abs(pbc.body->GetLinearVelocity().y) < 1) {
+            if (std::abs(pbc.body->GetLinearVelocity().x) < 2 && std::abs(pbc.body->GetLinearVelocity().y) < 2) {
                 pbc.body->SetLinearVelocity(b2Vec2(0, 0));
                 aic.isStationary = true;
             }
@@ -82,13 +83,23 @@ Entity wander(Entity e) {
             } else {
                 aic.isMovingRight = false;
             }
-            aic.moveStepsX = 100;
+            if (rand() % 2 == 0) {
+                aic.cancelX = false;
+            } else {
+                aic.cancelX = true;
+            }
+            aic.moveStepsX = Constants::ENEMY_MOVE_DURATION;
             aic.isStationary = false;
         } else {
-            if (aic.isMovingRight) {
-                pbc.body->ApplyForceToCenter(b2Vec2(10, 0), true);
-            } else {
-                pbc.body->ApplyForceToCenter(b2Vec2(-10, 0), true);
+            if (!aic.cancelX) {
+                float xForce = Constants::ENEMY_MOVEMENT_FORCE;
+                if (!aic.isMovingRight) {
+                    xForce = xForce * -1;
+                }
+                if (!aic.cancelY) {
+                    xForce = xForce / sqrt(2);
+                }
+                pbc.body->ApplyForceToCenter(b2Vec2(xForce, 0), true);
             }
             aic.moveStepsX--;
         }
@@ -98,13 +109,23 @@ Entity wander(Entity e) {
             } else {
                 aic.isMovingDown = false;
             }
-            aic.moveStepsY = 100;
+            if (rand() % 2 == 0) {
+                aic.cancelY = false;
+            } else {
+                aic.cancelY = true;
+            }
+            aic.moveStepsY = Constants::ENEMY_MOVE_DURATION;
             aic.isStationary = false;
         } else {
-            if (aic.isMovingDown) {
-                pbc.body->ApplyForceToCenter(b2Vec2(0, 10), true);
-            } else {
-                pbc.body->ApplyForceToCenter(b2Vec2(0, -10), true);
+            if (!aic.cancelY) {
+                float yForce = Constants::ENEMY_MOVEMENT_FORCE;
+                if (!aic.isMovingDown) {
+                    yForce = yForce * -1;
+                }
+                if (!aic.cancelX) {
+                    yForce = yForce / sqrt(2);
+                }
+                pbc.body->ApplyForceToCenter(b2Vec2(0, yForce), true);
             }
             aic.moveStepsY--;
         }

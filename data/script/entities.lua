@@ -1,6 +1,7 @@
 function create_Entity_Enemy(target, x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
+	
     local fixturedef = Box2D.FixtureDef.new()
     local position = Box2D.Vector.new(x, y)
     local shape = Box2D.Shape.Circle.new(r)
@@ -16,7 +17,7 @@ function create_Entity_Enemy(target, x, y, r)
     bodydef.position = position
 
     fixturedef:setShape(shape)
-    fixturedef.restitution = 2
+    fixturedef.restitution = .9
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
