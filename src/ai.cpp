@@ -10,7 +10,7 @@ namespace ray {
 namespace ai {
 Entity seek(Entity e) {
     static const ComponentFilter FILTER = ComponentFilter()
-        .requires<EntityFollowComponent, PhysicsBodyComponent>();
+        .requires<AIComponent, PhysicsBodyComponent>();
 
     if (FILTER.doesPassFilter(e.getComponentTypeList())) {
         PhysicsBodyComponent& pbc = e.getComponent<PhysicsBodyComponent>();
@@ -22,7 +22,7 @@ Entity seek(Entity e) {
         direction.Normalize();
         direction *= efc.maxSpeed;
 
-        pbc.body->SetLinearVelocity(direction);
+        pbc.body->ApplyForceToCenter(direction, true);
     }
 
     return e;

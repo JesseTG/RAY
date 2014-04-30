@@ -4,6 +4,7 @@ namespace ray {
 
 const ComponentFilter AISystem::FILTER = ComponentFilter()
     .requires<AIComponent>();
+
 AISystem::AISystem(LuaContext& lua) : Base(FILTER), _lua(&lua)
 {
     //ctor

@@ -36,11 +36,6 @@ struct AIComponent : public anax::Component<AIComponent> {
      */
     AIUpdateFunction update;
 
-    // Have a cache of AI behaviors in a module or something
-    // Give the component a reference to one of them
-    // Call it each frame
-
-
     static void luaInit(LuaContext& lua);
 };
 
