@@ -36,7 +36,10 @@ class InGameState : public util::WorldState<vector<Event>>
         sfg::Window::Ptr _gui;
         sfg::ProgressBar::Ptr _health_bar;
         sfg::Box::Ptr _health_box;
+        int _lives;
+        MultiContactListener contact_listener;
         TractorBeamRepellingListener tb_listener;
+        CollisionDamageListener damage_listener;
         FourWayControlSystem four_way_movement;
         RenderSystem rendering;
         AISystem ai;
@@ -46,6 +49,7 @@ class InGameState : public util::WorldState<vector<Event>>
         EntityFollowSystem follow_entity;
         TractorBeamSystem tractor_system;
         PhysicsSystem physics;
+        TimerSystem timer;
 #ifdef DEBUG
         DebugSystem debug;
 #endif // DEBUG
