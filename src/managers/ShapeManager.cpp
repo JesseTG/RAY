@@ -16,6 +16,7 @@
 
 #include <Thor/Vectors.hpp>
 
+#include "config.hpp"
 #include "util.hpp"
 #include "PolylineShape.hpp"
 #include "EllipseShape.hpp"
@@ -278,8 +279,8 @@ ShapeManager::ShapePair ShapeManager::_parse_circle(const ptree& xml) {
         if (find(style.classes.begin(), style.classes.end(), COLLIDABLE_CLASS) != style.classes.end()) {
             // If this <circle> is marked as collidable...
             b2shape = make_shared<b2CircleShape>();
-            b2shape->m_radius = r;
-            b2shape->m_p = b2Vec2(cx - r, cy - r);
+            b2shape->m_radius = r * METERS_PER_PIXEL;
+            b2shape->m_p = sfVecToB2Vec(style.transform.transformPoint(cx, cy));
         }
 
         return make_pair(shape, b2shape);
@@ -341,8 +342,8 @@ ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
                 // If this <rect> should be a solid polygon...
                 ptr = make_shared<b2PolygonShape>();
                 static_pointer_cast<b2PolygonShape>(ptr)->SetAsBox(
-                    size.x / 2,
-                    size.y / 2,
+                    (size.x / 2) * METERS_PER_PIXEL,
+                    (size.y / 2) * METERS_PER_PIXEL,
                     b2Vec2_zero,
                     0.0
                 );
@@ -350,11 +351,17 @@ ShapeManager::ShapePair ShapeManager::_parse_rect(const ptree& xml) {
             else if (find(classes.begin(), classes.end(), HOLLOW_CLASS) != classes.end()) {
                 // Else if this <rect> should be a chain...
                 ptr = make_shared<b2ChainShape>();
+                float px = pos.x * METERS_PER_PIXEL;
+                float py = pos.y * METERS_PER_PIXEL;
+                float sx = size.x * METERS_PER_PIXEL;
+                float sy = size.y * METERS_PER_PIXEL;
+                float pxsx = (pos.x + size.x) * METERS_PER_PIXEL;
+                float pysy = (pos.y + size.y) * METERS_PER_PIXEL;
                 array<b2Vec2, 4> vecs = {
-                    b2Vec2(pos.x, pos.y), // NW corner
-                    b2Vec2(pos.x + size.x, pos.y), // NE corner
-                    b2Vec2(pos.x + size.x, pos.y + size.y), // SE corner
-                    b2Vec2(pos.x, pos.y + size.y) // SW corner
+                    b2Vec2_zero, // NW corner
+                    b2Vec2(sx, 0), // NE corner
+                    b2Vec2(sx, sy), // SE corner
+                    b2Vec2(0, sy) // SW corner
                 };
                 static_pointer_cast<b2ChainShape>(ptr)->CreateLoop(vecs.data(), vecs.size());
             }
@@ -450,12 +457,11 @@ ShapeManager::ShapePair ShapeManager::_parse_line(const ptree& xml) {
         if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
             // If this <line> is collidable...
             b2shape = make_shared<b2EdgeShape>();
-            b2shape->Set(sfVecToB2Vec(v2), sfVecToB2Vec(v1));
+            b2shape->Set(b2Vec2_zero, sfVecToB2Vec(v2 - v1));
         }
     }
 
-    //shape->setStyle(Arrow::Style::Line);
-
+    shape->setStyle(Arrow::Style::Line);
     return make_pair(shape, b2shape);
 }
 
@@ -530,6 +536,8 @@ ShapeManager::ShapePair ShapeManager::_parse_polygon(const ptree& xml) {
             shape->setFillColor(style.fill);
             shape->setOutlineColor(style.stroke);
             shape->setOutlineThickness(style.stroke_width);
+            FloatRect rect = shape->getLocalBounds();
+            shape->setOrigin(rect.width / 2, rect.height / 2);
 
             const vector<string>& classes = style.classes;
             if (find(classes.begin(), classes.end(), COLLIDABLE_CLASS) != classes.end()) {
@@ -773,13 +781,11 @@ Transform ShapeManager::_parse_transform(const ptree& xml) {
 
         string trans_str = (*trans_it)[0];
         string trans_name = (*trans_it)[1];
-        std::cout << trans_str << std::endl;
         boost::sregex_iterator num_it(trans_str.begin(), trans_str.end(), SIGNED_DECIMAL_REGEX);
         vector<float> numbers;
 
         for (; num_it != end; ++num_it) {
             // And for each number within that transform's arguments...
-            std::cout << num_it->str() << std::endl;
             numbers.emplace_back(stof(num_it->str()));
         }
         transforms.emplace_back(trans_name, numbers);

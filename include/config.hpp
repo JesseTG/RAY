@@ -46,6 +46,12 @@ const int POSITION_ITERATIONS = 3;
  * It's pi.  What did you expect?
  */
 const double PI = 3.141592653589793;
+
+const float EPSILON = .00001;
+
+const int PIXELS_PER_METER = 64;
+
+const float METERS_PER_PIXEL = 1.0/PIXELS_PER_METER;
 }
 
 

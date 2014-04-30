@@ -41,6 +41,7 @@ using sf::ConvexShape;
 using sf::Vector2f;
 using sf::Transform;
 using sf::Group;
+using sf::FloatRect;
 using thor::ConcaveShape;
 using thor::Arrow;
 

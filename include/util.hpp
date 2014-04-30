@@ -110,7 +110,7 @@ inline NumberType square(const NumberType x) noexcept {
  */
 template<class NumberType>
 inline b2Vec2 sfVecToB2Vec(const Vector2<NumberType>& vec) noexcept {
-    return b2Vec2(vec.x, vec.y);
+    return b2Vec2(vec.x * METERS_PER_PIXEL, vec.y * METERS_PER_PIXEL);
 }
 
 template<class ContainerType, class NumberType = float>
@@ -118,7 +118,7 @@ inline vector<b2Vec2> sfVecsToB2Vecs(const ContainerType& container) noexcept {
     vector<b2Vec2> vecs;
     vecs.reserve(container.size());
     for (const Vector2<NumberType>& v : container) {
-        vecs.push_back(b2Vec2(v.x, v.y));
+        vecs.push_back(b2Vec2(v.x * METERS_PER_PIXEL, v.y * METERS_PER_PIXEL));
     }
 
     return vecs;
@@ -135,7 +135,7 @@ inline vector<b2Vec2> sfVecsToB2Vecs(const ContainerType& container) noexcept {
  */
 template<class NumberType = float>
 inline Vector2<NumberType> b2VecToSfVec(const b2Vec2& vec) noexcept {
-    return Vector2<NumberType>(vec.x, vec.y);
+    return Vector2<NumberType>(vec.x * PIXELS_PER_METER, vec.y * PIXELS_PER_METER);
 }
 
 /**
