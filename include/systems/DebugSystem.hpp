@@ -49,6 +49,7 @@ class DebugSystem : public anax::System<DebugSystem>
         void _change_level(const int);
     private:
         GameManager* _game;
+        bool _debug_draw;
 };
 }
 

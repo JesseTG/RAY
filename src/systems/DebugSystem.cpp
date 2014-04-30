@@ -7,7 +7,8 @@ namespace ray {
 
 DebugSystem::DebugSystem(GameManager& game) :
     Base(),
-    _game(&game)
+    _game(&game),
+    _debug_draw(false)
 {
     //ctor
 }
@@ -34,7 +35,7 @@ void DebugSystem::update(const vector<Event>& events) {
                             window.mapPixelToCoords(Mouse::getPosition(window));
                         // Where in the world will the bullet fly to?
 
-                        entities::createEntity("Enemy", this->_game->getPlayer(), worldpos.x, worldpos.y, 8.0f);
+                        entities::createEntity("Asteroid", 3, worldpos.x / 64, worldpos.y / 64);
                     }
                     break;
                 case Keyboard::Key::Num0:
@@ -46,6 +47,9 @@ void DebugSystem::update(const vector<Event>& events) {
                     if (e.key.control) {
                         this->_change_level(1);
                     }
+                    break;
+                case Keyboard::Key::BackSpace:
+                    this->_debug_draw = !this->_debug_draw;
                     break;
                 default:
                     break;
