@@ -28,8 +28,12 @@ class MusicManager : public ResourceManager
 
         void setGlobalVolume(const float globalVolume);
         float getGlobalVolume() const;
+
+        void setSong(const string& id);
+        Music& getCurrentSong();
     private:
-        unordered_map<string, string> _music;
+        unordered_map<string, string> _paths;
+        Music _music;
         float _global_volume;
 };
 }
