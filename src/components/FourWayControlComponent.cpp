@@ -24,5 +24,6 @@ void FourWayControlComponent::luaInit(LuaContext& lua) {
     lua.registerMember("down", &FourWayControlComponent::down);
     lua.registerMember("left", &FourWayControlComponent::left);
     lua.registerMember("right", &FourWayControlComponent::right);
+    lua.registerMember("targetSpeed", &FourWayControlComponent::targetSpeed);
 }
 }

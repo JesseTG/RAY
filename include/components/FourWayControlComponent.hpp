@@ -53,6 +53,8 @@ struct FourWayControlComponent : Component<FourWayControlComponent>
      */
     Key right;
 
+    float targetSpeed;
+
     static void luaInit(LuaContext& lua);
 };
 }
