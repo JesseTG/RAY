@@ -1,7 +1,7 @@
 <svg viewBox="0 0 640 480" xmlns:xlink="http://www.w3.org/1999/xlink">
     <title>Untitled 0</title>
     <desc/>
-    <rect class="collidable hollow" height="459.36" style="fill: none; fill-opacity: 0; stroke: #1443d1; stroke-opacity: 1; stroke-width: 1px; stroke-dashoffset: 0px; visibility: visible;" transform="rotate(0)" width="625.68" x="7.82" y="7.64">
+    <rect class="collidable hollow" height="459.36" style="fill: none; fill-opacity: 0; stroke: #1443d1; stroke-opacity: 1; stroke-width: 1px; stroke-dashoffset: 0px; visibility: visible;" transform="rotate(0)" width="625.68" x="-4" y="7.64">
         <title>rectangle2</title>
         <desc/>
     </rect>
@@ -9,7 +9,7 @@
         <title>polyline1</title>
         <desc/>
     </polyline>
-    <line class="collidable" style="stroke: #d31717; stroke-opacity: 1; stroke-width: 6px; stroke-dashoffset: 0px; visibility: visible;" x1="426.26" x2="571.46" y1="39.32" y2="81.56">
+    <line class="collidable" style="stroke: #d31717; stroke-opacity: 1; stroke-width: 6px; stroke-dashoffset: 0px; visibility: visible;" x1="426.26" x2="571.46" y1="49" y2="81.56">
         <title>line1</title>
         <desc/>
     </line>

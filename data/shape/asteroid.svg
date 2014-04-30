@@ -1,0 +1,12 @@
+<svg viewBox="0 0 64 64" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Untitled 0</title>
+    <desc/>
+    <polygon points="6.5667 6.57824 44.9476 5.1633 36.3762 24.4831 60.6334 33.245 48.3001 53.7117 20.3667 56.9784 6.76666 52.3117" style="fill: #ffbb72; fill-opacity: 0.5; stroke: #ff8300; stroke-opacity: 1; stroke-width: 4px; stroke-miterlimit: 4; stroke-dashoffset: 0px; visibility: visible;">
+        <title>polygon1</title>
+        <desc/>
+    </polygon>
+    <circle class="collidable" cx="33.1667" cy="32.445" r="23" style="fill: none; fill-opacity: 0; stroke: #ff0000; stroke-opacity: 0; stroke-width: 1px; stroke-dashoffset: 0px; visibility: hidden;">
+        <title>circle1</title>
+        <desc/>
+    </circle>
+</svg>

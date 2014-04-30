@@ -18,7 +18,7 @@ function create_Entity_Enemy(target, x, y, r)
 
     fixturedef:setShape(shape)
     fixturedef.restitution = .3
-    fixturedef.density = 5
+    fixturedef.density = 1
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -29,7 +29,8 @@ function create_Entity_Enemy(target, x, y, r)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local tbrc = TractorBeamRepellableComponent.new()
     local aic = AIComponent.new(AI.Seek)
-    local efc = EntityFollowComponent.new(target, 100000)
+    local efc = EntityFollowComponent.new(target, 10000)
+    local hc = HealthComponent.new(20)
 
 
     e:addPositionComponent(pc)
@@ -39,6 +40,7 @@ function create_Entity_Enemy(target, x, y, r)
     e:addPhysicsFixtureComponent(pfc)
     e:addAIComponent(aic)
     e:addEntityFollowComponent(efc)
+    e:addHealthComponent(hc)
 
     return e
 end
@@ -62,14 +64,19 @@ function create_Entity_MouseCircle(r)
     return e
 end
 
+function p()
+    print("china")
+end
+
+
 function create_Entity_KeyboardCircle(target, r, x, y)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
-    local b2circle = Box2D.Shape.Circle.new()
 
     local shape = Resource.Shape.Get("ship")
     local ship = shape.group
+    local shape = shape.physics_shapes[2]
 
     bodydef.allowSleep = false
     bodydef.type = Box2D.BodyType.Dynamic
@@ -77,34 +84,35 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     bodydef.fixedRotation = true
     bodydef.linearDamping = 1.5
 
-    fixturedef:setShape(b2circle)
-    fixturedef.density = 2
-    b2circle.radius = r
+    fixturedef:setShape(shape)
+    fixturedef.density = .5
     bodydef.position = Box2D.Vector.new(x, y)
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
 
     local rc = RenderableComponent.new(ship, 0)
-    local pc = PositionComponent.new(x, y)
-    local vc = VelocityComponent.new()
     local fwcc = FourWayControlComponent.new()
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local fec = FaceEntityComponent.new(target)
-	local hc = HealthComponent.new(6, 0)
+	local hc = HealthComponent.new(100)
+	local tc = TimerComponent.new(2)
+	tc.timer:connect(p)
+
+    fwcc.targetSpeed = 1
 
     e:addRenderableComponent(rc)
-    e:addPositionComponent(pc)
-    e:addVelocityComponent(vc)
     e:addFourWayControlComponent(fwcc)
     e:addPhysicsBodyComponent(pbc)
     e:addPhysicsFixtureComponent(pfc)
     e:addFaceEntityComponent(fec)
 	e:addHealthComponent(hc)
+	e:addTimerComponent(tc)
 
     return e
 end
+
 
 function create_Entity_TractorBeam(
     face_target,
@@ -115,10 +123,7 @@ function create_Entity_TractorBeam(
     force
 )
     local e = Anax.Entity.new()
-    local followpc = follow_target:getPositionComponent()
     local followpbc = follow_target:getPhysicsBodyComponent()
-    local targetpos = follow_target:getPositionComponent()
-    local targetpbc = follow_target:getPhysicsBodyComponent()
     local tbdef = Box2D.FixtureDef.new()
     tbdef.density = 0
     tbdef.isSensor = true
@@ -131,18 +136,62 @@ function create_Entity_TractorBeam(
     )
     tbdef:setShape(tbshape)
 
-    local rectangle = SFML.RectangleShape.new(length, starting_width);
+    local rectangle = SFML.RectangleShape.new(length * 64, starting_width * 64)
     rectangle.fillColor = SFML.Color.Blue
-    rectangle.origin = SFML.Vector.new(0, starting_width / 2)
+    rectangle.origin = SFML.Vector.new(0, 64 * (starting_width / 2))
 
     local fixture = followpbc.body:CreateFixture(tbdef)
 
-    e:addRenderableComponent(RenderableComponent.new(rectangle, -10))
-    e:addPositionComponent(PositionComponent.new(targetpos.x, targetpos.y))
-    e:addEntityFollowComponent(EntityFollowComponent.new(follow_target))
-    e:addFaceEntityComponent(FaceEntityComponent.new(face_target))
-    e:addPhysicsFixtureComponent(PhysicsFixtureComponent.new(fixture, e));
-    e:addTractorBeamComponent(TractorBeamComponent.new())
+    local rc = RenderableComponent.new(rectangle, -10)
+    local fec = FaceEntityComponent.new(face_target)
+    local pfc = PhysicsFixtureComponent.new(fixture, e)
+    local tbc = TractorBeamComponent.new()
+    tbc.starting_width = starting_width
+    tbc.starting_angle = starting_angle
+    tbc.length = length
+    tbc.force = force
+
+    e:addRenderableComponent(rc)
+    e:addFaceEntityComponent(fec)
+    e:addPhysicsFixtureComponent(pfc)
+    e:addTractorBeamComponent(tbc)
+
+    return e
+end
+
+function create_Entity_Asteroid(rank, x, y)
+    local e = Anax.Entity.new()
+    local bodydef = Box2D.BodyDef.new()
+    local fixturedef = Box2D.FixtureDef.new()
+
+    local shape = Resource.Shape.Get("asteroid")
+    local asteroid = shape.group
+
+    bodydef.allowSleep = false
+    bodydef.type = Box2D.BodyType.Dynamic
+    bodydef.active = true
+    bodydef.fixedRotation = false
+    bodydef.linearDamping = 1.5
+    bodydef.angularDamping = .5
+
+    fixturedef:setShape(shape.physics_shapes[2])
+    fixturedef.density = 2
+    bodydef.position = Box2D.Vector.new(x, y)
+
+    local body = Box2D.Body.new(bodydef)
+    local fixture = body:CreateFixture(fixturedef)
+
+    local rc = RenderableComponent.new(asteroid, 0)
+    local pbc = PhysicsBodyComponent.new(body, e)
+    local pfc = PhysicsFixtureComponent.new(fixture, e)
+	local hc = HealthComponent.new(20)
+	local tbrc = TractorBeamRepellableComponent.new()
+
+    e:addRenderableComponent(rc)
+    e:addPhysicsBodyComponent(pbc)
+    e:addPhysicsFixtureComponent(pfc)
+	e:addHealthComponent(hc)
+	e:addTractorBeamRepellableComponent(tbrc)
 
     return e
 end

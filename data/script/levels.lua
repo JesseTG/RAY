@@ -12,7 +12,7 @@ function loadLevel(id)
             local bdef = Box2D.BodyDef.new()
             bdef.awake = true
             bdef.active = true
-            bdef.position = Box2D.Vector.new(pc.x, pc.y)
+            bdef.position = Box2D.Vector.new(pc.x / 64, pc.y / 64)
             bdef.type = Box2D.BodyType.Static
             bdef.fixedRotation = true
 

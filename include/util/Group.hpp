@@ -13,6 +13,7 @@ using sf::Transform;
 using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
+//TODO: Make this not derive from a STL class (they're not meant for that)
 class Group : public sf::Drawable, public sf::Transformable, public vector<shared_ptr<Drawable>>
 {
     public:
