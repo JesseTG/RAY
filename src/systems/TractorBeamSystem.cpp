@@ -5,9 +5,14 @@
 #include <cmath>
 
 namespace ray {
+    using std::fabs;
     using std::exp;
+    using std::atan2;
+    using std::sin;
+    using std::cos;
+    using std::pow;
 const ComponentFilter TractorBeamSystem::FILTER = ComponentFilter()
-        .requires<PositionComponent, TractorBeamComponent>();
+        .requires<PhysicsFixtureComponent, TractorBeamComponent>();
 
 TractorBeamSystem::TractorBeamSystem(TractorBeamRepellingListener& listener) :
     Base(FILTER),
@@ -30,6 +35,7 @@ void TractorBeamSystem::update() {
 
         b2Filter filter;
 
+        //TODO: Decouple color-changing from beam logic
         if (Mouse::isButtonPressed(Mouse::Button::Left)) {
             shape->setFillColor(Color::Blue);
             tbc.force = 1.0;
@@ -51,11 +57,10 @@ void TractorBeamSystem::update() {
             b2Body* targetbody = i.second->GetBody();
 
             b2Vec2 diff = targetbody->GetPosition() - beambody->GetPosition();
-            //diff.Normalize();
-            //diff *= exp(diff.Length());
-            std::cout << diff.x << " " << diff.y << std::endl;
+            float distance = diff.Length();
+            float force = fabs(tbc.length - distance);
 
-            targetbody->ApplyForceToCenter(tbc.force * diff, true);
+            targetbody->ApplyForceToCenter(force * tbc.force * diff, true);
         }
     }
 

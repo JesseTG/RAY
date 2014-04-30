@@ -30,17 +30,6 @@ void EntityFollowSystem::update() {
 
             pos.position = follow_pos.position;
         }
-        else if (e.hasComponent<PhysicsBodyComponent>()) {
-            PhysicsBodyComponent& pbc = e.getComponent<PhysicsBodyComponent>();
-
-            b2Vec2 targetp = ef.target.getComponent<PhysicsBodyComponent>().body->GetPosition();
-            b2Vec2 ep = pbc.body->GetPosition();
-            b2Vec2 direction = targetp - ep;
-            direction.Normalize();
-            direction *= ef.maxSpeed;
-
-             pbc.body->SetLinearVelocity(direction);
-        }
     }
 }
 
