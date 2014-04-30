@@ -10,9 +10,7 @@ class StringManager : public ResourceManager
         StringManager();
         virtual ~StringManager();
     private:
-        bool load(const string& path) override;
-        bool loadFromConfigFile(const string& path) override;
-        bool reloadAll() override;
+        bool loadConfigFile(const string& path) override {return false;}
 
         const string& getScript(const string& key);
 };

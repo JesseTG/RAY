@@ -17,6 +17,9 @@
 
 #include "fsm.hpp"
 #include "managers.hpp"
+#ifdef DEBUG
+#include "DebugDrawing.hpp"
+#endif
 
 namespace ray {
 
@@ -32,10 +35,13 @@ using sf::RenderWindow;
 using sf::ContextSettings;
 using sf::VideoMode;
 using sf::Event;
-
 using anax::World;
+
 using util::WorldStateMachine;
 using util::WorldState;
+#ifdef DEBUG
+using util::DebugDrawing;
+#endif // DEBUG
 
 class GameManager
 {
@@ -89,7 +95,12 @@ class GameManager
         shared_ptr<GSM> _state_machine;
         shared_ptr<sfg::SFGUI> _sfgui;
         shared_ptr<sfg::Desktop> _desktop;
+
+        sfg::ProgressBar::Ptr _health_bar;
         anax::Entity _player_entity;
+        #ifdef DEBUG
+            DebugDrawing _debug_draw;
+        #endif // DEBUG
 
         static const string SCRIPT_PATH;
         static const string SHAPE_PATH;

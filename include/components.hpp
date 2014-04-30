@@ -14,6 +14,7 @@ namespace ray {
     struct VelocityComponent;
     struct TractorBeamComponent;
     struct TractorBeamRepellableComponent;
+    struct HealthComponent;
 }
 
 #include "AIComponent.hpp"
@@ -28,5 +29,6 @@ namespace ray {
 #include "VelocityComponent.hpp"
 #include "TractorBeamComponent.hpp"
 #include "TractorBeamRepellableComponent.hpp"
+#include "HealthComponent.hpp"
 
 #endif // COMPONENTS_HPP

@@ -49,6 +49,7 @@ void RenderSystem::update() {
         }
         window.draw(*(graphic.drawable), graphic.render_states);
     }
+    _gm->getHealthBar()->SetFraction((float)(_gm->getPlayer().getComponent<HealthComponent>().health) / 10);
     _gm->getDesktop()->Update(1.0f);
     _gm->getSfgui()->Display(*_gm->getRenderWindow());
     window.display();

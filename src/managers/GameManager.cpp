@@ -23,6 +23,7 @@ GameManager::GameManager() :
     _level_manager(new LevelManager(LEVEL_PATH)),
     _sfgui(new sfg::SFGUI),
     _desktop(new sfg::Desktop)
+    //_health_bar(sfg::ProgressBar::Create())
 {
     this->_render_window = make_shared<RenderWindow>(
                                VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
@@ -31,6 +32,10 @@ GameManager::GameManager() :
                                ContextSettings(0, 0, 4)
                            );
     this->_render_window->setFramerateLimit(FPS);
+#ifdef DEBUG
+    this->_debug_draw.setWindow(*this->_render_window);
+    this->_physics_world->SetDebugDraw(&(this->_debug_draw));
+#endif // DEBUG
     this->_state_machine.reset(
         new GSM(
             *this->_world,
@@ -44,6 +49,7 @@ GameManager::GameManager() :
         {make_pair("swap", "game"), "start"},
         {make_pair("advance", "game"), "game"},
     }));
+
 }
 
 GameManager::~GameManager()
@@ -109,6 +115,9 @@ anax::Entity GameManager::getPlayer() const {
 
 void GameManager::resetPhysicsWorld() {
     this->_physics_world.reset(new b2World(b2Vec2_zero));
+#ifdef DEBUG
+    this->_physics_world->SetDebugDraw(&(this->_debug_draw));
+#endif // DEBUG
 }
 
 void GameManager::resetLuaContext() {

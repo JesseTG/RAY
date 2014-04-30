@@ -105,6 +105,7 @@ void initComponentLuaBindings(GameManager& game) {
     REGISTER_COMPONENT(TractorBeamComponent);
     REGISTER_COMPONENT(TractorBeamRepellableComponent);
     REGISTER_COMPONENT(VelocityComponent);
+    REGISTER_COMPONENT(HealthComponent);
 }
 }
 }
