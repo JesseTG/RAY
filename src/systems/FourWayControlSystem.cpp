@@ -7,7 +7,7 @@
 namespace ray {
 
 const ComponentFilter FourWayControlSystem::FILTER = ComponentFilter()
-        .requires<FourWayControlComponent, PositionComponent, VelocityComponent, PhysicsBodyComponent>()
+        .requires<FourWayControlComponent, PhysicsBodyComponent>()
         .excludes<MouseFollowControlComponent>();
 
 FourWayControlSystem::FourWayControlSystem() : Base(FILTER)
@@ -23,35 +23,35 @@ FourWayControlSystem::~FourWayControlSystem()
 void FourWayControlSystem::update() {
     for (Entity& e : this->getEntities()) {
         // For each Entity available...
-        FourWayControlComponent& f = e.getComponent<FourWayControlComponent>();
-        VelocityComponent&       v = e.getComponent<VelocityComponent>();
+        FourWayControlComponent& fwcc = e.getComponent<FourWayControlComponent>();
         PhysicsBodyComponent& pb   = e.getComponent<PhysicsBodyComponent>();
 
-        if (Keyboard::isKeyPressed(f.left)) {
+        b2Vec2 velocity(0, 0);
+        if (Keyboard::isKeyPressed(fwcc.left)) {
             // If the user is trying to go left...
-            v.velocity.x = -100;
+            velocity.x = -fwcc.targetSpeed;
         }
-        else if (Keyboard::isKeyPressed(f.right)) {
+        else if (Keyboard::isKeyPressed(fwcc.right)) {
             // If the user is trying to go right...
-            v.velocity.x = 100;
+            velocity.x = fwcc.targetSpeed;
         }
         else {
-            v.velocity.x = 0;
+            velocity.x = 0;
         }
 
-        if (Keyboard::isKeyPressed(f.up)) {
+        if (Keyboard::isKeyPressed(fwcc.up)) {
             // If the user is trying to go up...
-            v.velocity.y = -100;
+            velocity.y = -fwcc.targetSpeed;
         }
-        else if (Keyboard::isKeyPressed(f.down)) {
+        else if (Keyboard::isKeyPressed(fwcc.down)) {
             // If the user is trying to go down...
-            v.velocity.y = 100;
+            velocity.y = fwcc.targetSpeed;
         }
         else {
-            v.velocity.y = 0;
+            velocity.y = 0;
         }
 
-        pb.body->SetLinearVelocity(sfVecToB2Vec(v.velocity));
+        pb.body->ApplyForceToCenter(velocity, true);
     }
 }
 

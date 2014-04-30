@@ -21,7 +21,6 @@ class RenderSystem : public System<RenderSystem>
 {
     public:
         RenderSystem(GameManager&);
-
         void update();
     private:
 		GameManager* _gm;

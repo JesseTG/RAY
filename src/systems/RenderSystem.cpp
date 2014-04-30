@@ -2,13 +2,16 @@
 
 #include <algorithm>
 #include <iostream>
+#include "util.hpp"
+#include <cmath>
 
 namespace ray {
 
 using std::sort;
 
 const ComponentFilter RenderSystem::FILTER = ComponentFilter()
-        .requires<RenderableComponent, PositionComponent>();
+        .requires<RenderableComponent>()
+        .requiresOneOf<PhysicsBodyComponent, PhysicsFixtureComponent, PositionComponent>();
 
 RenderSystem::RenderSystem(GameManager& gm) : Base(FILTER), _gm(&gm)
 {
@@ -34,24 +37,40 @@ void RenderSystem::update() {
     sort(entities.begin(), entities.end(), &RenderSystem::_sort_entities);
 
     window.clear();
-    const Vector2f playerPosVect = (_gm->getPlayer().getComponent<PositionComponent>()).position;
-    _view.setCenter(playerPosVect.x, playerPosVect.y);
+    const b2Vec2& pos = this->_gm->getPlayer().getComponent<PhysicsBodyComponent>().body->GetPosition();
+    _view.setCenter(pos.x * PIXELS_PER_METER, pos.y * PIXELS_PER_METER);
     window.setView(_view);
 
     for (Entity& e : entities) {
         RenderableComponent& graphic = e.getComponent<RenderableComponent>();
-        PositionComponent&   p       = e.getComponent<PositionComponent>();
-
-        if (graphic.transformable) {
-            // If this render item can be transformed...
-            // TODO: Figure out if SFML handles clipping under the hood
-            graphic.transformable->setPosition(p.position);
+        if (e.hasComponent<PhysicsBodyComponent>()) {
+            PhysicsBodyComponent& pbc = e.getComponent<PhysicsBodyComponent>();
+            const b2Vec2& pos = pbc.body->GetPosition();
+            graphic.transformable->setPosition(pos.x * PIXELS_PER_METER, pos.y * PIXELS_PER_METER);
+            graphic.transformable->setRotation(toDegrees(pbc.body->GetAngle()));
         }
+        else if (e.hasComponent<PhysicsFixtureComponent>()) {
+            PhysicsFixtureComponent& pfc = e.getComponent<PhysicsFixtureComponent>();
+            b2Body* body = pfc.fixture->GetBody();
+            const b2Vec2& pos = body->GetPosition();
+            graphic.transformable->setPosition(pos.x * PIXELS_PER_METER, pos.y * PIXELS_PER_METER);
+            graphic.transformable->setRotation(toDegrees(body->GetAngle()));
+        }
+        else if (e.hasComponent<PositionComponent>()) {
+
+            PositionComponent& p = e.getComponent<PositionComponent>();
+            if (graphic.transformable) {
+                // If this render item can be transformed...
+                // TODO: Figure out if SFML handles clipping under the hood
+                graphic.transformable->setPosition(p.position * float(PIXELS_PER_METER));
+            }
+        }
+
         window.draw(*(graphic.drawable), graphic.render_states);
     }
-    _gm->getHealthBar()->SetFraction((float)(_gm->getPlayer().getComponent<HealthComponent>().health) / 10);
     _gm->getDesktop()->Update(1.0f);
     _gm->getSfgui()->Display(*_gm->getRenderWindow());
+    _gm->getPhysicsWorld()->DrawDebugData();
     window.display();
 }
 
