@@ -94,10 +94,6 @@ void initCommonSFMLShapeBindings(const string& name, LuaContext& lua) {
 
 template<class SFSoundSourceT>
 void initCommonSFMLSoundSourceBindings(const string& name, LuaContext& lua) {
-    lua.registerFunction("play", &SFSoundSourceT::play);
-    lua.registerFunction("pause", &SFSoundSourceT::pause);
-    lua.registerFunction("stop", &SFSoundSourceT::stop);
-
     lua.registerMember<SFSoundSourceT, bool>("loop",
     [](const SFSoundSourceT& sound) {
         return sound.getLoop();
@@ -360,23 +356,33 @@ void initSFMLTypeBindings(GameManager& game) {
 
             lua.writeVariable("SFML", "Audio", "Sound", LuaEmptyArray);
             {
-                lua.writeFunction("SFML", "Audio", "Sound", "get", [&game](const string& id) {
+                lua.writeFunction("SFML", "Audio", "Sound", "Get", [&game](const string& id) {
                     return game.getSoundManager()->getSound(id);
                 });
 
                 initCommonSFMLSoundSourceBindings<Sound>("Sound", lua);
+                lua.registerFunction("play", &Sound::play);
+                lua.registerFunction("pause", &Sound::pause);
+                lua.registerFunction("stop", &Sound::stop);
             }
 
             lua.writeVariable("SFML", "Audio", "Music", LuaEmptyArray);
             {
-                /*
-                lua.writeFunction("SFML", "Audio", "Music", "get", [&game](const string& id) {
-                    return game.getMusicManager()->getMusic(id);
+
+                lua.writeFunction("SFML", "Audio", "Music", "Load", [&game](const string& id) {
+                    game.getMusicManager()->setSong(id);
+                    return &(game.getMusicManager()->getCurrentSong());
                 });
-                */
-
-
                 initCommonSFMLSoundSourceBindings<Music>("Music", lua);
+                lua.registerFunction<Music, void(void)>("play", [](Music& music) {
+                    music.play();
+                });
+                lua.registerFunction<Music, void(void)>("pause", [](Music& music) {
+                    music.pause();
+                });
+                lua.registerFunction<Music, void(void)>("stop", [](Music& music) {
+                    music.stop();
+                });
             }
         }
 
