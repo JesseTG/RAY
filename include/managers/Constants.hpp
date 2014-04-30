@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
-#include <luacontext.hpp>
+#include <LuaContext.hpp>
 
 namespace ray {
 class Constants

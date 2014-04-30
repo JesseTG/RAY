@@ -4,7 +4,7 @@
 #include <LuaContext.hpp>
 
 #include <iostream>
-#include <constants.hpp>
+#include <Constants.hpp>
 
 namespace ray {
 
