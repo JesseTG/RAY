@@ -1,8 +1,11 @@
 #include "entities.hpp"
 
+#include <cassert>
 #include <functional>
+#include <vector>
 #include <LuaContext.hpp>
 #include <Thor/Time.hpp>
+#include <Thor/Input.hpp>
 #include <SFML/System.hpp>
 #include <boost/variant.hpp>
 #include <boost/variant/get.hpp>
@@ -10,10 +13,12 @@
 namespace ray {
 namespace entities {
 using std::function;
+using std::vector;
 using boost::get;
 using sf::Time;
 using thor::Timer;
 using thor::CallbackTimer;
+using thor::Connection;
 using thor::StopWatch;
 
 template<class ThorTimerT>
@@ -46,9 +51,17 @@ void initThorTypeBindings(GameManager& game) {
         lua.writeVariable("Thor", "CallbackTimer", LuaEmptyArray);
         {
             lua.writeFunction("Thor", "CallbackTimer", "new", getDefaultConstructorLambda<CallbackTimer>());
-            initCommonThorTimerBindings<CallbackTimer>("CallbackTimer", lua);
-            lua.registerFunction("connect", &CallbackTimer::connect0);
+            typedef function<void(void)> nullary;
+            lua.registerFunction<CallbackTimer, void(nullary)>("connect",
+            [](CallbackTimer& timer, const nullary& f) {
+                static vector<Connection> connections;
+                Connection c = timer.connect0(f);
+                connections.push_back(c);
+                assert(c.isConnected());
+            });
             lua.registerFunction("clear", &CallbackTimer::clearConnections);
+            lua.registerFunction("update", &CallbackTimer::update);
+            initCommonThorTimerBindings<CallbackTimer>("CallbackTimer", lua);
         }
 
         lua.writeVariable("Thor", "StopWatch", LuaEmptyArray);

@@ -1,5 +1,6 @@
 #include "entities.hpp"
 #include "util.hpp"
+#include "Group.hpp"
 
 #include <exception>
 #include <LuaContext.hpp>
@@ -232,6 +233,11 @@ void initSFMLTypeBindings(GameManager& game) {
             [](CircleShape& circle, const float radius) {
                 circle.setRadius(radius);
             });
+        }
+
+        lua.writeVariable("SFML", "Group", LuaEmptyArray);
+        {
+            initCommonSFMLDrawableBindings<Group>("Group", lua);
         }
 
         lua.writeVariable("SFML", "RectangleShape", LuaEmptyArray);
