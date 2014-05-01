@@ -71,7 +71,7 @@ void RenderSystem::update() {
             if (graphic.transformable) {
                 // If this render item can be transformed...
                 // TODO: Figure out if SFML handles clipping under the hood
-                graphic.transformable->setPosition(p.position * float(PIXELS_PER_METER));
+                graphic.transformable->setPosition(p.position);
             }
         }
 
