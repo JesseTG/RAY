@@ -9,6 +9,7 @@ PhysicsFixtureComponent::PhysicsFixtureComponent(b2Fixture* fixture, Entity& e) 
 }
 
 PhysicsFixtureComponent::~PhysicsFixtureComponent() {
+    this->fixture->SetUserData(nullptr);
 }
 
 void PhysicsFixtureComponent::_set_fixture(b2Fixture* fixture, Entity& e) {

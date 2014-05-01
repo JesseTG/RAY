@@ -31,15 +31,25 @@ RenderSystem::RenderSystem(GameManager& gm) : Base(FILTER), _gm(&gm)
     gm.getRenderWindow()->setView(_view);
 }
 
+//TODO: Build a render list, and add a graphic to it whenever onEntityAdded is called
+//No need to sort every frame that way
 void RenderSystem::update() {
     auto entities = this->getEntities();
     RenderWindow& window = *this->_gm->getRenderWindow();
     sort(entities.begin(), entities.end(), &RenderSystem::_sort_entities);
 
     window.clear();
-    const b2Vec2& pos = this->_gm->getPlayer().getComponent<PhysicsBodyComponent>().body->GetPosition();
-    _view.setCenter(pos.x * PIXELS_PER_METER, pos.y * PIXELS_PER_METER);
-    window.setView(_view);
+    const Entity& player = this->_gm->getPlayer();
+
+    //TODO: Separate the camera to another System
+    if (player.isValid() && player.hasComponent<PhysicsBodyComponent>()) {
+        PhysicsBodyComponent& pbc = player.getComponent<PhysicsBodyComponent>();
+        if (pbc.body) {
+            const b2Vec2& pos = pbc.body->GetPosition();
+            _view.setCenter(pos.x * PIXELS_PER_METER, pos.y * PIXELS_PER_METER);
+            window.setView(_view);
+        }
+    }
 
     for (Entity& e : entities) {
         RenderableComponent& graphic = e.getComponent<RenderableComponent>();
@@ -57,7 +67,6 @@ void RenderSystem::update() {
             graphic.transformable->setRotation(toDegrees(body->GetAngle()));
         }
         else if (e.hasComponent<PositionComponent>()) {
-
             PositionComponent& p = e.getComponent<PositionComponent>();
             if (graphic.transformable) {
                 // If this render item can be transformed...

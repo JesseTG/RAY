@@ -5,8 +5,15 @@
 
 namespace ray {
 using boost::optional;
+
+RenderableComponent::~RenderableComponent() {
+    assert(drawable.use_count() > 1);
+    assert(drawable);
+}
+
 void RenderableComponent::luaInit(LuaContext& lua) {
-    typedef variant<CircleShape*, RectangleShape*, ConvexShape*, Sprite*, Text*, VertexArray*, shared_ptr<Drawable>> drawtypes;
+    typedef variant<CircleShape*, RectangleShape*, ConvexShape*, Sprite*, Text*, VertexArray*, shared_ptr<Drawable>>
+            drawtypes;
     lua.writeFunction(
         "RenderableComponent",
         "new",

@@ -33,7 +33,7 @@ void initAnaxTypeBindings(GameManager& game) {
         {
             lua.writeFunction("Anax", "Entity", "new", [&game]() {
                 Entity e = game.getWorld()->createEntity();
-                game.getWorld()->activateEntity(e);
+                e.activate();
                 return e;
             });
             lua.registerFunction("isActivated", &Entity::isActivated);

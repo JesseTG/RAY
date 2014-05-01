@@ -85,6 +85,8 @@ struct RenderableComponent : Component<RenderableComponent>
         layer(layer)
     {}
 
+    ~RenderableComponent();
+
     /**
      * A @c std::shared_ptr to the drawable object.
      */

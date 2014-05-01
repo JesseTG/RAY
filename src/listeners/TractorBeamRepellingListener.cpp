@@ -53,6 +53,8 @@ void TractorBeamRepellingListener::BeginContact(b2Contact* contact) {
     }
 #endif // DEBUG
 
+    if (!(ea->isValid() && eb->isValid())) return;
+
     bool tracta = ea->hasComponent<TractorBeamComponent>();
     bool tractb = eb->hasComponent<TractorBeamComponent>();
     if (tracta == tractb) {

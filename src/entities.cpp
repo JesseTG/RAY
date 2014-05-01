@@ -103,6 +103,7 @@ void initComponentLuaBindings(GameManager& game) {
     REGISTER_COMPONENT(PhysicsBodyComponent);
     REGISTER_COMPONENT(PhysicsFixtureComponent);
     REGISTER_COMPONENT(PositionComponent);
+    REGISTER_COMPONENT(RemovalComponent);
     REGISTER_COMPONENT(RenderableComponent);
     REGISTER_COMPONENT(TractorBeamComponent);
     REGISTER_COMPONENT(TractorBeamRepellableComponent);

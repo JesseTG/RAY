@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <exception>
+#include "components.hpp"
 
 namespace ray {
 
@@ -10,6 +11,8 @@ PhysicsBodyComponent::PhysicsBodyComponent(b2Body* body, Entity& e) : body(body)
 }
 
 PhysicsBodyComponent::~PhysicsBodyComponent() {
+    this->body->SetUserData(nullptr);
+    this->body->SetActive(false);
 }
 
 void PhysicsBodyComponent::luaInit(LuaContext& lua) {

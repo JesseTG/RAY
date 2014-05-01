@@ -46,6 +46,8 @@ void CollisionDamageListener::BeginContact(b2Contact* contact) {
     }
 #endif // DEBUG
 
+    if (!(ea->isValid() && eb->isValid())) return;
+
     bool healtha = ea->hasComponent<HealthComponent>();
     bool healthb = eb->hasComponent<HealthComponent>();
     if (healtha && healthb) {

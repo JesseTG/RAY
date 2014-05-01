@@ -5,12 +5,12 @@
 #include <cmath>
 
 namespace ray {
-    using std::fabs;
-    using std::exp;
-    using std::atan2;
-    using std::sin;
-    using std::cos;
-    using std::pow;
+using std::fabs;
+using std::exp;
+using std::atan2;
+using std::sin;
+using std::cos;
+using std::pow;
 const ComponentFilter TractorBeamSystem::FILTER = ComponentFilter()
         .requires<PhysicsFixtureComponent, TractorBeamComponent>();
 
@@ -30,6 +30,7 @@ void TractorBeamSystem::update() {
     for (Entity& e : this->getEntities()) {
         TractorBeamComponent& tbc = e.getComponent<TractorBeamComponent>();
         RenderableComponent& ren = e.getComponent<RenderableComponent>();
+        if (!e.hasComponent<PhysicsFixtureComponent>()) continue;
         PhysicsFixtureComponent& fix = e.getComponent<PhysicsFixtureComponent>();
         Shape* shape = static_cast<Shape*>(ren.drawable.get());
 
@@ -49,7 +50,9 @@ void TractorBeamSystem::update() {
             filter.categoryBits = 0;
             tbc.force = 0;
         }
-        fix.fixture->SetFilterData(filter);
+        if (fix.fixture) {
+            fix.fixture->SetFilterData(filter);
+        }
 
         for (auto& i : this->_listener->getTractorBeamGrips()) {
             // i.first is the tractor beam fixture, i.second is the target fixture
