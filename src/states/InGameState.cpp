@@ -40,6 +40,9 @@ InGameState::InGameState(GameManager& game) :
 
     this->_gui->Add(this->_health_box);
     game.getDesktop()->Add(this->_gui);
+
+    getSpawningPoint = this->_game->getLuaContext()->readVariable<function<Entity(int)>>("getSpawningPoint");
+    getSpawningFreq = this->_game->getLuaContext()->readVariable<function<int(int)>>("getSpawningFreq");
 }
 
 InGameState::~InGameState() {
@@ -62,6 +65,15 @@ void InGameState::onEnter(World& w, GameStateArguments& arg) {
 
     this->_lives = level->lives;
     this->_load_level(level->name);
+
+    spawningAmt = this->_game->getLuaContext()->readVariable<int>("spawningAmt");
+    spawningPoints.clear();
+    spawningFreqs.clear();
+    for (int i = 1; i <= spawningAmt; i++) {
+        spawningPoints.push_back(getSpawningPoint(i));
+        spawningFreqs.push_back(getSpawningFreq(i));
+        spawningTimers.push_back(getSpawningFreq(i));
+    }
 
     w.addSystem(timer);
     w.addSystem(four_way_movement);
@@ -87,6 +99,21 @@ void InGameState::onExit(World& w, GameStateArguments& arg) {
 }
 
 void InGameState::update(const vector<Event>& events) {
+    auto spi = spawningPoints.begin();
+    auto sfi = spawningFreqs.begin();
+    auto sti = spawningTimers.begin();
+    while (spi != spawningPoints.end()) {
+        if (*sti == 0) {
+            entities::createEntity("Enemy", this->_game->getPlayer(), spi->getComponent<PositionComponent>().position.x, spi->getComponent<PositionComponent>().position.y, Constants::ENEMY_RADIUS);
+            *sti = *sfi;
+        } else {
+            *sti = *sti - 1;
+        }
+        spi++;
+        sfi++;
+        sti++;
+    }
+
     timer.update();
     mouse_following.update();
     ai.update();

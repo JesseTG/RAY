@@ -2,6 +2,7 @@
 #define INGAMESTATE_HPP
 
 #include <vector>
+#include <list>
 
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -13,9 +14,11 @@
 #include "listeners.hpp"
 #include "components.hpp"
 #include "systems.hpp"
+#include "Constants.hpp"
 
 namespace ray {
 using std::vector;
+using std::list;
 using sf::Event;
 using anax::World;
 using util::GameStateArguments;
@@ -53,6 +56,12 @@ class InGameState : public util::WorldState<vector<Event>>
         PhysicsSystem physics;
         TimerSystem timer;
         RemovalSystem removal;
+        function<Entity(int)> getSpawningPoint;
+        function<int(int)> getSpawningFreq;
+        int spawningAmt;
+        list<Entity> spawningPoints;
+        list<int> spawningFreqs;
+        list<int> spawningTimers;
 
 #ifdef DEBUG
         DebugSystem debug;
