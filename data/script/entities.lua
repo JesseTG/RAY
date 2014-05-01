@@ -93,7 +93,6 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     local fec = FaceEntityComponent.new(target)
 	local tc = TimerComponent.new(2)
 	local hc = HealthComponent.new(PLAYER_MAX_HEALTH)
-	tc.timer:connect(p)
     fwcc.targetSpeed = 1
 
     e:addRenderableComponent(rc)
