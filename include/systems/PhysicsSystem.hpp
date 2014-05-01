@@ -3,21 +3,27 @@
 
 #include <anax/anax.hpp>
 #include <Box2D/Box2D.h>
+#include <memory>
 
 namespace ray {
 
+using std::weak_ptr;
+using std::shared_ptr;
 using anax::ComponentFilter;
+using anax::Entity;
 
 class PhysicsSystem : public anax::System<PhysicsSystem>
 {
     public:
-        PhysicsSystem(b2World&);
-        PhysicsSystem(b2World*);
+        PhysicsSystem(shared_ptr<b2World>);
         ~PhysicsSystem();
         void update();
-        void setWorld(b2World* world) { this->_world = world;}
+        void setWorld(shared_ptr<b2World> world) {this->_world = world;}
+
+        void onEntityAdded(Entity& entity) override;
+        void onEntityRemoved(Entity& entity) override;
     private:
-        b2World* _world;
+        weak_ptr<b2World> _world;
 
         static const ComponentFilter FILTER;
 };
