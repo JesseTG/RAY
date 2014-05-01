@@ -28,8 +28,38 @@ function loadLevel(id)
             e:addPhysicsFixtureComponent(pfc)
         end
     end
+	
+	if id == "collide" then
+		load_Level_collide()
+	elseif id == "star" then
+		load_Level_star()
+	end
+end
+
+spawningPoints = {}
+spawningFreqs = {}
+spawningAmt = 0
+
+function getSpawningPoint(index)
+	return spawningPoints[index]
+end
+
+function getSpawningFreq(index)
+	return spawningFreqs[index]
 end
 
 function load_Level_collide()
+	spawningAmt = 2
+	spawningPoints = {}
+	spawningFreqs = {}
+	spawningPoints[1] = create_Entity_Spawning_Point(2, 2)
+	spawningFreqs[1] = 500
+	spawningPoints[2] = create_Entity_Spawning_Point(4, 4)
+	spawningFreqs[2] = 400
+end
 
+function load_Level_star()
+	spawningAmt = 0
+	spawningPoints = {}
+	spawningFreqs = {}
 end

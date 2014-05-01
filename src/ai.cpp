@@ -31,7 +31,7 @@ Entity seek(Entity e) {
         }
 
         direction.Normalize();
-        direction *= efc.maxSpeed;
+        direction *= Constants::ENEMY_MOVEMENT_FORCE;
 
         pbc.body->ApplyForceToCenter(direction, true);
     }

@@ -11,6 +11,7 @@ class Constants
         virtual ~Constants();
 
         static void loadConstants(LuaContext&);
+        static float ENEMY_RADIUS;
         static float SEEK_THRESHOLD;
         static int ENEMY_MOVEMENT_FORCE;
         static int ENEMY_MOVE_DURATION;

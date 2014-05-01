@@ -5,6 +5,13 @@ function Enemy_die(e)
     return e
 end
 
+function create_Entity_Spawning_Point(x, y)
+	local e = Anax.Entity.new()
+	local pc = PositionComponent.new(x, y)
+	e:addPositionComponent(pc)
+	return e
+end
+
 function create_Entity_Enemy(target, x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
