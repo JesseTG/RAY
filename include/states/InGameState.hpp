@@ -37,6 +37,7 @@ class InGameState : public util::WorldState<vector<Event>>
         sfg::ProgressBar::Ptr _health_bar;
         sfg::Box::Ptr _health_box;
         int _lives;
+        function<void(string)> _load_level;
         MultiContactListener contact_listener;
         TractorBeamRepellingListener tb_listener;
         CollisionDamageListener damage_listener;
@@ -44,12 +45,15 @@ class InGameState : public util::WorldState<vector<Event>>
         RenderSystem rendering;
         AISystem ai;
         MovementSystem movement;
+        DeathSystem death;
         MouseFollowControlSystem mouse_following;
         FaceEntitySystem face_entity;
         EntityFollowSystem follow_entity;
         TractorBeamSystem tractor_system;
         PhysicsSystem physics;
         TimerSystem timer;
+        RemovalSystem removal;
+
 #ifdef DEBUG
         DebugSystem debug;
 #endif // DEBUG

@@ -17,6 +17,7 @@
 
 #include "fsm.hpp"
 #include "managers.hpp"
+#include "listeners.hpp"
 #ifdef DEBUG
 #include "DebugDrawing.hpp"
 #endif
@@ -60,6 +61,7 @@ class GameManager
 
         GameManager();
         GameManager(GameManager& other) = delete;
+        GameManager& operator=(GameManager& other) = delete;
         virtual ~GameManager();
 
         shared_ptr<LuaContext> getLuaContext() const;
@@ -96,8 +98,8 @@ class GameManager
         shared_ptr<sfg::SFGUI> _sfgui;
         shared_ptr<sfg::Desktop> _desktop;
 
-        sfg::ProgressBar::Ptr _health_bar;
         anax::Entity _player_entity;
+        DestructionListener destruction_listener;
 #ifdef DEBUG
         DebugDrawing _debug_draw;
 #endif // DEBUG

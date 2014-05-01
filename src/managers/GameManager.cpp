@@ -13,7 +13,6 @@ const string GameManager::LEVEL_PATH = "data/level/levels.json";
 
 GameManager::GameManager() :
     _lua(new LuaContext),
-    _physics_world(new b2World(b2Vec2_zero)),
     _world(new World),
     _script_manager(new ScriptManager(_lua, SCRIPT_PATH)),
     _image_manager(new ImageManager),
@@ -21,9 +20,9 @@ GameManager::GameManager() :
     _sound_manager(new SoundManager(SOUND_PATH)),
     _music_manager(new MusicManager(MUSIC_PATH)),
     _level_manager(new LevelManager(LEVEL_PATH)),
+    _physics_world(new b2World(b2Vec2_zero)),
     _sfgui(new sfg::SFGUI),
     _desktop(new sfg::Desktop)
-    //_health_bar(sfg::ProgressBar::Create())
 {
     this->_render_window = make_shared<RenderWindow>(
                                VideoMode(SCREEN_SIZE.x, SCREEN_SIZE.y),
@@ -34,7 +33,7 @@ GameManager::GameManager() :
     this->_render_window->setFramerateLimit(FPS);
 #ifdef DEBUG
     this->_debug_draw.setWindow(*this->_render_window);
-    this->_physics_world->SetDebugDraw(&(this->_debug_draw));
+    this->resetPhysicsWorld();
 #endif // DEBUG
     this->_state_machine.reset(
         new GSM(
@@ -114,7 +113,11 @@ anax::Entity GameManager::getPlayer() const {
 }
 
 void GameManager::resetPhysicsWorld() {
-    this->_physics_world.reset(new b2World(b2Vec2_zero));
+    for (b2Body* b = this->_physics_world->GetBodyList(); b; b = b->GetNext()) {
+        this->_physics_world->DestroyBody(b);
+    }
+
+    this->_physics_world->SetDestructionListener(&this->destruction_listener);
 #ifdef DEBUG
     this->_physics_world->SetDebugDraw(&(this->_debug_draw));
 #endif // DEBUG
@@ -125,7 +128,13 @@ void GameManager::resetLuaContext() {
 }
 
 void GameManager::resetWorld() {
-    this->_world.reset(new World);
+    auto ent = this->_world->getEntities();
+    for (Entity& e : ent) {
+        e.deactivate();
+    }
+    this->_world->removeAllSystems();
+    // Can't call w.clear(), it causes a segfault if you go back to this
+    // state later; a bug in Anax?
 }
 
 void GameManager::setPlayer(anax::Entity e) {
