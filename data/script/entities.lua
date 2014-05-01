@@ -53,6 +53,10 @@ function create_Entity_Enemy(target, x, y, r)
     return e
 end
 
+function p()
+    print("LA LA LA I JUST")
+end
+
 function create_Entity_MouseCircle(r)
     local e = Anax.Entity.new()
     local circle = SFML.CircleShape.new(r)
@@ -99,10 +103,17 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
     local fec = FaceEntityComponent.new(target)
-	local tc = TimerComponent.new(2)
+	local tc = TimerComponent.new(1)
 	local hc = HealthComponent.new(PLAYER_MAX_HEALTH)
 	hc.onDeath = Enemy_die
     fwcc.targetSpeed = 1
+    print(tc.timer)
+    print(tc.timer.reset)
+    print(tc.timer.connect)
+    print(tc.timer.start)
+    print(tc.timer.restart)
+    tc.timer:connect(p)
+    --tc.timer.startTime = 1.0
 
     e:addRenderableComponent(rc)
     e:addFourWayControlComponent(fwcc)
@@ -162,12 +173,13 @@ function create_Entity_TractorBeam(
     return e
 end
 
-function create_Entity_Asteroid(rank, x, y)
+function create_Entity_Asteroid(scale, x, y)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
     local fixturedef = Box2D.FixtureDef.new()
 
-    local shape = Resource.Shape.Get("asteroid")
+    local name = "asteroid"
+    local shape = Resource.Shape.Get(name .. scale)
     local asteroid = shape.group
 
     bodydef.allowSleep = false
@@ -178,8 +190,9 @@ function create_Entity_Asteroid(rank, x, y)
     bodydef.angularDamping = .5
 
     fixturedef:setShape(shape.physics_shapes[2])
-    fixturedef.density = 2
+    fixturedef.density = scale
     bodydef.position = Box2D.Vector.new(x, y)
+
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -187,16 +200,31 @@ function create_Entity_Asteroid(rank, x, y)
     local rc = RenderableComponent.new(asteroid, 0)
     local pbc = PhysicsBodyComponent.new(body, e)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
-	local hc = HealthComponent.new(20)
+	local hc = HealthComponent.new(scale * 10)
 	local tbrc = TractorBeamRepellableComponent.new()
-	hc.onDeath = Enemy_die
+
+	function Asteroid_die(e)
+        if scale > 1 then
+            local pfc = e:getPhysicsFixtureComponent()
+            local body = pfc.fixture:body()
+            local pos = body.position
+            local delta = pfc.fixture:getShape().radius
+            create_Entity_Asteroid(scale - 1, pos.x, pos.y - delta)
+            create_Entity_Asteroid(scale - 1, pos.x - delta, pos.y + delta)
+            create_Entity_Asteroid(scale - 1, pos.x + delta, pos.y + delta)
+        end
+
+        e:addRemovalComponent(RemovalComponent.new())
+        return e
+    end
+
+	hc.onDeath = Asteroid_die
 
     e:addRenderableComponent(rc)
     e:addPhysicsBodyComponent(pbc)
     e:addPhysicsFixtureComponent(pfc)
 	e:addHealthComponent(hc)
 	e:addTractorBeamRepellableComponent(tbrc)
-
     return e
 end
 
