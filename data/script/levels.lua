@@ -1,5 +1,8 @@
 function loadLevel(id)
     local shapes = Resource.Shape.Get(id)
+    local music = SFML.Audio.Music.Load("ray01")
+    music.volume = 50
+    music:play()
     for s = 1, #shapes.graphics_shapes do
         local e = Anax.Entity.new()
         local rc = RenderableComponent.new(shapes.graphics_shapes[s])

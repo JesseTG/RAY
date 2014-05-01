@@ -1,3 +1,10 @@
+function Enemy_die(e)
+    local sound = SFML.Audio.Sound.Get("boom1")
+    sound:play()
+    e:addRemovalComponent(RemovalComponent.new())
+    return e
+end
+
 function create_Entity_Enemy(target, x, y, r)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
@@ -15,10 +22,10 @@ function create_Entity_Enemy(target, x, y, r)
     bodydef.allowSleep = false
     bodydef.type = Box2D.BodyType.Dynamic
     bodydef.position = position
-    bodydef.fixedRotation = true
+    bodydef.fixedRotation = false
 
     fixturedef:setShape(shape)
-    fixturedef.restitution = .9
+    fixturedef.restitution = .3
 
     local body = Box2D.Body.new(bodydef)
     local fixture = body:CreateFixture(fixturedef)
@@ -30,7 +37,8 @@ function create_Entity_Enemy(target, x, y, r)
     local tbrc = TractorBeamRepellableComponent.new()
     local hc = HealthComponent.new(20)
     local aic = AIComponent.new(AI.Wander)
-    local efc = EntityFollowComponent.new(target, 10)
+    local efc = EntityFollowComponent.new(target, 3)
+    hc.onDeath = Enemy_die
 
 
     e:addPositionComponent(pc)
@@ -93,6 +101,7 @@ function create_Entity_KeyboardCircle(target, r, x, y)
     local fec = FaceEntityComponent.new(target)
 	local tc = TimerComponent.new(2)
 	local hc = HealthComponent.new(PLAYER_MAX_HEALTH)
+	hc.onDeath = Enemy_die
     fwcc.targetSpeed = 1
 
     e:addRenderableComponent(rc)
@@ -180,6 +189,7 @@ function create_Entity_Asteroid(rank, x, y)
     local pfc = PhysicsFixtureComponent.new(fixture, e)
 	local hc = HealthComponent.new(20)
 	local tbrc = TractorBeamRepellableComponent.new()
+	hc.onDeath = Enemy_die
 
     e:addRenderableComponent(rc)
     e:addPhysicsBodyComponent(pbc)

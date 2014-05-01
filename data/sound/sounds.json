@@ -2,5 +2,6 @@
     "config" : {
     },
     "files" : {
+        "boom1":"data/sound/boom1.wav"
     }
 }

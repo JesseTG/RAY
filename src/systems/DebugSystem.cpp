@@ -38,12 +38,20 @@ void DebugSystem::update(const vector<Event>& events) {
                         entities::createEntity("Asteroid", 3, worldpos.x / 64, worldpos.y / 64);
                     }
                     break;
-                case Keyboard::Key::Num0:
+                case Keyboard::Key::R: {
+                        Vector2f worldpos =
+                            window.mapPixelToCoords(Mouse::getPosition(window));
+                        // Where in the world will the bullet fly to?
+
+                        entities::createEntity("Enemy", this->_game->getPlayer(), worldpos.x / 64, worldpos.y / 64, 8. / 64);
+                    }
+                    break;
+                case Keyboard::Key::Num1:
                     if (e.key.control) {
                         this->_change_level(0);
                     }
                     break;
-                case Keyboard::Key::Num1:
+                case Keyboard::Key::Num2:
                     if (e.key.control) {
                         this->_change_level(1);
                     }

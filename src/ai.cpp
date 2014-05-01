@@ -1,9 +1,8 @@
 #include "ai.hpp"
 #include "components.hpp"
 
-#include <LuaContext.hpp>
-
 #include <iostream>
+#include <LuaContext.hpp>
 #include "Constants.hpp"
 
 namespace ray {
@@ -16,6 +15,11 @@ Entity seek(Entity e) {
     if (FILTER.doesPassFilter(e.getComponentTypeList())) {
         PhysicsBodyComponent& pbc = e.getComponent<PhysicsBodyComponent>();
         EntityFollowComponent& efc = e.getComponent<EntityFollowComponent>();
+
+        if (!efc.target.isActivated()) {
+            e.getComponent<AIComponent>().update = &wander;
+            return e;
+        }
 
         b2Vec2 targetp = efc.target.getComponent<PhysicsBodyComponent>().body->GetPosition();
         b2Vec2 ep = pbc.body->GetPosition();
@@ -43,6 +47,7 @@ Entity wander(Entity e) {
         PhysicsBodyComponent& pbc = e.getComponent<PhysicsBodyComponent>();
         EntityFollowComponent& efc = e.getComponent<EntityFollowComponent>();
 
+        if (!efc.target.isActivated()) return e;
         b2Vec2 targetp = efc.target.getComponent<PhysicsBodyComponent>().body->GetPosition();
         b2Vec2 ep = pbc.body->GetPosition();
         b2Vec2 direction = targetp - ep;
