@@ -7,7 +7,6 @@ function loadLevel(id)
 
         e:addRenderableComponent(rc)
         e:addPositionComponent(pc)
-
         if shapes.physics_shapes[s] then
             local bdef = Box2D.BodyDef.new()
             bdef.awake = true

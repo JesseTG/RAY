@@ -64,11 +64,6 @@ function create_Entity_MouseCircle(r)
     return e
 end
 
-function p()
-    print("china")
-end
-
-
 function create_Entity_KeyboardCircle(target, r, x, y)
     local e = Anax.Entity.new()
     local bodydef = Box2D.BodyDef.new()
@@ -126,6 +121,7 @@ function create_Entity_TractorBeam(
     local tbdef = Box2D.FixtureDef.new()
     tbdef.density = 0
     tbdef.isSensor = true
+
 
     local tbshape = Box2D.Shape.Rectangle.new(
         starting_width / 2,
