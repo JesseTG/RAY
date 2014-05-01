@@ -31,7 +31,11 @@ struct HealthComponent : public Component<HealthComponent>
      * @tparam NumberType The numerical type (typically a @c float or an @c int)
      * that @c health uses. It must be implicitly convertible to a @c float.
      */
-    HealthComponent(const int hp) : health(hp), max_health(hp), onDeath([](Entity e){ return e; }) {}
+    HealthComponent(const int hp) :
+        health(hp),
+        max_health(hp),
+        _alive(true),
+        onDeath(&HealthComponent::defaultDeath) {}
 
     float fraction() const;
 
@@ -39,12 +43,17 @@ struct HealthComponent : public Component<HealthComponent>
      * The actual int representing the health
      */
     int health;
-
     int max_health;
 
     function<Entity(Entity)> onDeath;
 
+    static Entity defaultDeath(Entity entity);
     static void luaInit(LuaContext& lua);
+
+private:
+    bool _alive;
+    friend class DeathSystem;
+
 };
 }
 
