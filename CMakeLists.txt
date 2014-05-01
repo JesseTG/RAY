@@ -22,31 +22,45 @@ set(SRC_FILES
     src/entities/anax_type_bindings.cpp
     src/entities/box2d_type_bindings.cpp
     src/entities/manager_type_bindings.cpp
+    src/entities/thor_type_bindings.cpp
     src/ai.cpp
     src/entities.cpp
     src/util.cpp
     src/components/AIComponent.cpp
+    src/components/AnimationComponent.cpp
     src/components/EntityFollowComponent.cpp
     src/components/FaceEntityComponent.cpp
     src/components/FourWayControlComponent.cpp
+    src/components/HealthComponent.cpp
     src/components/PhysicsBodyComponent.cpp
     src/components/PhysicsFixtureComponent.cpp
     src/components/PositionComponent.cpp
+    src/components/RemovalComponent.cpp
     src/components/RenderableComponent.cpp
+    src/components/TimerComponent.cpp
     src/components/TractorBeamComponent.cpp
     src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
+    src/listeners/CollisionDamageListener.cpp
+    src/listeners/DestructionListener.cpp
+    src/listeners/MultiContactListener.cpp
     src/listeners/TractorBeamRepellingListener.cpp
     src/managers/color_table.cpp
+    src/managers/Constants.cpp
     src/managers/GameManager.cpp
     src/managers/ImageManager.cpp
+    src/managers/LevelManager.cpp
     src/managers/MusicManager.cpp
     src/managers/ResourceManager.cpp
     src/managers/ScriptManager.cpp
     src/managers/ShapeManager.cpp
     src/managers/SoundManager.cpp
+    src/states/InGameState.cpp
+    src/states/TitleScreenState.cpp
     src/systems/AISystem.cpp
+    src/systems/AnimationSystem.cpp
+    src/systems/DeathSystem.cpp
     src/systems/DebugSystem.cpp
     src/systems/EntityFollowSystem.cpp
     src/systems/FaceEntitySystem.cpp
@@ -54,8 +68,12 @@ set(SRC_FILES
     src/systems/MouseFollowControlSystem.cpp
     src/systems/MovementSystem.cpp
     src/systems/PhysicsSystem.cpp
+    src/systems/RemovalSystem.cpp
     src/systems/RenderSystem.cpp
+    src/systems/TimerSystem.cpp
     src/systems/TractorBeamSystem.cpp
+    src/util/DebugDrawing.cpp
+    src/util/Group.cpp
     src/util/EllipseShape.cpp
     src/util/Logger.cpp
     src/util/PolylineShape.cpp
@@ -63,41 +81,57 @@ set(SRC_FILES
 
 set(INCLUDE_FILES
     include/ai.hpp
-    include/config.hpp
     include/components.hpp
+    include/config.hpp
     include/entities.hpp
     include/fsm.hpp
     include/listeners.hpp
     include/managers.hpp
+    include/states.hpp
     include/systems.hpp
     include/util.hpp
     include/components/AIComponent.hpp
+    include/components/AnimationComponent.hpp
     include/components/EntityFollowComponent.hpp
     include/components/FaceEntityComponent.hpp
     include/components/FourWayControlComponent.hpp
+    include/components/HealthComponent.hpp
     include/components/MouseFollowControlComponent.hpp
     include/components/PhysicsBodyComponent.hpp
     include/components/PhysicsFixtureComponent.hpp
     include/components/PositionComponent.hpp
+    include/components/RemovalComponent.hpp
     include/components/RenderableComponent.hpp
+    include/components/TimerComponent.hpp
     include/components/TractorBeamComponent.hpp
     include/components/TractorBeamRepellableComponent.hpp
     include/components/VelocityComponent.hpp
     include/fsm/CompositionWorldState.hpp
     include/fsm/EntityState.hpp
     include/fsm/EntityStateMachine.hpp
+    include/fsm/GameStateArguments.hpp
     include/fsm/WorldStateMachine.hpp
     include/fsm/WorldState.hpp
+    include/listeners/CollisionDamageListener.hpp
+    include/listeners/DestructionListener.hpp
+    include/listeners/MultiContactListener.hpp
+    include/listeners/TractorBeamRepellingListener.hpp
     include/managers/ResourceManager.hpp
     include/managers/GameManager.hpp
     include/managers/ImageManager.hpp
+    include/managers/LevelManager.hpp
     include/managers/MusicManager.hpp
     include/managers/ResourceManager.hpp
     include/managers/ScriptManager.hpp
     include/managers/ShapeManager.hpp
     include/managers/SoundManager.hpp
-    include/listeners/TractorBeamRepellingListener.hpp
+    include/states/GameStates.hpp
+    include/states/InGameState.hpp
+    include/states/LevelInfo.hpp
+    include/states/TitleScreenState.hpp
     include/systems/AISystem.hpp
+    include/systems/AnimationSystem.hpp
+    include/systems/DeathSystem.hpp
     include/systems/DebugSystem.hpp
     include/systems/EntityFollowSystem.hpp
     include/systems/FaceEntitySystem.hpp
@@ -105,9 +139,13 @@ set(INCLUDE_FILES
     include/systems/MouseFollowControlSystem.hpp
     include/systems/MovementSystem.hpp
     include/systems/PhysicsSystem.hpp
+    include/systems/RemovalSystem.hpp
     include/systems/RenderSystem.hpp
+    include/systems/TimerSystem.hpp
     include/systems/TractorBeamSystem.hpp
+    include/util/DebugDrawing.hpp
     include/util/EllipseShape.hpp
+    include/util/Group.hpp
     include/util/Logger.hpp
     include/util/PolylineShape.hpp
     include/LuaContext.hpp
@@ -121,6 +159,7 @@ include_directories(
     include/listeners
     include/managers
     include/misc
+    include/states
     include/systems
     include/util
 )
