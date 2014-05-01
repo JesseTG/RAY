@@ -12,6 +12,7 @@ namespace ray {
     struct PhysicsBodyComponent;
     struct PhysicsFixtureComponent;
     struct PositionComponent;
+    struct RemovalComponent;
     struct RenderableComponent;
     struct TimerComponent;
     struct TractorBeamComponent;
@@ -29,6 +30,7 @@ namespace ray {
 #include "PhysicsBodyComponent.hpp"
 #include "PhysicsFixtureComponent.hpp"
 #include "PositionComponent.hpp"
+#include "RemovalComponent.hpp"
 #include "RenderableComponent.hpp"
 #include "TimerComponent.hpp"
 #include "TractorBeamComponent.hpp"
