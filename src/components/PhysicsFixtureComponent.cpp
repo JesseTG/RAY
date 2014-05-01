@@ -31,6 +31,7 @@ void PhysicsFixtureComponent::_set_fixture(b2Fixture* fixture, Entity& e) {
     this->fixture->SetUserData(&(this->entity));
 }
 void PhysicsFixtureComponent::luaInit(LuaContext& lua) {
+    lua.registerMember("fixture", &PhysicsFixtureComponent::fixture);
     lua.writeFunction(
         "PhysicsFixtureComponent",
         "new",

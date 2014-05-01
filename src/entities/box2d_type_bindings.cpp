@@ -175,6 +175,14 @@ void initBox2DTypeBindings(GameManager& game) {
             [](b2Fixture& object, const bool val) {
                 object.SetSensor(val);
             });
+            lua.registerFunction<b2Fixture, const b2Shape*(void)>("getShape",
+            [](b2Fixture& fix) {
+                return fix.GetShape();
+            });
+            lua.registerFunction<b2Fixture, const b2Body*(void)>("body",
+            [](b2Fixture& fix) {
+                return fix.GetBody();
+            });
         }
 
         lua.writeVariable("Box2D", "Shape", LuaEmptyArray);
@@ -187,6 +195,9 @@ void initBox2DTypeBindings(GameManager& game) {
                 lua.writeVariable("Box2D", "Shape", "Type", "Chain", b2Shape::e_chain);
                 lua.writeVariable("Box2D", "Shape", "Type", "Count", b2Shape::e_typeCount);
             }
+
+            lua.registerMember("radius", &b2Shape::m_radius);
+            lua.registerMember("type", &b2Shape::m_type);
 
             lua.writeVariable("Box2D", "Shape", "Circle", LuaEmptyArray);
             {

@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 #include <iostream>
+#include <Thor/Time.hpp>
 
 namespace ray {
 
@@ -21,10 +22,11 @@ TimerSystem::~TimerSystem()
 void TimerSystem::update() {
     for (Entity& e : this->getEntities()) {
         TimerComponent& tc = e.getComponent<TimerComponent>();
-        if (tc.loop && tc.timer.isExpired()) {
-            tc.timer.restart(tc.startTime);
-        }
         tc.timer.update();
+        if (tc.loop && !tc.timer.isRunning()) {
+            tc.timer.restart(tc.startTime);
+            std::cout << "tick" << std::endl;
+        }
     }
 }
 
