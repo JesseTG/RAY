@@ -17,6 +17,7 @@ namespace ray {
     struct TimerComponent;
     struct TractorBeamComponent;
     struct TractorBeamRepellableComponent;
+    struct TypeComponent;
     struct VelocityComponent;
 }
 
@@ -35,6 +36,7 @@ namespace ray {
 #include "TimerComponent.hpp"
 #include "TractorBeamComponent.hpp"
 #include "TractorBeamRepellableComponent.hpp"
+#include "TypeComponent.hpp"
 #include "VelocityComponent.hpp"
 
 #endif // COMPONENTS_HPP

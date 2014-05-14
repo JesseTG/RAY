@@ -3,6 +3,7 @@
 
 #include <anax/anax.hpp>
 #include "components.hpp"
+#include "managers/GameManager.hpp"
 
 namespace ray {
 
@@ -12,8 +13,10 @@ class DeathSystem : public anax::System<DeathSystem>
 {
     public:
         DeathSystem();
+        DeathSystem(GameManager *);
         virtual ~DeathSystem();
         void update();
+        GameManager *gm;
     private:
         static const ComponentFilter FILTER;
 };

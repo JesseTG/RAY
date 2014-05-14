@@ -49,6 +49,7 @@ GameManager::GameManager() :
         {make_pair("advance", "game"), "game"},
     }));
 
+    enemiesKilled = 0;
 }
 
 GameManager::~GameManager()

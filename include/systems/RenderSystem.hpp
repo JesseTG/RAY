@@ -25,6 +25,9 @@ class RenderSystem : public System<RenderSystem>
     private:
 		GameManager* _gm;
         sf::View _view;
+        sf::Text _healthLabel;
+        sf::Font font;
+        sf::Text _enemiesKilled;
 
 		static bool _sort_entities(const Entity&, const Entity&) noexcept;
 		const static ComponentFilter FILTER;

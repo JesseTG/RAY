@@ -83,6 +83,7 @@ class GameManager
         void resetLuaContext();
         void resetWorld();
         void setPlayer(anax::Entity);
+        int enemiesKilled;
     private:
         shared_ptr<LuaContext> _lua;
         shared_ptr<b2World> _physics_world;

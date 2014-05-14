@@ -29,6 +29,17 @@ RenderSystem::RenderSystem(GameManager& gm) : Base(FILTER), _gm(&gm)
     //testing scrolling
     //_view->setCenter(0, 0);
     gm.getRenderWindow()->setView(_view);
+
+    _healthLabel.setColor(Color::White);
+    _healthLabel.setCharacterSize(16);
+    font.loadFromFile("arial.ttf");
+    _healthLabel.setFont(font);
+    _healthLabel.setStyle(sf::Text::Regular);
+
+    _enemiesKilled.setColor(Color::White);
+    _enemiesKilled.setCharacterSize(16);
+    _enemiesKilled.setFont(font);
+    _enemiesKilled.setStyle(sf::Text::Regular);
 }
 
 //TODO: Build a render list, and add a graphic to it whenever onEntityAdded is called
@@ -77,6 +88,17 @@ void RenderSystem::update() {
 
         window.draw(*(graphic.drawable), graphic.render_states);
     }
+
+    if (player.isValid() && player.hasComponent<HealthComponent>()) {
+        _healthLabel.setString(std::to_string(player.getComponent<HealthComponent>().health));
+        _healthLabel.setPosition(window.getView().getCenter().x - 394.f, window.getView().getCenter().y - 276.f);
+        window.draw(_healthLabel);
+    }
+
+    _enemiesKilled.setString("Enemies killed: " + std::to_string(_gm->enemiesKilled));
+    _enemiesKilled.setPosition(window.getView().getCenter().x - 394.f, window.getView().getCenter().y - 256.f);
+    window.draw(_enemiesKilled);
+
     _gm->getDesktop()->Update(1.0f);
     _gm->getSfgui()->Display(*_gm->getRenderWindow());
     _gm->getPhysicsWorld()->DrawDebugData();
