@@ -21,8 +21,8 @@ Entity seek(Entity e) {
             return e;
         }
 
-        b2Vec2 targetp = efc.target.getComponent<PhysicsBodyComponent>().body->GetPosition();
-        b2Vec2 ep = pbc.body->GetPosition();
+        const b2Vec2& targetp = efc.target.getComponent<PhysicsBodyComponent>().body->GetPosition();
+        const b2Vec2& ep = pbc.body->GetPosition();
         b2Vec2 direction = targetp - ep;
 
         if (direction.Length() > Constants::SEEK_THRESHOLD) {

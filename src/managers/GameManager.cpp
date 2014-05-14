@@ -47,6 +47,7 @@ GameManager::GameManager() :
         {make_pair("swap", "start"), "game"},
         {make_pair("swap", "game"), "start"},
         {make_pair("advance", "game"), "game"},
+        {make_pair("return", "game"), "start"},
     }));
 
 }

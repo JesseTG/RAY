@@ -207,6 +207,45 @@ void initSFMLTypeBindings(GameManager& game) {
             initCommonSFMLDrawableBindings<Sprite>("Sprite", lua);
         }
 
+        initCommonSFMLDrawableBindings<Transformable>("Transformable", lua);
+
+        lua.writeVariable("SFML", "Drawable", LuaEmptyArray);
+        {
+
+            lua.registerMember<Drawable, Vector2f>("position",
+            [](const Drawable& s) {
+                return dynamic_cast<const Transformable*>(&s)->getPosition();
+            },
+            [](Drawable& s, const Vector2f& position) {
+                dynamic_cast<Transformable*>(&s)->setPosition(position);
+            });
+            lua.registerMember<Drawable, float>("rotation",
+            [](const Drawable& s) {
+                return dynamic_cast<const Transformable*>(&s)->getRotation();
+            },
+            [](Drawable& s, const float rotation) {
+                dynamic_cast<Transformable*>(&s)->setRotation(rotation);
+            });
+            lua.registerMember<Drawable, Vector2f>("origin",
+            [](const Drawable& s) {
+                return dynamic_cast<const Transformable*>(&s)->getOrigin();
+            },
+            [](Drawable& s, const Vector2f& origin) {
+                dynamic_cast<Transformable*>(&s)->setOrigin(origin);
+            });
+            lua.registerMember<Drawable, Vector2f>("scale",
+            [](const Drawable& s) {
+                return dynamic_cast<const Transformable*>(&s)->getScale();
+            },
+            [](Drawable& s, const Vector2f& scale) {
+                dynamic_cast<Transformable*>(&s)->setScale(scale);
+            });
+            //lua.registerFunction<void(Drawable::*)(const Vector2f&)>("move", &Drawable::move);
+            //lua.registerFunction<void(Drawable::*)(const Vector2f&)>("scale", &Drawable::scale);
+            // TODO: Allow SFML vectors *and* floats
+            //lua.registerFunction("rotate", &Drawable::rotate);
+        }
+
         lua.writeVariable("SFML", "CircleShape", LuaEmptyArray);
         {
             lua.writeFunction("SFML", "CircleShape", "new",

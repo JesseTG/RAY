@@ -56,6 +56,10 @@ void DebugSystem::update(const vector<Event>& events) {
                         this->_change_level(1);
                     }
                     break;
+                case Keyboard::Key::Num0: {
+                        LevelInfo level;
+                        this->_game->getStateMachine()->transition("return", level);
+                    }
                 case Keyboard::Key::BackSpace:
                     this->_debug_draw = !this->_debug_draw;
                     break;

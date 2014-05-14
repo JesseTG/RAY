@@ -57,11 +57,12 @@ void initThorTypeBindings(GameManager& game) {
                 static vector<Connection> connections;
                 Connection c = timer.connect0(f);
                 connections.push_back(c);
-                assert(c.isConnected());
+                assert(connections.back().isConnected());
             });
             lua.registerFunction("clear", &CallbackTimer::clearConnections);
             lua.registerFunction("update", &CallbackTimer::update);
             initCommonThorTimerBindings<CallbackTimer>("CallbackTimer", lua);
+            lua.registerFunction("start", &CallbackTimer::start);
         }
 
         lua.writeVariable("Thor", "StopWatch", LuaEmptyArray);

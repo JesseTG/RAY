@@ -26,7 +26,8 @@ InGameState::InGameState(GameManager& game) :
     follow_entity(),
     tractor_system(tb_listener),
     physics(game.getPhysicsWorld()),
-    _lives(0)
+    _lives(0),
+    _quota(0)
 #ifdef DEBUG
     , debug(game)
 #endif // DEBUG
@@ -64,6 +65,7 @@ void InGameState::onEnter(World& w, GameStateArguments& arg) {
     LevelInfo* level = dynamic_cast<LevelInfo*>(&arg);
 
     this->_lives = level->lives;
+    this->_quota = level->quota;
     this->_load_level(level->name);
 
     spawningAmt = this->_game->getLuaContext()->readVariable<int>("spawningAmt");

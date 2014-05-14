@@ -40,6 +40,7 @@ class InGameState : public util::WorldState<vector<Event>>
         sfg::ProgressBar::Ptr _health_bar;
         sfg::Box::Ptr _health_box;
         int _lives;
+        int _quota;
         function<void(string)> _load_level;
         MultiContactListener contact_listener;
         TractorBeamRepellingListener tb_listener;

@@ -5,6 +5,13 @@ function Enemy_die(e)
     return e
 end
 
+function Player_die(e)
+    local sound = SFML.Audio.Sound.Get("boom1")
+    sound:play()
+
+    return e
+end
+
 function create_Entity_Spawning_Point(x, y)
 	local e = Anax.Entity.new()
 	local pc = PositionComponent.new(x, y)
@@ -179,6 +186,7 @@ function create_Entity_TractorBeam(
 
     return e
 end
+
 
 function create_Entity_Asteroid(scale, x, y)
     local e = Anax.Entity.new()

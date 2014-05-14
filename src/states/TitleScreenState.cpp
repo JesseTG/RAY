@@ -13,10 +13,12 @@ TitleScreenState::TitleScreenState(GameManager& game) :
     this->_start_menu->SetTitle("Start Menu");
     this->_start_menu->Add(this->_start_button);
     this->_game->getDesktop()->Add(this->_start_menu);
-    this->_game->getDesktop()->Add(this->_splash_widget);
+    //this->_game->getDesktop()->Add(this->_splash_widget);
     auto startButtonClicked = [this]() {
         LevelInfo level;
         level.name = "collide";
+        level.lives = 3;
+        level.quota = 40;
         this->_game->getStateMachine()->transition("swap", level);
     };
     this->_start_button->GetSignal( sfg::Button::OnLeftClick ).Connect(startButtonClicked);
@@ -28,7 +30,7 @@ TitleScreenState::~TitleScreenState()
 }
 
 void TitleScreenState::onEnter(World& w, GameStateArguments& arg) {
-    this->_start_menu->Show(false);
+    this->_start_menu->Show(true);
     this->_splash_widget->Show(true);
     this->_game->getRenderWindow()->resetGLStates();
 }
@@ -38,6 +40,7 @@ void TitleScreenState::onExit(World& w, GameStateArguments& arg) {
 }
 
 void TitleScreenState::update(const vector<Event>& events) {
+    showMainMenu = true;  // TODO: Remove
     for (auto& e : events) {
         if (!showMainMenu && (e.type == sf::Event::KeyPressed) && (e.key.code == sf::Keyboard::Space)) {
             showMainMenu = true;

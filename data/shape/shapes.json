@@ -9,6 +9,7 @@
         "ship" : "data/shape/ship.svg",
         "asteroid3":"data/shape/asteroid3.svg",
         "asteroid2" : "data/shape/asteroid2.svg",
-        "asteroid1" : "data/shape/asteroid1.svg"
+        "asteroid1" : "data/shape/asteroid1.svg",
+        "beam" : "data/shape/beam.svg"
     }
 }
