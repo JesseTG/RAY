@@ -39,6 +39,7 @@ set(SRC_FILES
     src/components/RenderableComponent.cpp
     src/components/TimerComponent.cpp
     src/components/TractorBeamComponent.cpp
+    src/components/TypeComponent.cpp
     src/components/VelocityComponent.cpp
     src/fsm/EntityState.cpp
     src/fsm/EntityStateMachine.cpp
@@ -105,6 +106,7 @@ set(INCLUDE_FILES
     include/components/TimerComponent.hpp
     include/components/TractorBeamComponent.hpp
     include/components/TractorBeamRepellableComponent.hpp
+    include/components/TypeComponent.hpp
     include/components/VelocityComponent.hpp
     include/fsm/CompositionWorldState.hpp
     include/fsm/EntityState.hpp

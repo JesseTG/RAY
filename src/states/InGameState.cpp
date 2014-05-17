@@ -91,6 +91,7 @@ void InGameState::onEnter(World& w, GameStateArguments& arg) {
     w.addSystem(rendering);
     w.addSystem(removal);
     w.refresh();
+    death.gm = _game;
 }
 
 void InGameState::onExit(World& w, GameStateArguments& arg) {

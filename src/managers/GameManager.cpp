@@ -50,6 +50,7 @@ GameManager::GameManager() :
         {make_pair("return", "game"), "start"},
     }));
 
+    enemiesKilled = 0;
 }
 
 GameManager::~GameManager()

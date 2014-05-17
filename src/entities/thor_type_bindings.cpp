@@ -57,7 +57,7 @@ void initThorTypeBindings(GameManager& game) {
                 static vector<Connection> connections;
                 Connection c = timer.connect0(f);
                 connections.push_back(c);
-                assert(connections.back().isConnected());
+                assert(c.isConnected());
             });
             lua.registerFunction("clear", &CallbackTimer::clearConnections);
             lua.registerFunction("update", &CallbackTimer::update);
